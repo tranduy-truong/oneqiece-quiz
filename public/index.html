@@ -20,10 +20,26 @@
     </header>
 
     <main class="container">
-        <!-- Loading State (Cho phép đổi hình ảnh tùy thích) -->
-        <div id="loading-state" class="card loading-screen">
+        <!-- Welcome Screen (Hiện cố định khi vừa vào web cho đến khi bấm Bắt đầu) -->
+        <div id="welcome-screen" class="card welcome-card">
             <div class="loading-img-wrapper">
-                <img id="loading-image" class="loading-img" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3ZhcTJ3MXZyc3BvMDk1Y3JpNmZ1cXZ6bzNxeG1mczN0cmRhNWpldCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9az09tlYyYNfq/giphy.gif" alt="Loading GIF" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' stroke=\'%2387CEEB\' stroke-width=\'8\' fill=\'none\' stroke-dasharray=\'180 50\'><animateTransform attributeName=\'transform\' type=\'rotate\' from=\'0 50 50\' to=\'360 50 50\' dur=\'1s\' repeatCount=\'indefinite\'/></circle></svg>'">
+                <img id="welcome-image" class="loading-img" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" alt="Kizaru Smile">
+            </div>
+            <div class="welcome-intro">
+                <h2 style="color: var(--color-skyblue); font-size: 1.45rem; margin-bottom: 10px; text-transform: uppercase;">BẠN TỰ TIN MÌNH LÀ FAN ONE PIECE REAL?</h2>
+                <p style="color: var(--text-muted); font-size: 0.96rem; margin-bottom: 24px; line-height: 1.6;">
+                    Hệ thống kiểm tra kiến thức không nhân nhượng. Trả lời trực tiếp từng câu, xem giải thích chi tiết và nhận kết quả đánh giá cấp bậc chống Larper!
+                </p>
+                <button class="btn btn-primary" id="btn-start-quiz" onclick="startQuizNow()" style="font-size: 1.15rem; padding: 15px 42px; width: 100%; max-width: 320px;">
+                    BẮT ĐẦU NGAY ➔
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="card loading-screen" style="display: none;">
+            <div class="loading-img-wrapper">
+                <img id="loading-image" class="loading-img" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" alt="Loading GIF">
             </div>
             <div class="loading-text">Đang tải dữ liệu câu hỏi...</div>
             <p style="color: var(--text-muted); font-size: 0.88rem;">Chuẩn bị kiểm tra kiến thức thực tế của bạn</p>
@@ -33,7 +49,7 @@
         <div id="error-state" class="card" style="display: none; text-align: center; padding: 40px 20px;">
             <h3 style="color: var(--color-wrong); margin-bottom: 12px;">Không thể tải danh sách câu hỏi</h3>
             <p id="error-message" style="color: var(--text-muted); margin-bottom: 20px;">Đã xảy ra lỗi kết nối cơ sở dữ liệu.</p>
-            <button class="btn btn-primary" onclick="loadQuestions()" id="btn-retry">Thử lại</button>
+            <button class="btn btn-primary" onclick="startQuizNow()" id="btn-retry">Thử lại</button>
         </div>
 
         <!-- Quiz Screen -->
@@ -61,11 +77,18 @@
                 <!-- Option items dynamically rendered -->
             </div>
 
-            <!-- Instant Explanation Box (Hiện ngay khi chọn đáp án) -->
+            <!-- Instant Explanation Box with Side GIF -->
             <div id="explanation-box" class="explanation-card">
-                <div id="explanation-status" class="explanation-status"></div>
-                <div id="explanation-text" class="explanation-text"></div>
-                <div id="explanation-note" class="explanation-note"></div>
+                <div class="explanation-content-wrapper">
+                    <div class="explanation-gif-container">
+                        <img id="explanation-gif" class="explanation-gif" src="" alt="Feedback GIF">
+                    </div>
+                    <div class="explanation-body">
+                        <div id="explanation-status" class="explanation-status"></div>
+                        <div id="explanation-text" class="explanation-text"></div>
+                        <div id="explanation-note" class="explanation-note"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- Question Navigator Grid -->
