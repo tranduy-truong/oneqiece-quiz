@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#87CEEB"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="#07111e" stroke="url(#skyGrad)" stroke-width="3"/>
+  <!-- Jolly Roger / Straw Hat Stylized -->
+  <path d="M12 40 Q32 32 52 40 Q54 44 48 45 Q32 39 16 45 Q10 44 12 40 Z" fill="#87CEEB"/>
+  <path d="M22 35 C22 20 42 20 42 35 Z" fill="#87CEEB"/>
+  <rect x="22" y="32" width="20" height="4" fill="#ef4444" rx="1"/>
+  <!-- Skull Eyes & Smile -->
+  <circle cx="28" cy="27" r="2.5" fill="#07111e"/>
+  <circle cx="36" cy="27" r="2.5" fill="#07111e"/>
+</svg>
