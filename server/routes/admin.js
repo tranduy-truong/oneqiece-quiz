@@ -237,6 +237,71 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
 });
 
 /**
+ * POST /api/admin/questions/bulk
+ * Thêm hàng loạt câu hỏi cùng lúc
+ */
+router.post('/questions/bulk', requireAdminAuth, async (req, res) => {
+    try {
+        const { questions } = req.body;
+
+        if (!Array.isArray(questions) || questions.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Danh sách câu hỏi không hợp lệ hoặc đang trống.'
+            });
+        }
+
+        let insertedCount = 0;
+        const validQuestions = [];
+
+        for (const q of questions) {
+            if (q.question_text && q.option_a && q.option_b && q.option_c && q.option_d && q.correct_answer) {
+                const validAnswer = String(q.correct_answer).toUpperCase().trim();
+                if (['A', 'B', 'C', 'D'].includes(validAnswer)) {
+                    validQuestions.push([
+                        String(q.question_text).trim(),
+                        String(q.option_a).trim(),
+                        String(q.option_b).trim(),
+                        String(q.option_c).trim(),
+                        String(q.option_d).trim(),
+                        validAnswer,
+                        q.explanation ? String(q.explanation).trim() : '',
+                        q.category ? String(q.category).trim() : 'Chung',
+                        q.difficulty ? parseInt(q.difficulty, 10) || 1 : 1
+                    ]);
+                }
+            }
+        }
+
+        if (validQuestions.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Không có câu hỏi nào đúng định dạng (cần có câu hỏi, 4 đáp án và đáp án đúng A/B/C/D).'
+            });
+        }
+
+        for (const qData of validQuestions) {
+            await pool.query(
+                `INSERT INTO questions 
+                (question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                qData
+            );
+            insertedCount++;
+        }
+
+        res.status(201).json({
+            success: true,
+            message: `Đã thêm thành công ${insertedCount} câu hỏi mới!`,
+            inserted_count: insertedCount
+        });
+    } catch (error) {
+        console.error('Admin: Lỗi thêm hàng loạt câu hỏi:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Lỗi máy chủ khi thêm hàng loạt câu hỏi.'
+        });
+/**
  * DELETE /api/admin/questions/:id
  * Xóa một câu hỏi
  */

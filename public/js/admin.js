@@ -260,6 +260,153 @@ async function handleDeleteQuestion(id) {
 }
 
 /**
+ * Mở Modal Nhập Hàng Loạt
+ */
+function openBulkModal() {
+    const modal = document.getElementById('bulk-modal');
+    document.getElementById('bulk-input').value = '';
+    document.getElementById('bulk-preview-status').innerText = '';
+    modal.classList.add('open');
+}
+
+/**
+ * Đóng Modal Nhập Hàng Loạt
+ */
+function closeBulkModal() {
+    const modal = document.getElementById('bulk-modal');
+    modal.classList.remove('open');
+}
+
+/**
+ * Xử lý nhập hàng loạt câu hỏi
+ */
+async function handleProcessBulk() {
+    const rawInput = document.getElementById('bulk-input').value.trim();
+    if (!rawInput) {
+        alert('Vui lòng dán danh sách câu hỏi vào ô nhập liệu.');
+        return;
+    }
+
+    let parsedQuestions = [];
+
+    // 1. Thử parse dạng JSON
+    try {
+        const json = JSON.parse(rawInput);
+        if (Array.isArray(json)) {
+            parsedQuestions = json;
+        } else if (json && Array.isArray(json.questions)) {
+            parsedQuestions = json.questions;
+        }
+    } catch (e) {
+        // 2. Nếu không phải JSON, parse dạng Văn Bản Tự Do
+        parsedQuestions = parsePlainTextQuestions(rawInput);
+    }
+
+    if (parsedQuestions.length === 0) {
+        alert('Không tìm thấy câu hỏi hợp lệ nào trong nội dung bạn vừa dán.\nVui lòng kiểm tra lại định dạng (mỗi câu cần có câu hỏi, 4 lựa chọn A, B, C, D và Đáp án).');
+        return;
+    }
+
+    if (!confirm(`Hệ thống đã nhận diện được ${parsedQuestions.length} câu hỏi hợp lệ. Bạn có muốn nạp tất cả vào database?`)) {
+        return;
+    }
+
+    const btnSubmit = document.getElementById('btn-submit-bulk');
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = '⏳ Đang lưu dữ liệu...';
+
+    try {
+        const res = await fetch('/api/admin/questions/bulk', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ questions: parsedQuestions })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            closeBulkModal();
+            showAlert(data.message || `Đã thêm thành công ${parsedQuestions.length} câu hỏi!`, 'success');
+            await loadAdminQuestions();
+        } else {
+            alert(data.error || 'Có lỗi xảy ra khi nạp dữ liệu hàng loạt.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ khi nạp câu hỏi.');
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = '⚡ Tiến Hành Nhập Dữ Liệu';
+    }
+}
+
+/**
+ * Hàm phân tích văn bản tự do thành mảng câu hỏi
+ */
+function parsePlainTextQuestions(text) {
+    const blocks = text.split(/\n\s*---\s*\n|\n\s*===\s*\n|\n{2,}/);
+    const result = [];
+
+    blocks.forEach(block => {
+        const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length < 5) return;
+
+        let qText = '';
+        let optA = '', optB = '', optC = '', optD = '';
+        let correct = '';
+        let category = 'Chung';
+        let difficulty = 1;
+        let explanation = '';
+
+        lines.forEach(line => {
+            if (/^(Câu\s*\d*[:.]?|Question\s*\d*[:.]?)/i.test(line)) {
+                qText = line.replace(/^(Câu\s*\d*[:.]?|Question\s*\d*[:.]?)\s*/i, '');
+            } else if (/^[AÀa]\s*[:.)-]\s*/i.test(line)) {
+                optA = line.replace(/^[AÀa]\s*[:.)-]\s*/i, '');
+            } else if (/^[Bᵇb]\s*[:.)-]\s*/i.test(line)) {
+                optB = line.replace(/^[Bᵇb]\s*[:.)-]\s*/i, '');
+            } else if (/^[Cᶜc]\s*[:.)-]\s*/i.test(line)) {
+                optC = line.replace(/^[Cᶜc]\s*[:.)-]\s*/i, '');
+            } else if (/^[Dᵈd]\s*[:.)-]\s*/i.test(line)) {
+                optD = line.replace(/^[Dᵈd]\s*[:.)-]\s*/i, '');
+            } else if (/^(Đáp án|Đáp án đúng|Answer|Key)\s*[:.]?\s*([A-D])/i.test(line)) {
+                const match = line.match(/^(Đáp án|Đáp án đúng|Answer|Key)\s*[:.]?\s*([A-D])/i);
+                if (match) correct = match[2].toUpperCase();
+            } else if (/^(Chủ đề|Category)\s*[:.]?\s*(.+)/i.test(line)) {
+                const match = line.match(/^(Chủ đề|Category)\s*[:.]?\s*(.+)/i);
+                if (match) category = match[2].trim();
+            } else if (/^(Độ khó|Level|Difficulty)\s*[:.]?\s*(\d)/i.test(line)) {
+                const match = line.match(/^(Độ khó|Level|Difficulty)\s*[:.]?\s*(\d)/i);
+                if (match) difficulty = parseInt(match[2], 10) || 1;
+            } else if (/^(Giải thích|Explanation|Nguồn)\s*[:.]?\s*(.+)/i.test(line)) {
+                const match = line.match(/^(Giải thích|Explanation|Nguồn)\s*[:.]?\s*(.+)/i);
+                if (match) explanation = match[2].trim();
+            } else if (!qText) {
+                qText = line;
+            }
+        });
+
+        if (qText && optA && optB && optC && optD && correct) {
+            result.push({
+                question_text: qText,
+                option_a: optA,
+                option_b: optB,
+                option_c: optC,
+                option_d: optD,
+                correct_answer: correct,
+                category: category,
+                difficulty: difficulty,
+                explanation: explanation
+            });
+        }
+    });
+
+    return result;
+}
+
+/**
  * Đăng xuất admin
  */
 function handleLogout() {
