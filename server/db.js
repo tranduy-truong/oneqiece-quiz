@@ -1,17 +1,32 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+// Hỗ trợ cả tên biến có tiền tố DB_ và không có tiền tố để tránh nhầm lẫn
+const dbHost = process.env.DB_HOST || process.env.HOST || 'localhost';
+const dbPort = parseInt(process.env.DB_PORT || process.env.PORT_DB, 10) || 4000;
+const dbUser = process.env.DB_USER || process.env.DB_USERNAME || process.env.USERNAME || 'root';
+const dbPassword = process.env.DB_PASSWORD || process.env.PASSWORD || '';
+const dbName = process.env.DB_NAME || process.env.DATABASE || 'quiz_db';
+
+// Cấu hình SSL cho Cloud MySQL (như TiDB Cloud, Aiven, Clever Cloud)
+const isCloudDB = Boolean(
+    process.env.DB_SSL === 'true' || 
+    (dbHost && dbHost.includes('tidbcloud.com')) ||
+    (dbHost && dbHost.includes('aivencloud.com'))
+);
+
 // Tạo connection pool tới MySQL
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT, 10) || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'quiz_db',
+    host: dbHost,
+    port: dbPort,
+    user: dbUser,
+    password: dbPassword,
+    database: dbName,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    charset: 'utf8mb4'
+    charset: 'utf8mb4',
+    ssl: isCloudDB ? { rejectUnauthorized: false } : undefined
 });
 
 // Hàm kiểm tra kết nối khi khởi động
