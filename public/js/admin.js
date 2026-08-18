@@ -291,11 +291,22 @@ async function handleProcessBulk() {
 
     // 1. Thử parse dạng JSON
     try {
-        const json = JSON.parse(rawInput);
+        let json = JSON.parse(rawInput);
+        if (!Array.isArray(json) && json && Array.isArray(json.questions)) {
+            json = json.questions;
+        }
         if (Array.isArray(json)) {
-            parsedQuestions = json;
-        } else if (json && Array.isArray(json.questions)) {
-            parsedQuestions = json.questions;
+            parsedQuestions = json.map(q => ({
+                question_text: q.question_text || q.question || '',
+                option_a: q.option_a || (q.options ? q.options.A : '') || '',
+                option_b: q.option_b || (q.options ? q.options.B : '') || '',
+                option_c: q.option_c || (q.options ? q.options.C : '') || '',
+                option_d: q.option_d || (q.options ? q.options.D : '') || '',
+                correct_answer: q.correct_answer || q.answer || 'A',
+                category: q.category || 'Chung',
+                difficulty: parseInt(q.difficulty, 10) || 1,
+                explanation: q.explanation || ''
+            })).filter(q => q.question_text && q.option_a && q.option_b && q.option_c && q.option_d);
         }
     } catch (e) {
         // 2. Nếu không phải JSON, parse dạng Văn Bản Tự Do
