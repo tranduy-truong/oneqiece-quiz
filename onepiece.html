@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece - Ultimate Quiz</title>
+    <style>
+        :root {
+            --primary-bg: #0b1d3a;
+            --text-main: #f0e6d2;
+            --accent-gold: #f1c40f;
+            --accent-red: #e74c3c;
+            --correct-green: #2ecc71;
+            --wrong-red: #e74c3c;
+            --card-bg: rgba(20, 40, 70, 0.9);
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            background-image: radial-gradient(circle, #1a365d 0%, #0b1d3a 100%);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home Screen */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--accent-gold);
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin: 0;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--accent-gold);
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--accent-gold);
+            color: var(--primary-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Quiz Screen */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        .question-box {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            border: 1px solid rgba(241, 196, 15, 0.2);
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            background: var(--accent-red);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            text-align: left;
+            text-transform: none;
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-letter {
+            background: rgba(255,255,255,0.1);
+            padding: 5px 12px;
+            border-radius: 4px;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct-green);
+            border-color: var(--correct-green);
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red);
+            border-color: var(--wrong-red);
+            color: white;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 4px solid var(--accent-gold);
+            border-radius: 0 8px 8px 0;
+            display: none;
+        }
+
+        .source-tag {
+            font-size: 0.85rem;
+            color: #bdc3c7;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Result Screen */
+        .result-container {
+            text-align: center;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--accent-gold);
+        }
+
+        .rank-title {
+            font-size: 2.5rem;
+            color: var(--accent-gold);
+            margin: 20px 0;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .stat-item {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .control-btns {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        @media (max-width: 600px) {
+            .menu-grid, .stat-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- HOME SCREEN -->
+    <div id="home-screen" class="screen active">
+        <div class="header">
+            <h1>ONE PIECE</h1>
+            <h3>Ultimate Quiz</h3>
+            <p>Bạn hiểu One Piece đến đâu?</p>
+        </div>
+        <div class="menu-grid">
+            <button onclick="startQuiz('quick')">▶ Chế độ Nhanh (5 Câu)</button>
+            <button onclick="startQuiz('standard')">⚔ Chế độ Tiêu Chuẩn (20 Câu)</button>
+            <button onclick="startQuiz('hardcore')">☠ Hardcore (Chỉ Lv 4-6)</button>
+            <button onclick="startQuiz('random')">🎲 Grand Line Random</button>
+        </div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-header">
+            <div id="progress-text">Câu 1 / 10</div>
+            <div>Điểm: <span id="score-display" style="color: var(--accent-gold); font-weight: bold;">0</span></div>
+            <div>🔥 Streak: <span id="streak-display">0</span></div>
+        </div>
+
+        <div class="question-box">
+            <div id="difficulty-badge" class="difficulty-badge">LEVEL 1</div>
+            <div id="category-badge" class="difficulty-badge" style="background: #2980b9;">Chủ đề</div>
+            <div id="question-text" style="margin-top: 15px;">Nội dung câu hỏi...</div>
+        </div>
+
+        <div class="options-grid" id="options-container">
+            <!-- Options injected by JS -->
+        </div>
+
+        <div id="explanation-box" class="explanation-box">
+            <h3 id="result-status" style="margin-top:0;"></h3>
+            <p id="explanation-text"></p>
+            <div id="source-text" class="source-tag"></div>
+            <div class="control-btns">
+                <button id="next-btn" onclick="nextQuestion()" style="width: 100%; margin-top: 15px; display: none;">Câu Tiếp Theo ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="screen">
+        <div class="result-container">
+            <h2>HÀNH TRÌNH KẾT THÚC</h2>
+            <div class="rank-title" id="rank-display">👑 Yonko</div>
+            <p id="rank-message">Bạn là một huyền thoại của biển cả!</p>
+
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <strong>Tổng Điểm:</strong> <span id="final-score">0</span>
+                </div>
+                <div class="stat-item">
+                    <strong>Tỷ Lệ Chính Xác:</strong> <span id="final-accuracy">0%</span>
+                </div>
+                <div class="stat-item">
+                    <strong>Số Câu Đúng:</strong> <span id="final-correct">0</span>
+                </div>
+                <div class="stat-item">
+                    <strong>Streak Cao Nhất:</strong> <span id="final-streak">0</span>
+                </div>
+            </div>
+
+            <div class="control-btns" style="margin-top: 30px;">
+                <button onclick="goHome()">🏠 Về Trang Chủ</button>
+                <button onclick="startQuiz(currentMode)">🔄 Chơi Lại Chế Độ Này</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // BƯỚC 3: DATABASE CÂU HỎI (Chuẩn Schema JSON)
+    const questionBank = [
+        {
+            id: 1, difficulty: 1, category: "Nhân vật",
+            question: "Ai là thành viên đầu tiên gia nhập băng hải tặc Mũ Rơm?",
+            options: { "A": "Nami", "B": "Usopp", "C": "Roronoa Zoro", "D": "Sanji" },
+            correct_answer: "C",
+            explanation: "Zoro là thành viên đầu tiên Luffy chiêu mộ tại Shells Town sau khi cứu anh khỏi Đại tá Morgan.",
+            arc: "Romance Dawn", chapter: "3", source_status: "CANON"
+        },
+        {
+            id: 2, difficulty: 1, category: "Trái Ác Quỷ",
+            question: "Trái ác quỷ Gomu Gomu no Mi thực chất có tên thật là gì?",
+            options: { "A": "Hito Hito no Mi, Model: Nika", "B": "Mera Mera no Mi", "C": "Yomi Yomi no Mi", "D": "Bari Bari no Mi" },
+            correct_answer: "A",
+            explanation: "Ngũ Lão Tinh đã tiết lộ trái Gomu Gomu thực chất là trái Zoan Thần Thoại Hito Hito no Mi, Model: Nika.",
+            arc: "Wano Country", chapter: "1044", source_status: "CANON"
+        },
+        {
+            id: 3, difficulty: 2, category: "Arc",
+            question: "Vương quốc Alabasta được bảo vệ bởi vị thần hộ mệnh mang năng lực Trái Ác Quỷ gì?",
+            options: { "A": "Chó sói", "B": "Chim ưng (Falcon)", "C": "Báo đốm", "D": "Sư tử" },
+            correct_answer: "B",
+            explanation: "Pell sở hữu trái Tori Tori no Mi, Model: Falcon. Anh cùng với Chaka (Jackal) là hai thần hộ mệnh của Alabasta.",
+            arc: "Alabasta", chapter: "169", source_status: "CANON"
+        },
+        {
+            id: 4, difficulty: 2, category: "Hải quân",
+            question: "Trụ sở chính của Hải Quân (Marineford) ban đầu nằm ở đâu?",
+            options: { "A": "Tân Thế Giới", "B": "Biển Đông (East Blue)", "C": "Nửa đầu Grand Line (Paradise)", "D": "Calm Belt" },
+            correct_answer: "C",
+            explanation: "Marineford ban đầu nằm ở Paradise. Sau timeskip, Akainu đã đổi vị trí Marineford với chi nhánh G-1 ở Tân Thế Giới.",
+            arc: "Marineford", chapter: "Sự kiện lịch sử", source_status: "CANON"
+        },
+        {
+            id: 5, difficulty: 3, category: "Haki",
+            question: "Rayleigh đã hướng dẫn Luffy học Haki trên hòn đảo nào?",
+            options: { "A": "Sabaody Archipelago", "B": "Amazon Lily", "C": "Rusukaina", "D": "Punk Hazard" },
+            correct_answer: "C",
+            explanation: "Rusukaina là hòn đảo có thời tiết thay đổi 48 mùa một năm, nằm gần Amazon Lily, nơi Rayleigh huấn luyện Luffy trong 1.5 năm.",
+            arc: "Post-War", chapter: "597", source_status: "CANON"
+        },
+        {
+            id: 6, difficulty: 3, category: "Vũ Khí Cổ Đại",
+            question: "Vũ khí cổ đại Pluton được miêu tả là gì?",
+            options: { "A": "Một nàng tiên cá", "B": "Một trái ác quỷ", "C": "Một hòn đảo", "D": "Một chiến hạm khổng lồ" },
+            correct_answer: "D",
+            explanation: "Pluton là một chiến hạm khổng lồ có sức mạnh hủy diệt một hòn đảo trong một phát bắn. Bản vẽ của nó từng được Franky giữ.",
+            arc: "Water 7", chapter: "344", source_status: "CANON"
+        },
+        {
+            id: 7, difficulty: 4, category: "Lore",
+            question: "Trên Skypiea, Gol D. Roger đã để lại một thông điệp trên khối Poneglyph bằng ngôn ngữ cổ đại. Ai là người đã khắc thông điệp đó cho Roger?",
+            options: { "A": "Silvers Rayleigh", "B": "Kozuki Oden", "C": "Clover", "D": "Nico Robin" },
+            correct_answer: "B",
+            explanation: "Trong đoạn flashback, chính Kozuki Oden, người có khả năng đọc và khắc văn tự cổ của gia tộc Kozuki, đã khắc dòng chữ đó cho Roger.",
+            arc: "Wano Country (Flashback)", chapter: "966", source_status: "CANON"
+        },
+        {
+            id: 8, difficulty: 4, category: "Nhân vật",
+            question: "Tên thật của 'Râu Đen' (Blackbeard) là gì?",
+            options: { "A": "Marshall D. Teach", "B": "Rocks D. Xebec", "C": "Gol D. Teach", "D": "Jaguar D. Saul" },
+            correct_answer: "A",
+            explanation: "Tên đầy đủ của Râu Đen là Marshall D. Teach, một người mang ý chí của D.",
+            arc: "Jaya", chapter: "223", source_status: "CANON"
+        },
+        {
+            id: 9, difficulty: 5, category: "Lore",
+            question: "Ai là người ĐẦU TIÊN đề cập đến cái tên 'Sun God Nika' trong mạch truyện chính của Manga?",
+            options: { "A": "Gorosei (Ngũ Lão Tinh)", "B": "Who's-Who", "C": "Vegapunk", "D": "Jinbe" },
+            correct_answer: "B",
+            explanation: "Who's-Who đã hỏi Jinbe về truyền thuyết Sun God Nika mà hắn nghe được từ một lính canh khi bị giam ở Impel Down.",
+            arc: "Wano Country", chapter: "1018", source_status: "CANON"
+        },
+        {
+            id: 10, difficulty: 5, category: "Poneglyph",
+            question: "Có tổng cộng bao nhiêu khối Road Poneglyph (Poneglyph Đỏ) trên thế giới dùng để chỉ đường đến Laugh Tale?",
+            options: { "A": "3", "B": "4", "C": "7", "D": "9" },
+            correct_answer: "B",
+            explanation: "Có đúng 4 khối Road Poneglyph. Khi xác định được vị trí giao nhau của 4 tọa độ từ 4 khối này, đó chính là Laugh Tale.",
+            arc: "Zou", chapter: "818", source_status: "CANON"
+        },
+        {
+            id: 11, difficulty: 6, category: "Lịch sử",
+            question: "Mức truy nã chính xác của Vua Hải Tặc Gol D. Roger là bao nhiêu?",
+            options: { "A": "5,046,000,000 Berries", "B": "5,564,800,000 Berries", "C": "4,388,000,000 Berries", "D": "5,600,000,000 Berries" },
+            correct_answer: "B",
+            explanation: "Tiền truy nã của Roger là 5,564,800,000. Của Râu Trắng là 5,046,000,000 (đáp án A).",
+            arc: "Wano Country", chapter: "957", source_status: "CANON"
+        },
+        {
+            id: 12, difficulty: 6, category: "Chi tiết nhỏ",
+            question: "Số hiệu tù nhân của Luffy tại mỏ đá Udon (Wano) là bao nhiêu?",
+            options: { "A": "312", "B": "5592", "C": "9412", "D": "1520" },
+            correct_answer: "B",
+            explanation: "Số hiệu tù nhân của Luffy ở Udon là 5592, Kid là 3150.",
+            arc: "Wano Country", chapter: "926", source_status: "CANON"
+        }
+    ];
+
+    // HỆ THỐNG ĐIỂM
+    const pointsMap = { 1: 10, 2: 20, 3: 30, 4: 50, 5: 75, 6: 100 };
+
+    // TRẠNG THÁI APP
+    let currentMode = '';
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let maxStreak = 0;
+    let correctCount = 0;
+    let answered = false;
+
+    // UTILS
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // LOGIC GAME
+    function startQuiz(mode) {
+        currentMode = mode;
+        score = 0;
+        streak = 0;
+        maxStreak = 0;
+        correctCount = 0;
+        currentQuestionIndex = 0;
+        
+        // Lọc câu hỏi theo Mode
+        let pool = [...questionBank];
+        if (mode === 'hardcore') {
+            pool = pool.filter(q => q.difficulty >= 4);
+        }
+        
+        shuffleArray(pool);
+        
+        // Số lượng câu
+        let limit = 5; // Quick mode by default
+        if (mode === 'standard') limit = 10;
+        if (mode === 'hardcore') limit = pool.length; // Tất cả câu khó
+        if (mode === 'random') limit = 10;
+
+        questions = pool.slice(0, Math.min(limit, pool.length));
+        
+        switchScreen('quiz-screen');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        answered = false;
+        const q = questions[currentQuestionIndex];
+        
+        document.getElementById('progress-text').innerText = `Câu ${currentQuestionIndex + 1} / ${questions.length}`;
+        document.getElementById('score-display').innerText = score;
+        document.getElementById('streak-display').innerText = streak;
+        
+        document.getElementById('difficulty-badge').innerText = `LEVEL ${q.difficulty}`;
+        document.getElementById('difficulty-badge').style.background = q.difficulty > 3 ? 'var(--accent-red)' : 'var(--correct-green)';
+        document.getElementById('category-badge').innerText = q.category;
+        
+        document.getElementById('question-text').innerText = q.question;
+        
+        // Xáo trộn vị trí đáp án để chống học vẹt (Rule 8)
+        const opts = Object.keys(q.options);
+        shuffleArray(opts);
+        
+        const optsContainer = document.getElementById('options-container');
+        optsContainer.innerHTML = '';
+        
+        opts.forEach(key => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.onclick = () => handleAnswer(key, btn);
+            btn.innerHTML = `<span class="option-letter">${key}</span> ${q.options[key]}`;
+            btn.dataset.key = key;
+            optsContainer.appendChild(btn);
+        });
+
+        document.getElementById('explanation-box').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+    }
+
+    function handleAnswer(selectedKey, btnElement) {
+        if (answered) return; // Khóa chọn lại (Rule 19)
+        answered = true;
+        
+        const q = questions[currentQuestionIndex];
+        const isCorrect = selectedKey === q.correct_answer;
+        
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(btn => btn.disabled = true);
+        
+        const expBox = document.getElementById('explanation-box');
+        const statusEl = document.getElementById('result-status');
+        const expText = document.getElementById('explanation-text');
+        const sourceText = document.getElementById('source-text');
+        
+        if (isCorrect) {
+            btnElement.classList.add('correct');
+            statusEl.innerHTML = '🟢 CHÍNH XÁC!';
+            statusEl.style.color = 'var(--correct-green)';
+            
+            correctCount++;
+            streak++;
+            if (streak > maxStreak) maxStreak = streak;
+            
+            // Tính điểm + Bonus Streak
+            let pointsEarned = pointsMap[q.difficulty];
+            if (streak >= 3) pointsEarned += 10;
+            if (streak >= 5) pointsEarned += 20;
+            score += pointsEarned;
+            
+        } else {
+            btnElement.classList.add('wrong');
+            // Highlight câu đúng
+            allBtns.forEach(btn => {
+                if (btn.dataset.key === q.correct_answer) {
+                    btn.classList.add('correct');
+                }
+            });
+            statusEl.innerHTML = '🔴 SAI RỒI!';
+            statusEl.style.color = 'var(--wrong-red)';
+            streak = 0;
+        }
+        
+        document.getElementById('score-display').innerText = score;
+        document.getElementById('streak-display').innerText = streak;
+        
+        expText.innerText = q.explanation;
+        sourceText.innerText = `Nguồn tham khảo: Arc ${q.arc} | Chapter ${q.chapter} [${q.source_status}]`;
+        
+        expBox.style.display = 'block';
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex >= questions.length) {
+            showResult();
+        } else {
+            renderQuestion();
+        }
+    }
+
+    function showResult() {
+        switchScreen('result-screen');
+        
+        const total = questions.length;
+        const accuracy = Math.round((correctCount / total) * 100);
+        
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-accuracy').innerText = `${accuracy}%`;
+        document.getElementById('final-correct').innerText = `${correctCount} / ${total}`;
+        document.getElementById('final-streak').innerText = maxStreak;
+        
+        // Ranking System (Rule 16)
+        let rank = "";
+        let msg = "";
+        if (accuracy === 100) { rank = "☀️ JOY BOY"; msg = "Không tì vết! Kiến thức của bạn đạt mức độ thần thoại."; }
+        else if (accuracy >= 91) { rank = "👑 YONKO"; msg = "Bạn nắm giữ quyền lực tuyệt đối tại Tân Thế Giới!"; }
+        else if (accuracy >= 76) { rank = "🛡️ YONKO COMMANDER"; msg = "Kiến thức đáng nể, cánh tay đắc lực của Tứ Hoàng."; }
+        else if (accuracy >= 61) { rank = "🔥 NEW WORLD PIRATE"; msg = "Sẵn sàng sinh tồn ở nửa sau của Grand Line."; }
+        else if (accuracy >= 41) { rank = "🏴‍☠️ SUPERNOVA"; msg = "Một tân binh siêu hạng đang lên."; }
+        else if (accuracy >= 21) { rank = "⚓ PIRATE"; msg = "Hải tặc bình thường, cần ra khơi nhiều hơn."; }
+        else { rank = "👶 EAST BLUE ROOKIE"; msg = "Bạn mới chỉ xem tóm tắt trên Tiktok đúng không?"; }
+        
+        document.getElementById('rank-display').innerText = rank;
+        document.getElementById('rank-message').innerText = msg;
+    }
+
+    function goHome() {
+        switchScreen('home-screen');
+    }
+</script>
+
+</body>
+</html>
