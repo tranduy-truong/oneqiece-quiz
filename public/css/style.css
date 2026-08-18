@@ -129,7 +129,7 @@ body {
 /* Loading Overlay & Screen */
 .loading-screen {
     text-align: center;
-    padding: 40px 20px;
+    padding: 24px 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -137,23 +137,27 @@ body {
 }
 
 .loading-img-wrapper {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
+    width: 100%;
+    max-width: 680px;
+    min-height: 220px;
+    max-height: 480px;
+    border-radius: var(--radius-md);
     margin-bottom: 20px;
     overflow: hidden;
-    border: 3px solid var(--color-skyblue);
+    border: 2px solid var(--color-skyblue);
     box-shadow: var(--shadow-skyblue);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-card-secondary);
+    background: rgba(0, 0, 0, 0.4);
 }
 
 .loading-img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    max-height: 480px;
+    object-fit: contain;
+    display: block;
 }
 
 .loading-text {
