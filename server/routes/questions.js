@@ -27,14 +27,65 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * POST /api/quiz/check
+ * Kiểm tra ngay đáp án khi người dùng vừa chọn 1 câu hỏi
+ * Body: { question_id: 1, selected_answer: "A" }
+ */
+router.post('/check', async (req, res) => {
+    try {
+        const { question_id, selected_answer } = req.body;
+        const qId = parseInt(question_id, 10);
+        const userChoice = selected_answer ? String(selected_answer).toUpperCase().trim() : null;
+
+        if (!qId || !userChoice) {
+            return res.status(400).json({
+                success: false,
+                error: 'Thiếu thông tin câu hỏi hoặc đáp án đã chọn.'
+            });
+        }
+
+        const [rows] = await pool.query(
+            'SELECT id, correct_answer, explanation, category, difficulty FROM questions WHERE id = ?',
+            [qId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Không tìm thấy câu hỏi.'
+            });
+        }
+
+        const question = rows[0];
+        const isCorrect = userChoice === question.correct_answer;
+
+        res.json({
+            success: true,
+            is_correct: isCorrect,
+            user_answer: userChoice,
+            correct_answer: question.correct_answer,
+            explanation: question.explanation || '',
+            category: question.category,
+            difficulty: question.difficulty
+        });
+
+    } catch (error) {
+        console.error('Lỗi khi kiểm tra câu hỏi:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Không thể kiểm tra đáp án lúc này.'
+        });
+    }
+});
+
+/**
  * POST /api/quiz/submit
- * Chấm điểm bài làm của người dùng trên server.
- * Body: { answers: { "1": "C", "2": "A" } } hoặc { answers: [{ questionId: 1, answer: "C" }] }
+ * Chấm điểm toàn bộ bài làm và xếp hạng Larper
+ * Body: { answers: { "1": "C", "2": "A" } }
  */
 router.post('/submit', async (req, res) => {
     try {
         const rawAnswers = req.body.answers || {};
-        // Chuẩn hóa input về dạng object { [id]: answer }
         let userAnswers = {};
         if (Array.isArray(rawAnswers)) {
             rawAnswers.forEach(item => {
@@ -46,7 +97,6 @@ router.post('/submit', async (req, res) => {
             userAnswers = rawAnswers;
         }
 
-        // Lấy toàn bộ câu hỏi và đáp án đúng từ database để chấm
         const [allQuestions] = await pool.query(
             'SELECT id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty FROM questions ORDER BY id ASC'
         );
@@ -68,7 +118,6 @@ router.post('/submit', async (req, res) => {
 
             if (isCorrect) {
                 correctCount++;
-                // Tính điểm theo difficulty (1: 10đ, 2: 20đ, 3: 30đ, 4: 50đ, 5: 75đ, 6: 100đ)
                 const pointTable = { 1: 10, 2: 20, 3: 30, 4: 50, 5: 75, 6: 100 };
                 totalScore += pointTable[q.difficulty] || 10;
             }
@@ -92,30 +141,24 @@ router.post('/submit', async (req, res) => {
         const totalQuestions = allQuestions.length;
         const accuracy = Math.round((correctCount / totalQuestions) * 100);
 
-        // Đánh giá xếp hạng One Piece
+        // Xếp hạng trình độ - Chống Larper
         let rank = "";
         let rankMessage = "";
         if (accuracy === 100) {
-            rank = "☀️ JOY BOY";
-            rankMessage = "Không tì vết! Kiến thức One Piece của bạn đạt mức độ Thần thoại!";
-        } else if (accuracy >= 90) {
-            rank = "👑 YONKO";
-            rankMessage = "Bạn nắm giữ uy quyền tuyệt đối tại Tân Thế Giới!";
-        } else if (accuracy >= 75) {
-            rank = "🛡️ YONKO COMMANDER";
-            rankMessage = "Kiến thức đáng nể, cánh tay đắc lực của Tứ Hoàng!";
-        } else if (accuracy >= 60) {
-            rank = "🔥 NEW WORLD PIRATE";
-            rankMessage = "Đủ bản lĩnh sinh tồn ở nửa sau của Grand Line!";
-        } else if (accuracy >= 40) {
-            rank = "🏴‍☠️ SUPERNOVA";
-            rankMessage = "Một tân binh siêu hạng đầy triển vọng!";
-        } else if (accuracy >= 20) {
-            rank = "⚓ PIRATE";
-            rankMessage = "Hải tặc bình thường, hãy dong buồm học hỏi thêm!";
+            rank = "FAN CHÂN CHÍNH (NO LARPER)";
+            rankMessage = "Tuyệt đối không tì vết! Bạn là một bậc thầy One Piece thực thụ.";
+        } else if (accuracy >= 85) {
+            rank = "ĐẠI HẢI TẶC REAL";
+            rankMessage = "Kiến thức cực kỳ vững vàng, chứng minh bạn đọc kỹ từng trang truyện!";
+        } else if (accuracy >= 70) {
+            rank = "NGƯỜI XEM NGHIÊM TÚC";
+            rankMessage = "Khá tốt! Bạn thực sự yêu thích và nhớ rõ các tình tiết chính.";
+        } else if (accuracy >= 50) {
+            rank = "CÓ DẤU HIỆU LARPER";
+            rankMessage = "Bạn xem hơi vội hoặc đã lâu chưa đọc lại truyện đúng không?";
         } else {
-            rank = "👶 EAST BLUE ROOKIE";
-            rankMessage = "Bạn mới xem tóm tắt phim đúng không? Cần xem lại từ đầu nhé!";
+            rank = "LARPER CHÍNH HIỆU";
+            rankMessage = "Bạn mới chỉ xem clip tóm tắt trên Tiktok và Youtube Shorts đúng không? Hãy cày lại từ đầu!";
         }
 
         res.json({

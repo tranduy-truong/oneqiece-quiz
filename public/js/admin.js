@@ -94,14 +94,14 @@ function renderTable(questionsList) {
                 <span class="badge badge-difficulty">Lv.${q.difficulty || 1}</span>
             </td>
             <td style="text-align: center;">
-                <span style="display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.2); color: #34d399; font-weight: 800; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.4);">
+                <span style="display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.15); color: #34d399; font-weight: 800; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">
                     ${q.correct_answer}
                 </span>
             </td>
             <td style="text-align: center;">
                 <div class="admin-actions" style="justify-content: center;">
-                    <button class="btn btn-secondary btn-sm" onclick="openEditModal(${q.id})">✏️ Sửa</button>
-                    <button class="btn btn-danger btn-sm" onclick="handleDeleteQuestion(${q.id})">🗑️ Xóa</button>
+                    <button class="btn btn-secondary btn-sm" onclick="openEditModal(${q.id})">Sửa</button>
+                    <button class="btn btn-danger btn-sm" onclick="handleDeleteQuestion(${q.id})">Xóa</button>
                 </div>
             </td>
         `;
@@ -135,7 +135,7 @@ function handleSearch() {
  * Mở Modal thêm câu hỏi
  */
 function openAddModal() {
-    modalTitle.innerText = '➕ Thêm Câu Hỏi Mới';
+    modalTitle.innerText = 'Thêm Câu Hỏi Mới';
     document.getElementById('question-form').reset();
     document.getElementById('form-question-id').value = '';
     document.getElementById('form-correct-answer').value = 'A';
@@ -150,7 +150,7 @@ function openEditModal(id) {
     const question = allQuestions.find(q => q.id === id);
     if (!question) return;
 
-    modalTitle.innerText = `✏️ Chỉnh Sửa Câu Hỏi #${id}`;
+    modalTitle.innerText = `Chỉnh Sửa Câu Hỏi #${id}`;
     document.getElementById('form-question-id').value = question.id;
     document.getElementById('form-question-text').value = question.question_text;
     document.getElementById('form-opt-a').value = question.option_a;

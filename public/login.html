@@ -9,14 +9,14 @@
 <body>
 
     <header class="app-header">
-        <h1 class="app-title">☠️ ONE PIECE ADMIN</h1>
-        <p class="app-subtitle">Hệ thống quản lý câu hỏi trắc nghiệm</p>
+        <h1 class="site-title">ONE PIECE ADMIN</h1>
+        <p class="site-subtitle">Hệ thống quản lý và biên soạn câu hỏi trắc nghiệm</p>
     </header>
 
-    <main class="container" style="max-width: 480px;">
+    <main class="container" style="max-width: 440px;">
         <div class="card">
-            <h2 style="color: var(--accent-gold); margin-bottom: 20px; font-size: 1.4rem; text-align: center;">
-                🔐 Đăng Nhập Quản Trị Viên
+            <h2 style="color: var(--color-skyblue); margin-bottom: 20px; font-size: 1.3rem; text-align: center; font-weight: 700;">
+                ĐĂNG NHẬP QUẢN TRỊ
             </h2>
 
             <div id="login-alert" class="alert alert-danger">
@@ -26,27 +26,27 @@
             <form id="login-form">
                 <div class="form-group">
                     <label class="form-label" for="username">Tên đăng nhập</label>
-                    <input type="text" id="username" class="form-control" placeholder="Nhập username admin" required autocomplete="username">
+                    <input type="text" id="username" class="form-control" placeholder="Nhập tên đăng nhập" required autocomplete="username">
                 </div>
 
-                <div class="form-group" style="margin-bottom: 24px;">
+                <div class="form-group" style="margin-bottom: 22px;">
                     <label class="form-label" for="password">Mật khẩu</label>
-                    <input type="password" id="password" class="form-control" placeholder="Nhập password admin" required autocomplete="current-password">
+                    <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary" id="btn-login-submit" style="width: 100%; margin-bottom: 14px;">
+                <button type="submit" class="btn btn-primary" id="btn-login-submit" style="width: 100%; margin-bottom: 12px;">
                     Đăng Nhập
                 </button>
 
                 <a href="/" class="btn btn-secondary" style="width: 100%;">
-                    🏠 Quay lại Trang Quiz
+                    Quay lại Trang Quiz
                 </a>
             </form>
         </div>
     </main>
 
     <footer class="app-footer">
-        <p>© 2026 One Piece Quiz App</p>
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece</p>
     </footer>
 
     <script src="/js/login.js"></script>

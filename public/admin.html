@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Trị Câu Hỏi Quiz - One Piece Admin</title>
+    <title>Quản Trị Câu Hỏi - One Piece Quiz</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
     <header class="app-header">
-        <h1 class="app-title">⚙️ ONE PIECE ADMIN DASHBOARD</h1>
-        <p class="app-subtitle">Hệ thống quản trị và biên soạn câu hỏi trắc nghiệm</p>
+        <h1 class="site-title">ONE PIECE ADMIN DASHBOARD</h1>
+        <p class="site-subtitle">Quản trị và biên soạn cơ sở dữ liệu câu hỏi</p>
         <div class="nav-links">
-            <a href="/" class="nav-link">🏠 Xem Trang Quiz</a>
-            <button class="nav-link" id="btn-logout" onclick="handleLogout()" style="cursor: pointer; background: transparent;">🚪 Đăng xuất</button>
+            <a href="/" class="nav-link">Xem Trang Quiz</a>
+            <button class="nav-link" id="btn-logout" onclick="handleLogout()" style="cursor: pointer; background: transparent;">Đăng xuất</button>
         </div>
     </header>
 
-    <main class="container" style="max-width: 1100px;">
+    <main class="container" style="max-width: 1050px;">
         <!-- Alert Notification -->
         <div id="admin-alert" class="alert"></div>
 
@@ -25,18 +25,18 @@
             <!-- Toolbar -->
             <div class="admin-toolbar">
                 <div>
-                    <h2 style="font-size: 1.3rem; color: var(--accent-gold); margin-bottom: 4px;">
+                    <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
                         Danh Sách Câu Hỏi (<span id="total-count">0</span>)
                     </h2>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">Quản lý và cập nhật cơ sở dữ liệu câu hỏi</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Quản lý toàn bộ câu hỏi trong hệ thống</p>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="search-input" class="search-input" placeholder="🔍 Tìm kiếm câu hỏi..." oninput="handleSearch()">
+                    <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm câu hỏi..." oninput="handleSearch()">
                     <button class="btn btn-secondary" onclick="openBulkModal()" id="btn-bulk-import">
-                        📥 Nhập Hàng Loạt
+                        Nhập Hàng Loạt
                     </button>
                     <button class="btn btn-primary" onclick="openAddModal()" id="btn-add-question">
-                        ➕ Thêm Câu Hỏi Mới
+                        Thêm Câu Hỏi Mới
                     </button>
                 </div>
             </div>
@@ -49,14 +49,14 @@
                             <th style="width: 50px;">ID</th>
                             <th>Nội dung câu hỏi</th>
                             <th style="width: 140px;">Chủ đề</th>
-                            <th style="width: 110px; text-align: center;">Đáp án đúng</th>
+                            <th style="width: 100px; text-align: center;">Đáp án</th>
                             <th style="width: 140px; text-align: center;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="questions-table-body">
                         <!-- Rendered by JS -->
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                            <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
                                 Đang tải danh sách câu hỏi...
                             </td>
                         </tr>
@@ -78,35 +78,35 @@
                 <input type="hidden" id="form-question-id">
 
                 <div class="form-group">
-                    <label class="form-label" for="form-question-text">Nội dung câu hỏi <span style="color: var(--accent-red);">*</span></label>
+                    <label class="form-label" for="form-question-text">Nội dung câu hỏi <span style="color: var(--color-wrong);">*</span></label>
                     <textarea id="form-question-text" class="form-control" placeholder="Nhập nội dung câu hỏi..." required></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-a">Đáp án A <span style="color: var(--accent-red);">*</span></label>
+                        <label class="form-label" for="form-opt-a">Đáp án A <span style="color: var(--color-wrong);">*</span></label>
                         <input type="text" id="form-opt-a" class="form-control" placeholder="Lựa chọn A" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-b">Đáp án B <span style="color: var(--accent-red);">*</span></label>
+                        <label class="form-label" for="form-opt-b">Đáp án B <span style="color: var(--color-wrong);">*</span></label>
                         <input type="text" id="form-opt-b" class="form-control" placeholder="Lựa chọn B" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-c">Đáp án C <span style="color: var(--accent-red);">*</span></label>
+                        <label class="form-label" for="form-opt-c">Đáp án C <span style="color: var(--color-wrong);">*</span></label>
                         <input type="text" id="form-opt-c" class="form-control" placeholder="Lựa chọn C" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-d">Đáp án D <span style="color: var(--accent-red);">*</span></label>
+                        <label class="form-label" for="form-opt-d">Đáp án D <span style="color: var(--color-wrong);">*</span></label>
                         <input type="text" id="form-opt-d" class="form-control" placeholder="Lựa chọn D" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="form-correct-answer">Đáp án đúng <span style="color: var(--accent-red);">*</span></label>
+                        <label class="form-label" for="form-correct-answer">Đáp án đúng <span style="color: var(--color-wrong);">*</span></label>
                         <select id="form-correct-answer" class="form-control" required>
                             <option value="A">A</option>
                             <option value="B">B</option>
@@ -134,7 +134,7 @@
 
                 <div class="form-group">
                     <label class="form-label" for="form-explanation">Giải thích chi tiết & Nguồn tham khảo</label>
-                    <textarea id="form-explanation" class="form-control" placeholder="Nhập lời giải thích hiển thị sau khi nộp bài..."></textarea>
+                    <textarea id="form-explanation" class="form-control" placeholder="Nhập lời giải thích hiển thị ngay khi người dùng chọn..."></textarea>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
@@ -149,17 +149,17 @@
     <div id="bulk-modal" class="modal-backdrop">
         <div class="modal-card" style="max-width: 750px;">
             <div class="modal-header">
-                <h3 class="modal-title">📥 Nhập Hàng Loạt Câu Hỏi</h3>
+                <h3 class="modal-title">Nhập Hàng Loạt Câu Hỏi</h3>
                 <button class="btn-close" onclick="closeBulkModal()">&times;</button>
             </div>
 
-            <div style="margin-bottom: 16px; font-size: 0.9rem; color: var(--text-secondary);">
-                Bạn có thể dán danh sách câu hỏi dạng <strong>Văn bản thường</strong> (từ Word, ChatGPT) hoặc dạng <strong>JSON</strong>.
+            <div style="margin-bottom: 16px; font-size: 0.9rem; color: var(--text-muted);">
+                Dán danh sách câu hỏi dạng <strong>Văn bản thường</strong> hoặc <strong>JSON</strong>:
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="bulk-input">Dán nội dung vào đây:</label>
-                <textarea id="bulk-input" class="form-control" style="min-height: 220px; font-family: monospace; font-size: 0.85rem;" placeholder="Ví dụ mẫu định dạng văn bản:
+                <textarea id="bulk-input" class="form-control" style="min-height: 220px; font-family: monospace; font-size: 0.85rem;" placeholder="Ví dụ mẫu:
 
 Câu 1: Luffy ăn trái ác quỷ gì?
 A. Gomu Gomu no Mi
@@ -181,21 +181,21 @@ D. Franky
 Đáp án: B"></textarea>
             </div>
 
-            <div id="bulk-preview-status" style="font-size: 0.9rem; color: var(--accent-gold); margin-bottom: 16px;">
+            <div id="bulk-preview-status" style="font-size: 0.9rem; color: var(--color-skyblue); margin-bottom: 16px;">
                 <!-- Preview info -->
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">Hủy</button>
                 <button type="button" class="btn btn-primary" id="btn-submit-bulk" onclick="handleProcessBulk()">
-                    ⚡ Tiến Hành Nhập Dữ Liệu
+                    Tiến Hành Nhập Dữ Liệu
                 </button>
             </div>
         </div>
     </div>
 
     <footer class="app-footer">
-        <p>© 2026 One Piece Quiz App • Admin Control Panel</p>
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece</p>
     </footer>
 
     <script src="/js/admin.js"></script>
