@@ -301,6 +301,9 @@ router.post('/questions/bulk', requireAdminAuth, async (req, res) => {
             success: false,
             error: 'Lỗi máy chủ khi thêm hàng loạt câu hỏi.'
         });
+    }
+});
+
 /**
  * DELETE /api/admin/questions/:id
  * Xóa một câu hỏi
