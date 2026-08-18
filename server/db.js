@@ -3,7 +3,8 @@ require('dotenv').config();
 
 // Hỗ trợ cả tên biến có tiền tố DB_ và không có tiền tố để tránh nhầm lẫn
 const dbHost = process.env.DB_HOST || process.env.HOST || 'localhost';
-const dbPort = parseInt(process.env.DB_PORT || process.env.PORT_DB, 10) || 4000;
+const defaultPort = dbHost.includes('tidbcloud.com') ? 4000 : 3306;
+const dbPort = parseInt(process.env.DB_PORT || process.env.PORT_DB, 10) || defaultPort;
 const dbUser = process.env.DB_USER || process.env.DB_USERNAME || process.env.USERNAME || 'root';
 const dbPassword = process.env.DB_PASSWORD || process.env.PASSWORD || '';
 const dbName = process.env.DB_NAME || process.env.DATABASE || 'quiz_db';
@@ -31,15 +32,15 @@ const pool = mysql.createPool({
 
 // Hàm kiểm tra kết nối khi khởi động
 async function testConnection() {
+    console.log(`📡 Đang kết nối tới MySQL: Host=[${dbHost}], Port=[${dbPort}], User=[${dbUser}], DB=[${dbName}], SSL=[${isCloudDB}]`);
     try {
         const connection = await pool.getConnection();
-        console.log('✅ Đã kết nối thành công tới MySQL Database:', process.env.DB_NAME || 'quiz_db');
+        console.log(`✅ ĐÃ KẾT NỐI THÀNH CÔNG TỚI DATABASE: [${dbName}]!`);
         connection.release();
         return true;
     } catch (error) {
-        console.error('❌ Không thể kết nối tới MySQL Database:');
-        console.error('   Lỗi:', error.message);
-        console.error('   👉 Hãy kiểm tra lại file .env (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME) và đảm bảo MySQL đang chạy.');
+        console.error('❌ KHÔNG THỂ KẾT NỐI DATABASE:');
+        console.error('   Chi tiết lỗi:', error.message);
         return false;
     }
 }
