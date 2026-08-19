@@ -3,26 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Vàng Danh Dự - Realtime Quiz Leaderboard</title>
+    <title>Bảng Vàng Danh Dự — Realtime Quiz Leaderboard</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-    <header class="app-header">
-        <h1 class="site-title">BẢNG VÀNG DANH DỰ</h1>
-        <p class="site-subtitle">Vinh danh các đại cao thủ có thành tích cao nhất</p>
-        <div class="nav-links">
-            <a href="/" class="nav-link">Trang Chủ</a>
-            <a href="/solo" class="nav-link">Chơi Solo</a>
-            <a href="/join" class="nav-link">Vào Phòng</a>
-            <a href="/host" class="nav-link">Tạo Phòng</a>
-            <a href="/leaderboard" class="nav-link" style="color: var(--color-skyblue); border-color: var(--color-skyblue);">Bảng Xếp Hạng</a>
+    <!-- Sticky Glass Game Navbar -->
+    <header class="game-navbar">
+        <div class="nav-inner">
+            <a href="/" class="brand-link">
+                <div class="brand-icon">⚓</div>
+                <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
+            </a>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
+                    <li><a href="/solo" class="nav-item-link">🎮 Chơi Solo</a></li>
+                    <li><a href="/join" class="nav-item-link">⚡ Vào Phòng</a></li>
+                    <li><a href="/host" class="nav-item-link">👑 Tạo Phòng</a></li>
+                    <li><a href="/leaderboard" class="nav-item-link active">🏆 Bảng Vàng</a></li>
+                </ul>
+            </nav>
+
+            <div class="live-status-pill">
+                <div class="live-status-dot"></div>
+                <span>Trực Tuyến</span>
+            </div>
         </div>
     </header>
 
-    <main class="container">
-        <div class="card">
+    <main class="container container-wide">
+        <div class="card" style="margin-top: 10px;">
             <!-- Tabs -->
             <div class="admin-tabs">
                 <button class="admin-tab-btn active" onclick="switchLbTab('global')" id="tab-btn-global">
@@ -39,17 +52,19 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th style="width: 70px; text-align: center;">Hạng</th>
-                                <th>Người Chơi</th>
+                                <th style="width: 80px; text-align: center;">Hạng</th>
+                                <th>Chiến Binh</th>
                                 <th style="text-align: right;">Tổng Điểm</th>
                                 <th style="text-align: center;">Tỷ Lệ Đúng</th>
                                 <th style="text-align: center;">Số Trận Thắng</th>
-                                <th style="text-align: center;">Số Trận Chơi</th>
+                                <th style="text-align: center;">Số Trận Đấu</th>
                             </tr>
                         </thead>
                         <tbody id="global-lb-tbody">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Đang tải dữ liệu...</td>
+                                <td colspan="6" style="text-align: center; color: var(--game-text-muted); padding: 30px;">
+                                    Đang tải dữ liệu bảng vàng...
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -63,16 +78,18 @@
                         <thead>
                             <tr>
                                 <th style="width: 80px;">Trận</th>
-                                <th>Bộ Đề</th>
+                                <th>Bộ Đề Thi</th>
                                 <th>Chế Độ</th>
                                 <th style="text-align: center;">Số Người</th>
                                 <th>Nhà Vô Địch</th>
-                                <th>Thời Gian</th>
+                                <th>Thời Gian Hoàn Thành</th>
                             </tr>
                         </thead>
                         <tbody id="recent-matches-tbody">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Đang tải dữ liệu...</td>
+                                <td colspan="6" style="text-align: center; color: var(--game-text-muted); padding: 30px;">
+                                    Đang tải lịch sử các trận đấu...
+                                </td>
                             </tr>
                         </tbody>
                     </table>

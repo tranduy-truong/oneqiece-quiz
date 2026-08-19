@@ -3,22 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập Quản Trị - One Piece Quiz</title>
+    <title>Đăng Nhập Quản Trị — Realtime Quiz Studio</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-    <header class="app-header">
-        <h1 class="site-title">ONE PIECE ADMIN</h1>
-        <p class="site-subtitle">Hệ thống quản lý và biên soạn câu hỏi trắc nghiệm</p>
+    <!-- Sticky Glass Game Navbar -->
+    <header class="game-navbar">
+        <div class="nav-inner">
+            <a href="/" class="brand-link">
+                <div class="brand-icon">⚓</div>
+                <span>ONE PIECE <span class="brand-title-accent">ADMIN</span></span>
+            </a>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
+                    <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <main class="container" style="max-width: 440px;">
-        <div class="card">
-            <h2 style="color: var(--color-skyblue); margin-bottom: 20px; font-size: 1.3rem; text-align: center; font-weight: 700;">
-                ĐĂNG NHẬP QUẢN TRỊ
-            </h2>
+    <main class="container" style="max-width: 460px; margin: 40px auto;">
+        <div class="card" style="box-shadow: var(--game-shadow-elevated);">
+            <div class="card-header-game" style="justify-content: center; text-align: center;">
+                <div class="card-title-game">
+                    <span>🔐 ĐĂNG NHẬP QUẢN TRỊ STUDIO</span>
+                </div>
+            </div>
 
             <div id="login-alert" class="alert alert-danger">
                 <!-- Error messages -->
@@ -26,28 +40,28 @@
 
             <form id="login-form">
                 <div class="form-group">
-                    <label class="form-label" for="username">Tên đăng nhập</label>
-                    <input type="text" id="username" class="form-control" placeholder="Nhập tên đăng nhập" required autocomplete="username">
+                    <label class="form-label" for="username">Tên đăng nhập quản trị:</label>
+                    <input type="text" id="username" class="form-control" placeholder="Nhập username..." required autocomplete="username">
                 </div>
 
-                <div class="form-group" style="margin-bottom: 22px;">
-                    <label class="form-label" for="password">Mật khẩu</label>
-                    <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" for="password">Mật khẩu bảo mật:</label>
+                    <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary" id="btn-login-submit" style="width: 100%; margin-bottom: 12px;">
-                    Đăng Nhập
+                <button type="submit" class="btn btn-primary btn-lg" id="btn-login-submit" style="width: 100%; margin-bottom: 12px;">
+                    ĐĂNG NHẬP ➔
                 </button>
 
                 <a href="/" class="btn btn-secondary" style="width: 100%;">
-                    Quay lại Trang Quiz
+                    Quay lại Trang Chủ
                 </a>
             </form>
         </div>
     </main>
 
     <footer class="app-footer">
-        <p>© 2026 • Hệ thống trắc nghiệm One Piece</p>
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
     </footer>
 
     <script src="/js/login.js"></script>

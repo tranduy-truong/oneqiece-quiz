@@ -9,17 +9,30 @@
 </head>
 <body>
 
-    <header class="app-header">
-        <h1 class="site-title">ADMIN DASHBOARD</h1>
-        <p class="site-subtitle">Quản trị toàn diện: Chủ đề • Bộ đề • Câu hỏi • Lịch sử thi đấu Realtime</p>
-        <div class="nav-links">
-            <a href="/" class="nav-link">Xem Trang Chủ</a>
-            <a href="/leaderboard" class="nav-link">Bảng Vàng</a>
-            <button class="nav-link" id="btn-logout" onclick="handleLogout()" style="cursor: pointer; background: transparent;">Đăng xuất</button>
+    <!-- Sticky Glass Game Navbar -->
+    <header class="game-navbar">
+        <div class="nav-inner">
+            <a href="/admin" class="brand-link">
+                <div class="brand-icon">⚙️</div>
+                <span>ONE PIECE <span class="brand-title-accent">ADMIN STUDIO</span></span>
+            </a>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/" class="nav-item-link">Xem Trang Chủ</a></li>
+                    <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
+                    <li><button class="nav-item-link" id="btn-logout" onclick="handleLogout()" style="cursor: pointer; background: transparent; border: none;">Đăng Xuất</button></li>
+                </ul>
+            </nav>
+
+            <div class="live-status-pill">
+                <div class="live-status-dot"></div>
+                <span>Admin Mode</span>
+            </div>
         </div>
     </header>
 
-    <main class="container" style="max-width: 1120px;">
+    <main class="container container-wide">
         <!-- Alert Notification -->
         <div id="admin-alert" class="alert"></div>
 

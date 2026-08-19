@@ -209,8 +209,9 @@ function renderCurrentQuestion() {
 
     options.forEach(opt => {
         const optEl = document.createElement('div');
-        optEl.className = 'option-item';
+        optEl.className = 'arena-opt-btn';
         optEl.dataset.key = opt.key;
+        optEl.dataset.choice = opt.key;
 
         if (record) {
             optEl.classList.add('disabled');

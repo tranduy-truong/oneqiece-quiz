@@ -89,12 +89,12 @@ function renderHostLobbyPlayers(playerList) {
     const container = document.getElementById('host-lobby-players');
     if (!container) return;
     totalPlayersInGame = playerList.length;
-    document.getElementById('host-player-count').innerText = playerList.length;
+    document.getElementById('host-player-count').innerText = `${playerList.length} người chơi`;
 
     container.innerHTML = playerList.map(p => `
-        <div class="player-chip">
-            <img src="${p.avatar || '/images/A.jpg'}" class="player-chip-avatar" onerror="this.src='/images/A.jpg'">
-            <div class="player-chip-name">${escapeHtml(p.username)}</div>
+        <div class="roster-chip">
+            <img src="${p.avatar || '/images/A.jpg'}" class="roster-avatar" onerror="this.src='/images/A.jpg'" alt="avatar">
+            <div class="roster-name">${escapeHtml(p.username)}</div>
         </div>
     `).join('');
 }
