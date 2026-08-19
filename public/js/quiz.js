@@ -180,25 +180,25 @@ function renderCurrentQuestion() {
   ];
 
   const OPTION_IMAGES = {
-    'A': '/images/A.jpg',
-    'B': '/images/B.jpg',
-    'C': '/images/C.jpg',
-    'D': '/images/D.jpg'
+    A: "/images/A.png",
+    B: "/images/B.jpg",
+    C: "/images/C.jpg",
+    D: "/images/D.jpg",
   };
 
-  options.forEach(opt => {
-    const optEl = document.createElement('div');
-    optEl.className = 'option-item';
+  options.forEach((opt) => {
+    const optEl = document.createElement("div");
+    optEl.className = "option-item";
     optEl.dataset.key = opt.key;
 
     // Nếu câu hỏi ĐÃ LÀM RỒI -> Khóa chọn lại và hiển thị đáp án đúng/sai
     if (record) {
-      optEl.classList.add('disabled');
+      optEl.classList.add("disabled");
       if (opt.key === record.user_answer) {
-        optEl.classList.add(record.is_correct ? 'correct' : 'wrong');
+        optEl.classList.add(record.is_correct ? "correct" : "wrong");
       }
       if (!record.is_correct && opt.key === record.correct_answer) {
-        optEl.classList.add('correct');
+        optEl.classList.add("correct");
       }
     } else {
       // Nếu chưa làm -> Cho phép click chọn
