@@ -130,12 +130,44 @@ const pool = mysql.createPool({
     ssl: isCloudDB ? { rejectUnauthorized: false } : undefined
 });
 
-// Tự động khởi tạo bảng questions và seed dữ liệu nếu bảng chưa tồn tại
+// Tự động khởi tạo và migrate đầy đủ các bảng phục vụ Realtime Quiz Platform
 async function ensureTablesExist(connection) {
     try {
+        // 1. Topics
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`topics\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`name\` VARCHAR(255) NOT NULL,
+                \`slug\` VARCHAR(255) NOT NULL UNIQUE,
+                \`description\` TEXT,
+                \`icon\` VARCHAR(255) DEFAULT '⚓',
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 2. Quizzes
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`quizzes\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`topic_id\` INT NOT NULL,
+                \`title\` VARCHAR(255) NOT NULL,
+                \`slug\` VARCHAR(255) NOT NULL,
+                \`description\` TEXT,
+                \`time_per_question\` INT DEFAULT 15,
+                \`total_questions\` INT DEFAULT 20,
+                \`is_random\` BOOLEAN DEFAULT TRUE,
+                \`random_answers\` BOOLEAN DEFAULT FALSE,
+                \`status\` ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'PUBLISHED',
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 3. Questions
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`questions\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`quiz_id\` INT NULL,
+                \`topic_id\` INT NULL,
                 \`question_text\` TEXT NOT NULL,
                 \`option_a\` TEXT NOT NULL,
                 \`option_b\` TEXT NOT NULL,
@@ -150,14 +182,125 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
+        // 4. Players
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`players\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`username\` VARCHAR(100) NOT NULL,
+                \`session_token\` VARCHAR(255) NOT NULL UNIQUE,
+                \`avatar\` VARCHAR(255) DEFAULT '/images/A.jpg',
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                \`last_active\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 5. Rooms
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`rooms\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`room_code\` VARCHAR(16) NOT NULL UNIQUE,
+                \`host_session_token\` VARCHAR(255) NOT NULL,
+                \`quiz_id\` INT NOT NULL,
+                \`status\` ENUM('WAITING', 'STARTING', 'IN_GAME', 'FINISHED', 'CANCELLED') DEFAULT 'WAITING',
+                \`max_players\` INT DEFAULT 50,
+                \`is_public\` BOOLEAN DEFAULT TRUE,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 6. Game Sessions
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`game_sessions\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`room_id\` INT NULL,
+                \`quiz_id\` INT NOT NULL,
+                \`mode\` ENUM('MULTIPLAYER', 'SOLO', 'PRACTICE') DEFAULT 'MULTIPLAYER',
+                \`total_questions_count\` INT DEFAULT 20,
+                \`started_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                \`finished_at\` TIMESTAMP NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 7. Game Session Questions (Snapshot)
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`game_session_questions\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`game_session_id\` INT NOT NULL,
+                \`question_order\` INT NOT NULL,
+                \`original_question_id\` INT NULL,
+                \`question_text\` TEXT NOT NULL,
+                \`option_a\` TEXT NOT NULL,
+                \`option_b\` TEXT NOT NULL,
+                \`option_c\` TEXT NOT NULL,
+                \`option_d\` TEXT NOT NULL,
+                \`correct_answer\` ENUM('A', 'B', 'C', 'D') NOT NULL,
+                \`explanation\` TEXT,
+                \`category\` VARCHAR(100) DEFAULT 'Chung',
+                \`difficulty\` INT DEFAULT 1
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 8. Game Player Answers
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`game_player_answers\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`game_session_id\` INT NOT NULL,
+                \`player_id\` INT NOT NULL,
+                \`question_order\` INT NOT NULL,
+                \`selected_answer\` ENUM('A', 'B', 'C', 'D') NULL,
+                \`is_correct\` BOOLEAN DEFAULT FALSE,
+                \`response_time_ms\` INT DEFAULT 0,
+                \`score_awarded\` INT DEFAULT 0,
+                \`answered_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 9. Game Player Results
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`game_player_results\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`game_session_id\` INT NOT NULL,
+                \`player_id\` INT NOT NULL,
+                \`total_score\` INT DEFAULT 0,
+                \`correct_count\` INT DEFAULT 0,
+                \`wrong_count\` INT DEFAULT 0,
+                \`accuracy\` FLOAT DEFAULT 0,
+                \`avg_response_time_ms\` INT DEFAULT 0,
+                \`final_rank\` INT DEFAULT 1
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // Nạp Default Topics và Quizzes nếu chưa có
+        await connection.query(`
+            INSERT INTO \`topics\` (\`id\`, \`name\`, \`slug\`, \`description\`, \`icon\`)
+            VALUES 
+            (1, 'One Piece Universe', 'one-piece-universe', 'Vũ trụ thế giới One Piece, Hải tặc, Hải quân và Trái Ác Quỷ', '⚓'),
+            (2, 'Lập Trình & Công Nghệ', 'lap-trinh-cong-nghe', 'Thử thách kiến thức Lập trình Web, JavaScript, Database và Network', '💻')
+            ON DUPLICATE KEY UPDATE \`name\` = VALUES(\`name\`);
+        `);
+
+        await connection.query(`
+            INSERT INTO \`quizzes\` (\`id\`, \`topic_id\`, \`title\`, \`slug\`, \`description\`, \`time_per_question\", \`total_questions\`, \`is_random\`, \`status\`)
+            VALUES 
+            (1, 1, 'Đại Thử Thách One Piece - Chống Larper', 'one-piece-grand-test', 'Thử thách kiến thức One Piece từ cơ bản đến cực khó (20 câu hỏi).', 15, 20, TRUE, 'PUBLISHED'),
+            (2, 2, 'Kiến Thức Lập Trình Cơ Bản', 'lap-trinh-co-ban', 'Các câu hỏi thú vị về JavaScript, Web và Công nghệ.', 15, 20, TRUE, 'PUBLISHED')
+            ON DUPLICATE KEY UPDATE \`title\` = VALUES(\`title\`);
+        `);
+
+        // Gán topic_id = 1, quiz_id = 1 cho các câu hỏi hiện tại nếu chưa có
+        await connection.query(`
+            UPDATE \`questions\` SET \`topic_id\` = 1, \`quiz_id\` = 1 WHERE \`topic_id\` IS NULL OR \`quiz_id\` IS NULL;
+        `);
+
+        // Kiểm tra nếu questions trống thì nạp 12 câu mẫu
         const [rows] = await connection.query('SELECT COUNT(*) as count FROM `questions`');
         if (rows[0].count === 0) {
             console.log('🌱 Database đang trống, tiến hành nạp tự động 12 câu hỏi One Piece...');
             for (const q of defaultQuestions) {
                 await connection.query(
                     `INSERT INTO \`questions\` 
-                    (\`id\`, \`question_text\`, \`option_a\`, \`option_b\`, \`option_c\`, \`option_d\`, \`correct_answer\`, \`explanation\`, \`category\`, \`difficulty\`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (\`id\`, \`quiz_id\`, \`topic_id\`, \`question_text\`, \`option_a\`, \`option_b\`, \`option_c\`, \`option_d\`, \`correct_answer\`, \`explanation\`, \`category\`, \`difficulty\`)
+                    VALUES (?, 1, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE \`question_text\` = VALUES(\`question_text\`)`,
                     [q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.explanation, q.category, q.difficulty]
                 );

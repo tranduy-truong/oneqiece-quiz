@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tham Gia Phòng Thi Đấu Realtime - One Piece Quiz</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="site-title">ĐẤU TRƯỜNG MULTIPLAYER</h1>
+        <p class="site-subtitle">Thi đấu thời gian thực • Cạnh tranh bảng điểm trực tiếp</p>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Trang Chủ</a>
+            <a href="/solo" class="nav-link">Chơi Solo</a>
+            <a href="/join" class="nav-link" style="color: var(--color-skyblue); border-color: var(--color-skyblue);">Vào Phòng</a>
+            <a href="/host" class="nav-link">Tạo Phòng</a>
+            <a href="/leaderboard" class="nav-link">Bảng Xếp Hạng</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- 1. Join Room Form -->
+        <div id="join-card" class="card" style="max-width: 480px; margin: 0 auto;">
+            <h2 style="color: var(--color-skyblue); font-size: 1.4rem; margin-bottom: 20px; text-align: center;">NHẬP MÃ PHÒNG THI ĐẤU</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Mã Phòng (Room Code):</label>
+                <input type="text" id="input-room-code" class="form-control" placeholder="VD: 8F3K2A" maxlength="6" style="text-transform: uppercase; font-size: 1.3rem; font-weight: 800; letter-spacing: 2px; text-align: center;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tên của bạn:</label>
+                <input type="text" id="input-username" class="form-control" placeholder="Nhập nickname..." maxlength="25">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Chọn Avatar của bạn:</label>
+                <div style="display: flex; justify-content: center; gap: 12px; margin-top: 6px;">
+                    <img src="/images/A.jpg" class="avatar-pick active" data-src="/images/A.jpg" onclick="pickAvatar(this)" style="width: 50px; height: 50px; border-radius: 50%; border: 3px solid var(--color-skyblue); cursor: pointer;">
+                    <img src="/images/B.jpg" class="avatar-pick" data-src="/images/B.jpg" onclick="pickAvatar(this)" style="width: 50px; height: 50px; border-radius: 50%; border: 3px solid transparent; cursor: pointer;">
+                    <img src="/images/C.jpg" class="avatar-pick" data-src="/images/C.jpg" onclick="pickAvatar(this)" style="width: 50px; height: 50px; border-radius: 50%; border: 3px solid transparent; cursor: pointer;">
+                    <img src="/images/D.jpg" class="avatar-pick" data-src="/images/D.jpg" onclick="pickAvatar(this)" style="width: 50px; height: 50px; border-radius: 50%; border: 3px solid transparent; cursor: pointer;">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="handleJoinRoom()" style="width: 100%; margin-top: 14px; padding: 14px; font-size: 1.1rem;">
+                THAM GIA PHÒNG ➔
+            </button>
+        </div>
+
+        <!-- 2. Player Lobby Screen -->
+        <div id="lobby-card" class="card" style="display: none; text-align: center;">
+            <div style="color: var(--text-muted); font-size: 0.9rem;">BẠN ĐANG Ở PHÒNG:</div>
+            <div id="lobby-room-code" class="room-code-badge">------</div>
+            
+            <h3 id="lobby-quiz-title" style="color: var(--color-skyblue); margin-bottom: 8px;">One Piece Grand Test</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Số người chơi đã tham gia: <span id="lobby-count" style="color: var(--color-skyblue); font-weight: 800;">1</span>
+            </p>
+
+            <!-- Player Grid -->
+            <div id="lobby-players" class="lobby-players-grid">
+                <!-- Chips -->
+            </div>
+
+            <div style="padding: 16px; background: rgba(135, 206, 235, 0.08); border-radius: var(--radius-md); border: 1px dashed var(--color-skyblue); margin-top: 18px;">
+                <p style="color: var(--color-skyblue); font-weight: 700; font-size: 1.05rem;">
+                    ⏳ Đang chờ Host bắt đầu trận đấu...
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+                    Hãy giữ nguyên màn hình, trận đấu sẽ tự động chuyển cảnh khi Host bấm Start!
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. Question Arena Screen -->
+        <div id="arena-card" class="card" style="display: none;">
+            <div class="quiz-top-bar">
+                <div>Câu <span id="arena-q-num" class="quiz-stat">1</span>/<span id="arena-q-total" class="quiz-stat">20</span></div>
+                <div>Điểm của bạn: <span id="arena-score" class="quiz-stat">0</span></div>
+                <div>Thời gian: <span id="arena-timer-text" class="quiz-stat" style="color: #fca5a5;">15s</span></div>
+            </div>
+
+            <div class="progress-container">
+                <div id="arena-timer-bar" class="progress-bar" style="width: 100%; transition: width 0.1s linear;"></div>
+            </div>
+
+            <div id="arena-q-text" class="question-text" style="font-size: 1.35rem; text-align: center; margin: 16px 0 24px;">
+                Nội dung câu hỏi...
+            </div>
+
+            <!-- Big 4-Choice Arena Buttons -->
+            <div id="arena-options" class="arena-options-grid">
+                <div class="arena-opt-btn" onclick="submitPlayerAnswer('A')" id="opt-btn-A">
+                    <div class="option-key"><img src="/images/A.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="arena-opt-text-A">Đáp án A</div>
+                </div>
+                <div class="arena-opt-btn" onclick="submitPlayerAnswer('B')" id="opt-btn-B">
+                    <div class="option-key"><img src="/images/B.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="arena-opt-text-B">Đáp án B</div>
+                </div>
+                <div class="arena-opt-btn" onclick="submitPlayerAnswer('C')" id="opt-btn-C">
+                    <div class="option-key"><img src="/images/C.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="arena-opt-text-C">Đáp án C</div>
+                </div>
+                <div class="arena-opt-btn" onclick="submitPlayerAnswer('D')" id="opt-btn-D">
+                    <div class="option-key"><img src="/images/D.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="arena-opt-text-D">Đáp án D</div>
+                </div>
+            </div>
+
+            <div id="arena-answered-notice" style="display: none; margin-top: 18px; text-align: center; color: var(--color-skyblue); font-weight: 700;">
+                ✓ Đã ghi nhận đáp án của bạn! Đang chờ những người chơi khác...
+            </div>
+        </div>
+
+        <!-- 4. Question Result Screen -->
+        <div id="result-card-question" class="card" style="display: none; text-align: center;">
+            <div id="result-q-status" style="font-size: 1.8rem; font-weight: 900; margin-bottom: 8px;">CHÍNH XÁC!</div>
+            <div id="result-q-points" style="color: var(--color-skyblue); font-size: 1.2rem; font-weight: 800; margin-bottom: 18px;">+1,420 điểm</div>
+
+            <!-- Instant feedback GIF -->
+            <div style="display: flex; justify-content: center; margin-bottom: 18px;">
+                <div class="explanation-gif-container" style="width: 140px; height: 140px;">
+                    <img id="result-q-gif" class="explanation-gif" src="" alt="Feedback GIF">
+                </div>
+            </div>
+
+            <!-- Explanation & Stats -->
+            <div style="background: var(--bg-card-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: left;">
+                <div style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 4px;">GIẢI THÍCH CHI TIẾT:</div>
+                <div id="result-q-explanation" style="font-size: 0.95rem; color: var(--text-main); line-height: 1.55;">...</div>
+            </div>
+        </div>
+
+        <!-- 5. Leaderboard Transition Screen -->
+        <div id="leaderboard-card-live" class="card" style="display: none;">
+            <h2 style="color: var(--color-skyblue); font-size: 1.35rem; text-align: center; margin-bottom: 18px;">
+                🏆 BẢNG XẾP HẠNG TẠM THỜI (CÂU <span id="lb-q-curr">1</span>/<span id="lb-q-tot">20</span>)
+            </h2>
+
+            <table class="leaderboard-table">
+                <tbody id="leaderboard-rows">
+                    <!-- Rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 6. Final Podium Screen -->
+        <div id="podium-card" class="card result-card" style="display: none;">
+            <h2 style="text-transform: uppercase; letter-spacing: 2px; color: var(--color-skyblue);">🏆 CHUNG CUỘC TRẬN ĐẤU</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Vinh danh những chiến binh xuất sắc nhất!</p>
+
+            <div class="podium-container">
+                <!-- 2nd Place -->
+                <div class="podium-place podium-2">
+                    <img id="podium-2-avatar" class="podium-avatar" src="/images/B.jpg" style="border-color: #c0c0c0;">
+                    <div id="podium-2-name" class="podium-name">Player 2</div>
+                    <div id="podium-2-score" class="podium-score">0 pts</div>
+                    <div class="podium-block">2</div>
+                </div>
+
+                <!-- 1st Place -->
+                <div class="podium-place podium-1">
+                    <img id="podium-1-avatar" class="podium-avatar" src="/images/A.jpg" style="border-color: #ffd700;">
+                    <div id="podium-1-name" class="podium-name">Player 1</div>
+                    <div id="podium-1-score" class="podium-score">0 pts</div>
+                    <div class="podium-block">👑 1</div>
+                </div>
+
+                <!-- 3rd Place -->
+                <div class="podium-place podium-3">
+                    <img id="podium-3-avatar" class="podium-avatar" src="/images/C.jpg" style="border-color: #cd7f32;">
+                    <div id="podium-3-name" class="podium-name">Player 3</div>
+                    <div id="podium-3-score" class="podium-score">0 pts</div>
+                    <div class="podium-block">3</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 24px;">
+                <div style="font-size: 1.15rem; font-weight: 800; color: var(--color-skyblue);">
+                    Thứ hạng của bạn: #<span id="player-final-rank">1</span> • Tổng điểm: <span id="player-final-score">0</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 14px; margin-top: 28px; flex-wrap: wrap;">
+                <a href="/join" class="btn btn-primary">Chơi Trận Khác</a>
+                <a href="/" class="btn btn-secondary">Về Trang Chủ</a>
+                <a href="/leaderboard" class="btn btn-secondary">Bảng Vàng</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Fullscreen Countdown Overlay -->
+    <div id="countdown-overlay" class="countdown-overlay" style="display: none;">
+        <div style="color: var(--text-muted); font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; text-transform: uppercase;">CHUẨN BỊ...</div>
+        <div id="countdown-number" class="countdown-num">3</div>
+    </div>
+
+    <footer class="app-footer">
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
+    </footer>
+
+    <script src="/js/player.js"></script>
+</body>
+</html>

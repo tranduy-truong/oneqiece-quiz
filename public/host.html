@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Màn Hình Host Điều Khiển - Realtime Quiz</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="site-title">MÀN HÌNH ĐIỀU KHIỂN (HOST)</h1>
+        <p class="site-subtitle">Trình chiếu câu hỏi màn hình lớn • Quản lý phòng thi đấu</p>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Trang Chủ</a>
+            <a href="/solo" class="nav-link">Chơi Solo</a>
+            <a href="/join" class="nav-link">Vào Phòng</a>
+            <a href="/host" class="nav-link" style="color: var(--color-skyblue); border-color: var(--color-skyblue);">Tạo Phòng</a>
+            <a href="/leaderboard" class="nav-link">Bảng Xếp Hạng</a>
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 960px;">
+        <!-- 1. Create Room Setup -->
+        <div id="host-setup-card" class="card" style="max-width: 540px; margin: 0 auto;">
+            <h2 style="color: var(--color-skyblue); font-size: 1.4rem; text-align: center; margin-bottom: 20px;">TẠO PHÒNG THI ĐẤU MỚI</h2>
+
+            <div class="form-group">
+                <label class="form-label">Chọn Bộ Đề Thi:</label>
+                <select id="host-select-quiz" class="form-control">
+                    <option value="">Đang tải danh sách đề thi...</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Số người tối đa:</label>
+                    <input type="number" id="host-max-players" class="form-control" value="50" min="2" max="200">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Chế độ phòng:</label>
+                    <select id="host-is-public" class="form-control">
+                        <option value="true">Công Khai (Public)</option>
+                        <option value="false">Riêng Tư (Private)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="handleCreateRoom()" style="width: 100%; margin-top: 10px; padding: 14px; font-size: 1.1rem;">
+                TẠO PHÒNG NGAY ➔
+            </button>
+        </div>
+
+        <!-- 2. Host Lobby Screen -->
+        <div id="host-lobby-card" class="card" style="display: none; text-align: center;">
+            <div style="color: var(--text-muted); font-size: 1rem;">MÃ THAM GIA PHÒNG:</div>
+            <div id="host-display-code" class="room-code-badge" style="font-size: 3.5rem; padding: 12px 36px;">------</div>
+            
+            <div style="margin-bottom: 16px;">
+                <p style="color: var(--text-muted); font-size: 0.95rem;">
+                    Truy cập: <strong style="color: var(--color-skyblue);" id="host-join-url">https://oneqiece-quiz.onrender.com/join</strong>
+                </p>
+            </div>
+
+            <h3 id="host-quiz-name" style="color: var(--color-skyblue); margin-bottom: 6px;">One Piece Grand Test</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">
+                Người chơi đã vào: <span id="host-player-count" style="color: var(--color-skyblue); font-weight: 800; font-size: 1.2rem;">0</span>
+            </p>
+
+            <!-- Player Grid -->
+            <div id="host-lobby-players" class="lobby-players-grid" style="min-height: 180px;">
+                <!-- Player Chips -->
+            </div>
+
+            <div style="margin-top: 24px;">
+                <button id="btn-host-start" class="btn btn-primary" onclick="handleHostStartGame()" style="font-size: 1.25rem; padding: 16px 48px; border-radius: var(--radius-lg);">
+                    ▶ BẮT ĐẦU TRẬN ĐẤU (START GAME)
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. Host Live Question Projection -->
+        <div id="host-question-card" class="card" style="display: none;">
+            <div class="quiz-top-bar">
+                <div>CÂU HỎI: <span id="host-q-progress" class="quiz-stat">1 / 20</span></div>
+                <div>ĐÃ TRẢ LỜI: <span id="host-answered-progress" class="quiz-stat">0 / 0</span></div>
+                <div>THỜI GIAN: <span id="host-timer-text" class="quiz-stat" style="color: #fca5a5; font-size: 1.1rem;">15s</span></div>
+            </div>
+
+            <div class="progress-container">
+                <div id="host-timer-bar" class="progress-bar" style="width: 100%;"></div>
+            </div>
+
+            <div id="host-q-text" class="question-text" style="font-size: 1.6rem; text-align: center; margin: 24px 0 32px; line-height: 1.5;">
+                Nội dung câu hỏi trình chiếu...
+            </div>
+
+            <div class="arena-options-grid">
+                <div class="arena-opt-btn disabled" id="host-opt-A">
+                    <div class="option-key"><img src="/images/A.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="host-opt-text-A" style="font-size: 1.15rem;">Đáp án A</div>
+                </div>
+                <div class="arena-opt-btn disabled" id="host-opt-B">
+                    <div class="option-key"><img src="/images/B.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="host-opt-text-B" style="font-size: 1.15rem;">Đáp án B</div>
+                </div>
+                <div class="arena-opt-btn disabled" id="host-opt-C">
+                    <div class="option-key"><img src="/images/C.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="host-opt-text-C" style="font-size: 1.15rem;">Đáp án C</div>
+                </div>
+                <div class="arena-opt-btn disabled" id="host-opt-D">
+                    <div class="option-key"><img src="/images/D.jpg" class="option-key-img"></div>
+                    <div class="option-text" id="host-opt-text-D" style="font-size: 1.15rem;">Đáp án D</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Host Question Result & Stats Chart -->
+        <div id="host-result-card" class="card" style="display: none;">
+            <h2 style="color: var(--color-correct); text-align: center; margin-bottom: 8px;">
+                ĐÁP ÁN ĐÚNG: <span id="host-correct-answer">A</span>
+            </h2>
+
+            <!-- Bar Chart Distribution -->
+            <div class="stats-chart-wrapper">
+                <div class="stats-bar-col">
+                    <div class="stats-bar-count" id="stat-count-A">0</div>
+                    <div class="stats-bar" id="stat-bar-A" style="height: 0%;"></div>
+                    <div class="stats-bar-label">A</div>
+                </div>
+                <div class="stats-bar-col">
+                    <div class="stats-bar-count" id="stat-count-B">0</div>
+                    <div class="stats-bar" id="stat-bar-B" style="height: 0%;"></div>
+                    <div class="stats-bar-label">B</div>
+                </div>
+                <div class="stats-bar-col">
+                    <div class="stats-bar-count" id="stat-count-C">0</div>
+                    <div class="stats-bar" id="stat-bar-C" style="height: 0%;"></div>
+                    <div class="stats-bar-label">C</div>
+                </div>
+                <div class="stats-bar-col">
+                    <div class="stats-bar-count" id="stat-count-D">0</div>
+                    <div class="stats-bar" id="stat-bar-D" style="height: 0%;"></div>
+                    <div class="stats-bar-label">D</div>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-card-secondary); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 16px;">
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 4px;">GIẢI THÍCH:</div>
+                <div id="host-explanation-text" style="font-size: 1rem; color: var(--text-main); line-height: 1.6;">...</div>
+            </div>
+        </div>
+
+        <!-- 5. Host Leaderboard Screen -->
+        <div id="host-leaderboard-card" class="card" style="display: none;">
+            <h2 style="color: var(--color-skyblue); font-size: 1.5rem; text-align: center; margin-bottom: 20px;">
+                🏆 BẢNG XẾP HẠNG TOP ĐẦU
+            </h2>
+
+            <table class="leaderboard-table">
+                <tbody id="host-leaderboard-rows">
+                    <!-- Rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 6. Host Final Podium Screen -->
+        <div id="host-podium-card" class="card result-card" style="display: none;">
+            <h1 style="text-transform: uppercase; letter-spacing: 2px; color: var(--color-skyblue); margin-bottom: 8px;">
+                👑 VINH DANH NHÀ VÔ ĐỊCH
+            </h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 32px;">Kết quả thi đấu chung cuộc</p>
+
+            <div class="podium-container" style="min-height: 300px;">
+                <!-- 2nd Place -->
+                <div class="podium-place podium-2" style="width: 140px;">
+                    <img id="host-podium-2-avatar" class="podium-avatar" src="/images/B.jpg" style="width: 70px; height: 70px; border-color: #c0c0c0;">
+                    <div id="host-podium-2-name" class="podium-name" style="font-size: 1.1rem;">Player 2</div>
+                    <div id="host-podium-2-score" class="podium-score" style="font-size: 1rem;">0 pts</div>
+                    <div class="podium-block" style="height: 130px; font-size: 2.2rem;">🥈 2</div>
+                </div>
+
+                <!-- 1st Place -->
+                <div class="podium-place podium-1" style="width: 160px;">
+                    <img id="host-podium-1-avatar" class="podium-avatar" src="/images/A.jpg" style="width: 84px; height: 84px; border-color: #ffd700;">
+                    <div id="host-podium-1-name" class="podium-name" style="font-size: 1.25rem;">Player 1</div>
+                    <div id="host-podium-1-score" class="podium-score" style="font-size: 1.1rem;">0 pts</div>
+                    <div class="podium-block" style="height: 180px; font-size: 2.6rem;">👑 1</div>
+                </div>
+
+                <!-- 3rd Place -->
+                <div class="podium-place podium-3" style="width: 140px;">
+                    <img id="host-podium-3-avatar" class="podium-avatar" src="/images/C.jpg" style="width: 70px; height: 70px; border-color: #cd7f32;">
+                    <div id="host-podium-3-name" class="podium-name" style="font-size: 1.1rem;">Player 3</div>
+                    <div id="host-podium-3-score" class="podium-score" style="font-size: 1rem;">0 pts</div>
+                    <div class="podium-block" style="height: 90px; font-size: 2rem;">🥉 3</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 14px; margin-top: 36px; flex-wrap: wrap;">
+                <a href="/host" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Tạo Trận Đấu Mới</a>
+                <a href="/leaderboard" class="btn btn-secondary" style="font-size: 1.1rem; padding: 14px 32px;">Bảng Xếp Hạng Global</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Countdown Overlay -->
+    <div id="host-countdown-overlay" class="countdown-overlay" style="display: none;">
+        <div style="color: var(--text-muted); font-size: 1.8rem; font-weight: 700; margin-bottom: 14px; text-transform: uppercase;">TRẬN ĐẤU SẼ BẮT ĐẦU TRONG</div>
+        <div id="host-countdown-num" class="countdown-num" style="font-size: 8rem;">3</div>
+    </div>
+
+    <footer class="app-footer">
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
+    </footer>
+
+    <script src="/js/host.js"></script>
+</body>
+</html>

@@ -1,92 +1,122 @@
 /**
- * One Piece Admin Dashboard Logic
+ * Admin Panel Controller
  */
 
 let allQuestions = [];
-let token = localStorage.getItem('admin_token');
+const authToken = localStorage.getItem('admin_token');
 
 // DOM Elements
-const tableBody = document.getElementById('questions-table-body');
-const totalCountEl = document.getElementById('total-count');
-const searchInput = document.getElementById('search-input');
-const modalBackdrop = document.getElementById('question-modal');
+const questionsTableBody = document.getElementById('questions-table-body');
+const totalCountSpan = document.getElementById('total-count');
+const adminAlert = document.getElementById('admin-alert');
+const questionModal = document.getElementById('question-modal');
 const modalTitle = document.getElementById('modal-title');
-const alertEl = document.getElementById('admin-alert');
+const searchInput = document.getElementById('search-input');
+const bulkModal = document.getElementById('bulk-modal');
+const bulkInput = document.getElementById('bulk-input');
+const bulkPreviewStatus = document.getElementById('bulk-preview-status');
 
-// Khởi chạy khi load trang
-document.addEventListener('DOMContentLoaded', () => {
-    if (!token) {
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!authToken) {
         window.location.href = '/login';
         return;
     }
-    loadAdminQuestions();
-});
 
-/**
- * Hiển thị thông báo
- */
-function showAlert(message, type = 'success') {
-    alertEl.className = `alert alert-${type} show`;
-    alertEl.innerText = message;
-    setTimeout(() => {
-        alertEl.classList.remove('show');
-    }, 4000);
-}
-
-/**
- * Tải danh sách câu hỏi từ Admin API
- */
-async function loadAdminQuestions() {
     try {
-        const res = await fetch('/api/admin/questions', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch('/api/admin/me', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
         });
-
-        if (res.status === 401 || res.status === 403) {
+        if (!res.ok) {
             localStorage.removeItem('admin_token');
             window.location.href = '/login';
             return;
         }
+    } catch (e) {
+        window.location.href = '/login';
+        return;
+    }
 
-        const data = await res.json();
-        if (res.ok && data.success) {
-            allQuestions = data.data;
-            totalCountEl.innerText = allQuestions.length;
-            renderTable(allQuestions);
-        } else {
-            showAlert(data.error || 'Không thể tải danh sách câu hỏi.', 'danger');
+    loadDashboardStats();
+});
+
+function switchAdminTab(tabName) {
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+
+    const tabs = ['stats', 'questions', 'quizzes', 'games'];
+    tabs.forEach(t => {
+        document.getElementById(`tab-content-${t}`).style.display = (t === tabName) ? 'block' : 'none';
+    });
+
+    if (tabName === 'stats') loadDashboardStats();
+    else if (tabName === 'questions') loadQuestions();
+    else if (tabName === 'quizzes') loadAdminQuizzes();
+    else if (tabName === 'games') loadAdminGames();
+}
+
+async function loadDashboardStats() {
+    try {
+        const res = await fetch('/api/admin/stats', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            const d = result.data;
+            document.getElementById('stat-total-q').innerText = d.total_questions;
+            document.getElementById('stat-total-quizzes').innerText = d.total_quizzes;
+            document.getElementById('stat-total-topics').innerText = d.total_topics;
+            document.getElementById('stat-total-games').innerText = d.games_played;
+            document.getElementById('stat-total-players').innerText = d.total_players;
+            document.getElementById('stat-games-today').innerText = d.games_today;
         }
     } catch (err) {
-        console.error('Lỗi tải danh sách admin:', err);
-        showAlert('Lỗi kết nối đến máy chủ.', 'danger');
+        console.error('Lỗi tải stats:', err);
     }
 }
 
-/**
- * Vẽ bảng dữ liệu câu hỏi
- */
-function renderTable(questionsList) {
-    tableBody.innerHTML = '';
+async function loadQuestions() {
+    try {
+        const response = await fetch('/api/admin/questions', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await response.json();
 
-    if (questionsList.length === 0) {
-        tableBody.innerHTML = `
+        if (response.ok && result.success) {
+            allQuestions = result.data;
+            totalCountSpan.innerText = allQuestions.length;
+            renderQuestionsTable(allQuestions);
+        } else {
+            showAlert(result.error || 'Không thể tải danh sách câu hỏi.', 'danger');
+        }
+    } catch (error) {
+        showAlert('Lỗi kết nối cơ sở dữ liệu.', 'danger');
+    }
+}
+
+function renderQuestionsTable(questions) {
+    if (questions.length === 0) {
+        questionsTableBody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);">
-                    Không tìm thấy câu hỏi nào.
+                <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                    Chưa có câu hỏi nào.
                 </td>
             </tr>
         `;
         return;
     }
 
-    questionsList.forEach(q => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td style="font-weight: 700; color: var(--accent-gold);">${q.id}</td>
+    questionsTableBody.innerHTML = questions.map(q => `
+        <tr>
+            <td style="font-weight: 700; color: var(--color-skyblue);">#${q.id}</td>
             <td>
-                <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(q.question_text)}</div>
-                <div style="font-size: 0.82rem; color: var(--text-muted);">
-                    A: ${escapeHtml(q.option_a)} | B: ${escapeHtml(q.option_b)} | C: ${escapeHtml(q.option_c)} | D: ${escapeHtml(q.option_d)}
+                <div style="font-weight: 600; color: var(--text-main); margin-bottom: 6px;">
+                    ${escapeHtml(q.question_text)}
+                </div>
+                <div style="font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap;">
+                    <span>A: ${escapeHtml(q.option_a)}</span>
+                    <span>B: ${escapeHtml(q.option_b)}</span>
+                    <span>C: ${escapeHtml(q.option_c)}</span>
+                    <span>D: ${escapeHtml(q.option_d)}</span>
                 </div>
             </td>
             <td>
@@ -104,48 +134,38 @@ function renderTable(questionsList) {
                     <button class="btn btn-danger btn-sm" onclick="handleDeleteQuestion(${q.id})">Xóa</button>
                 </div>
             </td>
-        `;
-        tableBody.appendChild(row);
-    });
+        </tr>
+    `).join('');
 }
 
-/**
- * Xử lý tìm kiếm câu hỏi
- */
 function handleSearch() {
-    const keyword = searchInput.value.toLowerCase().trim();
-    if (!keyword) {
-        renderTable(allQuestions);
+    const term = searchInput.value.toLowerCase().trim();
+    if (!term) {
+        renderQuestionsTable(allQuestions);
         return;
     }
 
     const filtered = allQuestions.filter(q => 
-        q.question_text.toLowerCase().includes(keyword) ||
-        (q.category && q.category.toLowerCase().includes(keyword)) ||
-        q.option_a.toLowerCase().includes(keyword) ||
-        q.option_b.toLowerCase().includes(keyword) ||
-        q.option_c.toLowerCase().includes(keyword) ||
-        q.option_d.toLowerCase().includes(keyword)
+        q.question_text.toLowerCase().includes(term) ||
+        (q.category && q.category.toLowerCase().includes(term)) ||
+        q.option_a.toLowerCase().includes(term) ||
+        q.option_b.toLowerCase().includes(term) ||
+        q.option_c.toLowerCase().includes(term) ||
+        q.option_d.toLowerCase().includes(term)
     );
 
-    renderTable(filtered);
+    renderQuestionsTable(filtered);
 }
 
-/**
- * Mở Modal thêm câu hỏi
- */
 function openAddModal() {
     modalTitle.innerText = 'Thêm Câu Hỏi Mới';
     document.getElementById('question-form').reset();
     document.getElementById('form-question-id').value = '';
     document.getElementById('form-correct-answer').value = 'A';
     document.getElementById('form-difficulty').value = '1';
-    modalBackdrop.classList.add('open');
+    questionModal.classList.add('open');
 }
 
-/**
- * Mở Modal sửa câu hỏi
- */
 function openEditModal(id) {
     const question = allQuestions.find(q => q.id === id);
     if (!question) return;
@@ -159,131 +179,97 @@ function openEditModal(id) {
     document.getElementById('form-opt-d').value = question.option_d;
     document.getElementById('form-correct-answer').value = question.correct_answer;
     document.getElementById('form-category').value = question.category || '';
-    document.getElementById('form-difficulty').value = question.difficulty || 1;
+    document.getElementById('form-difficulty').value = question.difficulty || '1';
     document.getElementById('form-explanation').value = question.explanation || '';
 
-    modalBackdrop.classList.add('open');
+    questionModal.classList.add('open');
 }
 
-/**
- * Đóng Modal
- */
 function closeModal() {
-    modalBackdrop.classList.remove('open');
+    questionModal.classList.remove('open');
 }
 
-/**
- * Lưu câu hỏi (Thêm mới hoặc Cập nhật)
- */
 async function handleSaveQuestion(e) {
     e.preventDefault();
 
     const id = document.getElementById('form-question-id').value;
     const isEdit = Boolean(id);
 
-    const payload = {
+    const questionData = {
         question_text: document.getElementById('form-question-text').value.trim(),
         option_a: document.getElementById('form-opt-a').value.trim(),
         option_b: document.getElementById('form-opt-b').value.trim(),
         option_c: document.getElementById('form-opt-c').value.trim(),
         option_d: document.getElementById('form-opt-d').value.trim(),
         correct_answer: document.getElementById('form-correct-answer').value,
-        category: document.getElementById('form-category').value.trim(),
-        difficulty: parseInt(document.getElementById('form-difficulty').value, 10),
+        category: document.getElementById('form-category').value.trim() || 'Chung',
+        difficulty: parseInt(document.getElementById('form-difficulty').value, 10) || 1,
         explanation: document.getElementById('form-explanation').value.trim()
     };
 
-    const btnSave = document.getElementById('btn-save-question');
-    btnSave.disabled = true;
-    btnSave.innerText = 'Đang lưu...';
-
-    const url = isEdit ? `/api/admin/questions/${id}` : '/api/admin/questions';
-    const method = isEdit ? 'PUT' : 'POST';
-
     try {
-        const res = await fetch(url, {
+        const url = isEdit ? `/api/admin/questions/${id}` : '/api/admin/questions';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${authToken}`
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(questionData)
         });
 
-        const data = await res.json();
+        const result = await response.json();
 
-        if (res.ok && data.success) {
+        if (response.ok && result.success) {
+            showAlert(result.message || 'Lưu câu hỏi thành công!', 'success');
             closeModal();
-            showAlert(isEdit ? 'Đã cập nhật câu hỏi thành công!' : 'Đã thêm câu hỏi mới thành công!', 'success');
-            await loadAdminQuestions();
+            loadQuestions();
         } else {
-            alert(data.error || 'Có lỗi xảy ra khi lưu câu hỏi.');
+            alert(result.error || 'Không thể lưu câu hỏi.');
         }
-    } catch (err) {
-        alert('Lỗi kết nối máy chủ khi lưu.');
-    } finally {
-        btnSave.disabled = false;
-        btnSave.innerText = 'Lưu Câu Hỏi';
+    } catch (error) {
+        alert('Lỗi kết nối máy chủ.');
     }
 }
 
-/**
- * Xóa câu hỏi có xác nhận
- */
 async function handleDeleteQuestion(id) {
-    const question = allQuestions.find(q => q.id === id);
-    const textPreview = question ? `"${question.question_text.slice(0, 50)}..."` : `#${id}`;
-
-    if (!confirm(`Bạn có chắc chắn muốn xóa câu hỏi ${textPreview}? Thao tác này không thể hoàn tác.`)) {
-        return;
-    }
+    if (!confirm(`Bạn có chắc chắn muốn xóa câu hỏi #${id}?`)) return;
 
     try {
-        const res = await fetch(`/api/admin/questions/${id}`, {
+        const response = await fetch(`/api/admin/questions/${id}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${authToken}` }
         });
 
-        const data = await res.json();
+        const result = await response.json();
 
-        if (res.ok && data.success) {
-            showAlert(`Đã xóa câu hỏi #${id} thành công!`, 'success');
-            await loadAdminQuestions();
+        if (response.ok && result.success) {
+            showAlert('Đã xóa câu hỏi thành công!', 'success');
+            loadQuestions();
         } else {
-            showAlert(data.error || 'Không thể xóa câu hỏi.', 'danger');
+            showAlert(result.error || 'Không thể xóa câu hỏi.', 'danger');
         }
-    } catch (err) {
-        showAlert('Lỗi kết nối khi xóa câu hỏi.', 'danger');
+    } catch (error) {
+        showAlert('Lỗi kết nối máy chủ.', 'danger');
     }
 }
 
-/**
- * Mở Modal Nhập Hàng Loạt
- */
 function openBulkModal() {
-    const modal = document.getElementById('bulk-modal');
-    document.getElementById('bulk-input').value = '';
-    document.getElementById('bulk-preview-status').innerText = '';
-    modal.classList.add('open');
+    bulkInput.value = '';
+    bulkPreviewStatus.innerText = '';
+    bulkModal.classList.add('open');
 }
 
-/**
- * Đóng Modal Nhập Hàng Loạt
- */
 function closeBulkModal() {
-    const modal = document.getElementById('bulk-modal');
-    modal.classList.remove('open');
+    bulkModal.classList.remove('open');
 }
 
-/**
- * Xử lý nhập hàng loạt câu hỏi
- */
 async function handleProcessBulk() {
-    const rawInput = document.getElementById('bulk-input').value.trim();
+    const rawInput = bulkInput.value.trim();
     if (!rawInput) {
-        alert('Vui lòng dán danh sách câu hỏi vào ô nhập liệu.');
+        alert('Vui lòng dán danh sách câu hỏi.');
         return;
     }
 
@@ -309,127 +295,168 @@ async function handleProcessBulk() {
             })).filter(q => q.question_text && q.option_a && q.option_b && q.option_c && q.option_d);
         }
     } catch (e) {
-        // 2. Nếu không phải JSON, parse dạng Văn Bản Tự Do
+        // 2. Parse dạng văn bản
         parsedQuestions = parsePlainTextQuestions(rawInput);
     }
 
     if (parsedQuestions.length === 0) {
-        alert('Không tìm thấy câu hỏi hợp lệ nào trong nội dung bạn vừa dán.\nVui lòng kiểm tra lại định dạng (mỗi câu cần có câu hỏi, 4 lựa chọn A, B, C, D và Đáp án).');
+        alert('Không tìm thấy câu hỏi hợp lệ nào.');
         return;
     }
-
-    if (!confirm(`Hệ thống đã nhận diện được ${parsedQuestions.length} câu hỏi hợp lệ. Bạn có muốn nạp tất cả vào database?`)) {
-        return;
-    }
-
-    const btnSubmit = document.getElementById('btn-submit-bulk');
-    btnSubmit.disabled = true;
-    btnSubmit.innerText = '⏳ Đang lưu dữ liệu...';
 
     try {
-        const res = await fetch('/api/admin/questions/bulk', {
+        const response = await fetch('/api/admin/questions/bulk', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify({ questions: parsedQuestions })
         });
 
-        const data = await res.json();
+        const result = await response.json();
 
-        if (res.ok && data.success) {
+        if (response.ok && result.success) {
+            showAlert(result.message, 'success');
             closeBulkModal();
-            showAlert(data.message || `Đã thêm thành công ${parsedQuestions.length} câu hỏi!`, 'success');
-            await loadAdminQuestions();
+            loadQuestions();
         } else {
-            alert(data.error || 'Có lỗi xảy ra khi nạp dữ liệu hàng loạt.');
+            alert(result.error || 'Lỗi khi nhập hàng loạt.');
         }
-    } catch (err) {
-        alert('Lỗi kết nối máy chủ khi nạp câu hỏi.');
-    } finally {
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = '⚡ Tiến Hành Nhập Dữ Liệu';
+    } catch (error) {
+        alert('Lỗi kết nối máy chủ.');
     }
 }
 
-/**
- * Hàm phân tích văn bản tự do thành mảng câu hỏi
- */
 function parsePlainTextQuestions(text) {
-    const blocks = text.split(/\n\s*---\s*\n|\n\s*===\s*\n|\n{2,}/);
-    const result = [];
+    const list = [];
+    const blocks = text.split(/\n\s*---\s*\n|\n\s*={3,}\s*\n/);
 
-    blocks.forEach(block => {
-        const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-        if (lines.length < 5) return;
+    for (const block of blocks) {
+        if (!block.trim()) continue;
 
+        const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         let qText = '';
         let optA = '', optB = '', optC = '', optD = '';
-        let correct = '';
-        let category = 'Chung';
-        let difficulty = 1;
-        let explanation = '';
+        let correctAns = '';
+        let cat = 'Chung';
+        let diff = 1;
+        let exp = '';
 
-        lines.forEach(line => {
-            if (/^(Câu\s*\d*[:.]?|Question\s*\d*[:.]?)/i.test(line)) {
-                qText = line.replace(/^(Câu\s*\d*[:.]?|Question\s*\d*[:.]?)\s*/i, '');
-            } else if (/^[AÀa]\s*[:.)-]\s*/i.test(line)) {
-                optA = line.replace(/^[AÀa]\s*[:.)-]\s*/i, '');
-            } else if (/^[Bᵇb]\s*[:.)-]\s*/i.test(line)) {
-                optB = line.replace(/^[Bᵇb]\s*[:.)-]\s*/i, '');
-            } else if (/^[Cᶜc]\s*[:.)-]\s*/i.test(line)) {
-                optC = line.replace(/^[Cᶜc]\s*[:.)-]\s*/i, '');
-            } else if (/^[Dᵈd]\s*[:.)-]\s*/i.test(line)) {
-                optD = line.replace(/^[Dᵈd]\s*[:.)-]\s*/i, '');
-            } else if (/^(Đáp án|Đáp án đúng|Answer|Key)\s*[:.]?\s*([A-D])/i.test(line)) {
-                const match = line.match(/^(Đáp án|Đáp án đúng|Answer|Key)\s*[:.]?\s*([A-D])/i);
-                if (match) correct = match[2].toUpperCase();
-            } else if (/^(Chủ đề|Category)\s*[:.]?\s*(.+)/i.test(line)) {
-                const match = line.match(/^(Chủ đề|Category)\s*[:.]?\s*(.+)/i);
-                if (match) category = match[2].trim();
-            } else if (/^(Độ khó|Level|Difficulty)\s*[:.]?\s*(\d)/i.test(line)) {
-                const match = line.match(/^(Độ khó|Level|Difficulty)\s*[:.]?\s*(\d)/i);
-                if (match) difficulty = parseInt(match[2], 10) || 1;
-            } else if (/^(Giải thích|Explanation|Nguồn)\s*[:.]?\s*(.+)/i.test(line)) {
-                const match = line.match(/^(Giải thích|Explanation|Nguồn)\s*[:.]?\s*(.+)/i);
-                if (match) explanation = match[2].trim();
+        for (const line of lines) {
+            if (/^(Câu\s*\d*[:.]?|Q\s*\d*[:.]?)/i.test(line)) {
+                qText = line.replace(/^(Câu\s*\d*[:.]?|Q\s*\d*[:.]?)\s*/i, '').trim();
+            } else if (/^[A][:.)]\s*/i.test(line)) {
+                optA = line.replace(/^[A][:.)]\s*/i, '').trim();
+            } else if (/^[B][:.)]\s*/i.test(line)) {
+                optB = line.replace(/^[B][:.)]\s*/i, '').trim();
+            } else if (/^[C][:.)]\s*/i.test(line)) {
+                optC = line.replace(/^[C][:.)]\s*/i, '').trim();
+            } else if (/^[D][:.)]\s*/i.test(line)) {
+                optD = line.replace(/^[D][:.)]\s*/i, '').trim();
+            } else if (/^(Đáp án|Answer|Key)[:.]?\s*/i.test(line)) {
+                const match = line.match(/[A-D]/i);
+                if (match) correctAns = match[0].toUpperCase();
+            } else if (/^(Chủ đề|Category)[:.]?\s*/i.test(line)) {
+                cat = line.replace(/^(Chủ đề|Category)[:.]?\s*/i, '').trim();
+            } else if (/^(Độ khó|Level|Difficulty)[:.]?\s*/i.test(line)) {
+                const num = parseInt(line.replace(/\D/g, ''), 10);
+                if (num >= 1 && num <= 6) diff = num;
+            } else if (/^(Giải thích|Explanation|Nguồn)[:.]?\s*/i.test(line)) {
+                exp = line.replace(/^(Giải thích|Explanation|Nguồn)[:.]?\s*/i, '').trim();
             } else if (!qText) {
                 qText = line;
             }
-        });
+        }
 
-        if (qText && optA && optB && optC && optD && correct) {
-            result.push({
+        if (qText && optA && optB && optC && optD && correctAns) {
+            list.push({
                 question_text: qText,
                 option_a: optA,
                 option_b: optB,
                 option_c: optC,
                 option_d: optD,
-                correct_answer: correct,
-                category: category,
-                difficulty: difficulty,
-                explanation: explanation
+                correct_answer: correctAns,
+                category: cat,
+                difficulty: diff,
+                explanation: exp
             });
         }
-    });
+    }
 
-    return result;
+    return list;
 }
 
-/**
- * Đăng xuất admin
- */
-function handleLogout() {
-    if (confirm('Bạn có chắc muốn đăng xuất khỏi trang quản trị?')) {
-        localStorage.removeItem('admin_token');
-        window.location.href = '/login';
+async function loadAdminQuizzes() {
+    const tbody = document.getElementById('quizzes-table-body');
+    try {
+        const res = await fetch('/api/quizzes');
+        const data = await res.json();
+        if (res.ok && data.success && data.data.length > 0) {
+            tbody.innerHTML = data.data.map(q => `
+                <tr>
+                    <td style="font-weight: 700; color: var(--color-skyblue);">#${q.id}</td>
+                    <td>
+                        <strong style="color: var(--text-main); font-size: 1rem;">${escapeHtml(q.title)}</strong>
+                        <div style="font-size: 0.84rem; color: var(--text-muted);">${escapeHtml(q.description || '')}</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-category">${escapeHtml(q.topic_name || 'Chung')}</span>
+                    </td>
+                    <td style="text-align: center; font-weight: 700;">${q.time_per_question || 15}s</td>
+                    <td style="text-align: center; font-weight: 700;">${q.total_questions || 20}</td>
+                    <td style="text-align: center;">
+                        <span class="badge ${q.status === 'PUBLISHED' ? 'badge-category' : 'badge-difficulty'}">
+                            ${q.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--color-wrong);">Không thể tải bộ đề.</td></tr>';
     }
 }
 
-/**
- * Helper escape HTML
- */
+async function loadAdminGames() {
+    const tbody = document.getElementById('games-table-body');
+    try {
+        const res = await fetch('/api/admin/games', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.data.length > 0) {
+            tbody.innerHTML = data.data.map(g => `
+                <tr>
+                    <td style="font-weight: 700; color: var(--color-skyblue);">#${g.id}</td>
+                    <td><strong style="color: var(--text-main);">${escapeHtml(g.quiz_title || 'One Piece Grand Test')}</strong></td>
+                    <td><span class="badge ${g.mode === 'MULTIPLAYER' ? 'badge-category' : 'badge-difficulty'}">${g.mode}</span></td>
+                    <td style="text-align: center; font-weight: 700;">${g.player_count || 1}</td>
+                    <td style="font-weight: 700; color: #ffd700;">${g.winner ? `👑 ${escapeHtml(g.winner)}` : 'Chưa có'}</td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);">${new Date(g.started_at).toLocaleString('vi-VN')}</td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Chưa có trận đấu nào được lưu trong hệ thống.</td></tr>';
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--color-wrong);">Không thể tải lịch sử trận đấu.</td></tr>';
+    }
+}
+
+function showAlert(message, type = 'success') {
+    adminAlert.className = `alert alert-${type} show`;
+    adminAlert.innerText = message;
+    setTimeout(() => {
+        adminAlert.className = 'alert';
+    }, 4000);
+}
+
+function handleLogout() {
+    localStorage.removeItem('admin_token');
+    window.location.href = '/login';
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)

@@ -3,66 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Trị Câu Hỏi - One Piece Quiz</title>
+    <title>Quản Trị Hệ Thống - Realtime Quiz Admin</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
     <header class="app-header">
-        <h1 class="site-title">ONE PIECE ADMIN DASHBOARD</h1>
-        <p class="site-subtitle">Quản trị và biên soạn cơ sở dữ liệu câu hỏi</p>
+        <h1 class="site-title">ADMIN DASHBOARD</h1>
+        <p class="site-subtitle">Quản trị toàn diện: Chủ đề • Bộ đề • Câu hỏi • Lịch sử thi đấu Realtime</p>
         <div class="nav-links">
-            <a href="/" class="nav-link">Xem Trang Quiz</a>
+            <a href="/" class="nav-link">Xem Trang Chủ</a>
+            <a href="/leaderboard" class="nav-link">Bảng Vàng</a>
             <button class="nav-link" id="btn-logout" onclick="handleLogout()" style="cursor: pointer; background: transparent;">Đăng xuất</button>
         </div>
     </header>
 
-    <main class="container" style="max-width: 1050px;">
+    <main class="container" style="max-width: 1100px;">
         <!-- Alert Notification -->
         <div id="admin-alert" class="alert"></div>
 
         <div class="card">
-            <!-- Toolbar -->
-            <div class="admin-toolbar">
-                <div>
-                    <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
-                        Danh Sách Câu Hỏi (<span id="total-count">0</span>)
-                    </h2>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">Quản lý toàn bộ câu hỏi trong hệ thống</p>
-                </div>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm câu hỏi..." oninput="handleSearch()">
-                    <button class="btn btn-secondary" onclick="openBulkModal()" id="btn-bulk-import">
-                        Nhập Hàng Loạt
-                    </button>
-                    <button class="btn btn-primary" onclick="openAddModal()" id="btn-add-question">
-                        Thêm Câu Hỏi Mới
-                    </button>
+            <!-- Tabs Header -->
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" onclick="switchAdminTab('stats')" id="tab-btn-stats">
+                    📊 Thống Kê Tổng Quan
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('questions')" id="tab-btn-questions">
+                    ❓ Quản Lý Câu Hỏi
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('quizzes')" id="tab-btn-quizzes">
+                    📚 Chủ Đề & Bộ Đề
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('games')" id="tab-btn-games">
+                    🎮 Lịch Sử Trận Đấu
+                </button>
+            </div>
+
+            <!-- Tab 1: Stats Dashboard -->
+            <div id="tab-content-stats">
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-box">
+                        <div id="stat-total-q" class="stat-value">0</div>
+                        <div class="stat-label">Tổng Câu Hỏi</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-total-quizzes" class="stat-value">0</div>
+                        <div class="stat-label">Bộ Đề Thi</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-total-topics" class="stat-value">0</div>
+                        <div class="stat-label">Chủ Đề</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-total-games" class="stat-value">0</div>
+                        <div class="stat-label">Trận Đấu Đã Chơi</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-total-players" class="stat-value">0</div>
+                        <div class="stat-label">Tổng Người Chơi</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-games-today" class="stat-value" style="color: #34d399;">0</div>
+                        <div class="stat-label">Trận Đấu Hôm Nay</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Table -->
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">ID</th>
-                            <th>Nội dung câu hỏi</th>
-                            <th style="width: 140px;">Chủ đề</th>
-                            <th style="width: 100px; text-align: center;">Đáp án</th>
-                            <th style="width: 140px; text-align: center;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="questions-table-body">
-                        <!-- Rendered by JS -->
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
-                                Đang tải danh sách câu hỏi...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Tab 2: Questions Management -->
+            <div id="tab-content-questions" style="display: none;">
+                <div class="admin-toolbar">
+                    <div>
+                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
+                            Danh Sách Câu Hỏi (<span id="total-count">0</span>)
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Quản lý toàn bộ câu hỏi trong hệ thống</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm câu hỏi..." oninput="handleSearch()">
+                        <button class="btn btn-secondary" onclick="openBulkModal()" id="btn-bulk-import">
+                            Nhập Hàng Loạt
+                        </button>
+                        <button class="btn btn-primary" onclick="openAddModal()" id="btn-add-question">
+                            Thêm Câu Hỏi Mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ID</th>
+                                <th>Nội dung câu hỏi</th>
+                                <th style="width: 140px;">Chủ đề</th>
+                                <th style="width: 80px; text-align: center;">Đáp án</th>
+                                <th style="width: 140px; text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="questions-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    Đang tải danh sách câu hỏi...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Topics & Quizzes -->
+            <div id="tab-content-quizzes" style="display: none;">
+                <div class="admin-toolbar">
+                    <div>
+                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
+                            Danh Sách Bộ Đề Thi
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Cấu hình thời gian, số câu hỏi và trạng thái hiển thị</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ID</th>
+                                <th>Tên Bộ Đề</th>
+                                <th>Chủ Đề</th>
+                                <th style="text-align: center;">Thời Gian/Câu</th>
+                                <th style="text-align: center;">Số Câu</th>
+                                <th style="text-align: center;">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quizzes-table-body">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    Đang tải danh sách bộ đề...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 4: Game History -->
+            <div id="tab-content-games" style="display: none;">
+                <div class="admin-toolbar">
+                    <div>
+                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
+                            Lịch Sử Các Trận Đấu
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Xem kết quả chi tiết từng trận đấu đã diễn ra</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 70px;">Trận</th>
+                                <th>Bộ Đề</th>
+                                <th>Chế Độ</th>
+                                <th style="text-align: center;">Số Người</th>
+                                <th>Nhà Vô Địch</th>
+                                <th>Thời Gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="games-table-body">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    Đang tải lịch sử trận đấu...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -155,7 +270,7 @@
             </div>
 
             <div style="margin-bottom: 16px; font-size: 0.9rem; color: var(--text-muted);">
-                Dán danh sách câu hỏi dạng <strong>Văn bản thường</strong> hoặc <strong>JSON</strong>:
+                Dán danh sách câu hỏi dạng <strong>JSON</strong> hoặc <strong>Văn bản thường</strong>:
             </div>
 
             <div class="form-group">
@@ -182,9 +297,7 @@ D. Franky
 Đáp án: B"></textarea>
             </div>
 
-            <div id="bulk-preview-status" style="font-size: 0.9rem; color: var(--color-skyblue); margin-bottom: 16px;">
-                <!-- Preview info -->
-            </div>
+            <div id="bulk-preview-status" style="font-size: 0.9rem; color: var(--color-skyblue); margin-bottom: 16px;"></div>
 
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">Hủy</button>
@@ -196,7 +309,7 @@ D. Franky
     </div>
 
     <footer class="app-footer">
-        <p>© 2026 • Hệ thống trắc nghiệm One Piece</p>
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
     </footer>
 
     <script src="/js/admin.js"></script>

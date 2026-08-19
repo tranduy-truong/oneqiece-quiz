@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HÃY CHỨNG MINH BẠN KHÔNG PHẢI LÀ LARPER</title>
-    <meta name="description" content="Bài kiểm tra kiến thức One Piece thực thụ. Trả lời ngay, xem giải thích chi tiết!">
+    <title>HÃY CHỨNG MINH BẠN KHÔNG PHẢI LÀ LARPER - Realtime Quiz Platform</title>
+    <meta name="description" content="Đấu trường trắc nghiệm One Piece & Lập trình thời gian thực chuẩn Kahoot!">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -12,146 +12,66 @@
 
     <header class="app-header">
         <h1 class="site-title">HÃY CHỨNG MINH BẠN KHÔNG PHẢI LÀ LARPER</h1>
-        <p class="site-subtitle">Thử thách kiến thức One Piece - Trả lời trực tiếp & Xem giải thích chi tiết</p>
+        <p class="site-subtitle">Đấu trường trắc nghiệm thời gian thực • Thi đấu nhiều người chơi • Chống Larper</p>
         <div class="nav-links">
-            <a href="/" class="nav-link" id="nav-home">Trang Quiz</a>
-            <a href="/admin" class="nav-link" id="nav-admin">Quản trị Admin</a>
+            <a href="/" class="nav-link" style="color: var(--color-skyblue); border-color: var(--color-skyblue);">Trang Chủ</a>
+            <a href="/solo" class="nav-link">Chơi Solo</a>
+            <a href="/join" class="nav-link">Vào Phòng</a>
+            <a href="/host" class="nav-link">Tạo Phòng</a>
+            <a href="/leaderboard" class="nav-link">Bảng Xếp Hạng</a>
+            <a href="/admin" class="nav-link">Quản Trị</a>
         </div>
     </header>
 
     <main class="container">
-        <!-- Welcome Screen (Hiện cố định khi vừa vào web cho đến khi bấm Bắt đầu) -->
-        <div id="welcome-screen" class="card welcome-card">
+        <!-- Hero Card -->
+        <div class="card welcome-card">
             <div class="loading-img-wrapper">
-                <img id="welcome-image" class="loading-img" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" alt="Kizaru Smile">
+                <img class="loading-img" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" alt="Kizaru Smile">
             </div>
             <div class="welcome-intro">
-                <h2 style="color: var(--color-skyblue); font-size: 1.45rem; margin-bottom: 10px; text-transform: uppercase;">BẠN TỰ TIN MÌNH LÀ FAN ONE PIECE REAL?</h2>
-                <p style="color: var(--text-muted); font-size: 0.96rem; margin-bottom: 24px; line-height: 1.6;">
-                    Hệ thống kiểm tra kiến thức không nhân nhượng. Trả lời trực tiếp từng câu, xem giải thích chi tiết và nhận kết quả đánh giá cấp bậc chống Larper!
+                <h2 style="color: var(--color-skyblue); font-size: 1.45rem; margin-bottom: 8px;">CHÀO MỪNG ĐẾN VỚI ĐẤU TRƯỜNG REALTIME</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+                    Hãy chọn chế độ chơi của bạn bên dưới để bắt đầu thử thách!
                 </p>
-                <button class="btn btn-primary" id="btn-start-quiz" onclick="startQuizNow()" style="font-size: 1.15rem; padding: 15px 42px; width: 100%; max-width: 320px;">
-                    BẮT ĐẦU NGAY ➔
-                </button>
             </div>
         </div>
 
-        <!-- Loading State -->
-        <div id="loading-state" class="card loading-screen" style="display: none;">
-            <div class="loading-img-wrapper">
-                <img id="loading-image" class="loading-img" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" alt="Loading GIF">
-            </div>
-            <div class="loading-text">Đang tải dữ liệu câu hỏi...</div>
-            <p style="color: var(--text-muted); font-size: 0.88rem;">Chuẩn bị kiểm tra kiến thức thực tế của bạn</p>
-        </div>
+        <!-- Mode Selection Hub -->
+        <div class="hub-grid">
+            <!-- 1. Solo Mode -->
+            <a href="/solo" class="hub-card">
+                <div class="hub-icon">🎮</div>
+                <div class="hub-title">CHƠI SOLO / LUYỆN TẬP</div>
+                <div class="hub-desc">Tự thử thách 20 câu hỏi tính điểm hoặc luyện tập xem ngay giải thích chi tiết.</div>
+            </a>
 
-        <!-- Error State -->
-        <div id="error-state" class="card" style="display: none; text-align: center; padding: 40px 20px;">
-            <h3 style="color: var(--color-wrong); margin-bottom: 12px;">Không thể tải danh sách câu hỏi</h3>
-            <p id="error-message" style="color: var(--text-muted); margin-bottom: 20px;">Đã xảy ra lỗi kết nối cơ sở dữ liệu.</p>
-            <button class="btn btn-primary" onclick="startQuizNow()" id="btn-retry">Thử lại</button>
-        </div>
+            <!-- 2. Join Multiplayer Room -->
+            <a href="/join" class="hub-card">
+                <div class="hub-icon">⚡</div>
+                <div class="hub-title">THAM GIA PHÒNG ĐẤU</div>
+                <div class="hub-desc">Nhập Mã Phòng (Room Code) để thi đấu trực tiếp cùng bạn bè theo thời gian thực.</div>
+            </a>
 
-        <!-- Quiz Screen -->
-        <div id="quiz-screen" class="card" style="display: none;">
-            <div class="quiz-top-bar">
-                <div>Tiến độ: <span id="question-progress" class="quiz-stat">Câu 1 / 12</span></div>
-                <div>Điểm: <span id="score-display" class="quiz-stat">0</span></div>
-                <div>Chuỗi đúng: <span id="streak-display" class="quiz-stat">0</span></div>
-            </div>
+            <!-- 3. Host a Game -->
+            <a href="/host" class="hub-card">
+                <div class="hub-icon">👑</div>
+                <div class="hub-title">TẠO PHÒNG (HOST)</div>
+                <div class="hub-desc">Tạo phòng thi đấu, lấy mã phòng và điều khiển trận đấu chiếu trên màn hình lớn.</div>
+            </a>
 
-            <div class="progress-container">
-                <div id="progress-bar" class="progress-bar"></div>
-            </div>
-
-            <div class="badge-group">
-                <span id="badge-category" class="badge badge-category">Chủ đề</span>
-                <span id="badge-difficulty" class="badge badge-difficulty">Level 1</span>
-            </div>
-
-            <div id="question-text" class="question-text">
-                Nội dung câu hỏi...
-            </div>
-
-            <div id="options-container" class="options-list">
-                <!-- Option items dynamically rendered -->
-            </div>
-
-            <!-- Instant Explanation Box with Side GIF -->
-            <div id="explanation-box" class="explanation-card">
-                <div class="explanation-content-wrapper">
-                    <div class="explanation-gif-container">
-                        <img id="explanation-gif" class="explanation-gif" src="" alt="Feedback GIF">
-                    </div>
-                    <div class="explanation-body">
-                        <div id="explanation-status" class="explanation-status"></div>
-                        <div id="explanation-text" class="explanation-text"></div>
-                        <div id="explanation-note" class="explanation-note"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Question Navigator Grid -->
-            <div class="nav-grid-wrapper">
-                <div class="nav-grid-title">Bảng chuyển câu hỏi:</div>
-                <div id="question-navigator" class="nav-grid">
-                    <!-- Dots 1..N generated by JS -->
-                </div>
-            </div>
-
-            <!-- Navigation Controls -->
-            <div class="quiz-actions">
-                <div class="quiz-nav-btns">
-                    <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()" disabled>
-                        ◀ Câu Trước
-                    </button>
-                    <button class="btn btn-secondary" id="btn-next" onclick="nextQuestion()">
-                        Câu Tiếp ▶
-                    </button>
-                </div>
-                <button class="btn btn-primary" id="btn-finish" onclick="finishQuiz()" style="display: none;">
-                    🏆 Xem Kết Quả
-                </button>
-            </div>
-        </div>
-
-        <!-- Result Screen -->
-        <div id="result-screen" class="card result-card" style="display: none;">
-            <h2 style="text-transform: uppercase; letter-spacing: 1px; color: var(--text-main);">KẾT QUẢ ĐÁNH GIÁ</h2>
-            
-            <div id="result-rank" class="larper-rank">FAN CHÂN CHÍNH (NO LARPER)</div>
-            <p id="result-rank-desc" class="larper-desc">Bạn là người am hiểu One Piece thực thụ!</p>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div id="stat-score" class="stat-value">0</div>
-                    <div class="stat-label">Tổng Điểm</div>
-                </div>
-                <div class="stat-box">
-                    <div id="stat-accuracy" class="stat-value">0%</div>
-                    <div class="stat-label">Tỷ Lệ Chính Xác</div>
-                </div>
-                <div class="stat-box">
-                    <div id="stat-correct" class="stat-value">0 / 0</div>
-                    <div class="stat-label">Số Câu Đúng</div>
-                </div>
-                <div class="stat-box">
-                    <div id="stat-max-streak" class="stat-value">0</div>
-                    <div class="stat-label">Chuỗi Đúng Dài Nhất</div>
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
-                <button class="btn btn-primary" onclick="restartQuiz()" id="btn-restart">Làm lại từ đầu</button>
-                <a href="/admin" class="btn btn-secondary">Quản trị Admin</a>
-            </div>
+            <!-- 4. Global Leaderboard -->
+            <a href="/leaderboard" class="hub-card">
+                <div class="hub-icon">🏆</div>
+                <div class="hub-title">BẢNG VÀNG DANH DỰ</div>
+                <div class="hub-desc">Xem bảng xếp hạng các đại cao thủ có điểm số và tỷ lệ chính xác cao nhất.</div>
+            </a>
         </div>
     </main>
 
     <footer class="app-footer">
-        <p>© 2026 • Hệ thống trắc nghiệm One Piece</p>
+        <p>© 2026 • Hệ thống trắc nghiệm thi đấu Realtime One Piece & Công Nghệ</p>
     </footer>
 
-    <script src="/js/quiz.js"></script>
 </body>
 </html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chơi Solo & Luyện Tập - One Piece Quiz</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="site-title">CHƠI SOLO & LUYỆN TẬP</h1>
+        <p class="site-subtitle">Thử thách bản thân • Luyện tập kiến thức không giới hạn</p>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Trang Chủ</a>
+            <a href="/solo" class="nav-link" style="color: var(--color-skyblue); border-color: var(--color-skyblue);">Chơi Solo</a>
+            <a href="/join" class="nav-link">Vào Phòng</a>
+            <a href="/host" class="nav-link">Tạo Phòng</a>
+            <a href="/leaderboard" class="nav-link">Bảng Xếp Hạng</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="card">
+            <h2 style="color: var(--color-skyblue); font-size: 1.35rem; margin-bottom: 20px; text-align: center;">CÀI ĐẶT BÀI THI SOLO</h2>
+
+            <div class="form-group">
+                <label class="form-label">Tên của bạn:</label>
+                <input type="text" id="player-username" class="form-control" placeholder="Nhập nickname..." maxlength="25">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Chọn Bộ Đề:</label>
+                    <select id="select-quiz" class="form-control">
+                        <option value="">Đang tải danh sách đề thi...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Chế độ chơi:</label>
+                    <select id="select-mode" class="form-control">
+                        <option value="SOLO">🏆 Thi Đấu Solo (Tính điểm & Xếp hạng)</option>
+                        <option value="PRACTICE">📖 Luyện Tập (Xem giải thích tức thì)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startSoloGame()" style="width: 100%; margin-top: 10px; padding: 14px;">
+                BẮT ĐẦU LÀM BÀI ➔
+            </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="card loading-screen" style="display: none;">
+            <div class="loading-img-wrapper">
+                <img class="loading-img" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" alt="Loading GIF">
+            </div>
+            <div class="loading-text">Đang tải câu hỏi...</div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="card" style="display: none;">
+            <div class="quiz-top-bar">
+                <div>Tiến độ: <span id="question-progress" class="quiz-stat">Câu 1 / 20</span></div>
+                <div>Điểm: <span id="score-display" class="quiz-stat">0</span></div>
+                <div>Chuỗi đúng: <span id="streak-display" class="quiz-stat">0</span></div>
+            </div>
+
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+
+            <div class="badge-group">
+                <span id="badge-category" class="badge badge-category">Chủ đề</span>
+                <span id="badge-difficulty" class="badge badge-difficulty">Level 1</span>
+            </div>
+
+            <div id="question-text" class="question-text">
+                Nội dung câu hỏi...
+            </div>
+
+            <div id="options-container" class="options-list">
+                <!-- Dynamic options -->
+            </div>
+
+            <!-- Instant Explanation Box with Side GIF -->
+            <div id="explanation-box" class="explanation-card">
+                <div class="explanation-content-wrapper">
+                    <div class="explanation-gif-container">
+                        <img id="explanation-gif" class="explanation-gif" src="" alt="Feedback GIF">
+                    </div>
+                    <div class="explanation-body">
+                        <div id="explanation-status" class="explanation-status"></div>
+                        <div id="explanation-text" class="explanation-text"></div>
+                        <div id="explanation-note" class="explanation-note"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Navigator Grid -->
+            <div class="nav-grid-wrapper">
+                <div class="nav-grid-title">Bảng chuyển câu hỏi:</div>
+                <div id="question-navigator" class="nav-grid">
+                    <!-- Dots 1..N -->
+                </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="quiz-actions">
+                <div class="quiz-nav-btns">
+                    <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()" disabled>
+                        ◀ Câu Trước
+                    </button>
+                    <button class="btn btn-secondary" id="btn-next" onclick="nextQuestion()">
+                        Câu Tiếp ▶
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="btn-finish" onclick="finishSoloQuiz()" style="display: none;">
+                    🏆 Xem Kết Quả
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="card result-card" style="display: none;">
+            <h2 style="text-transform: uppercase; letter-spacing: 1px; color: var(--text-main);">KẾT QUẢ ĐÁNH GIÁ</h2>
+            
+            <div id="result-rank" class="larper-rank">FAN CHÂN CHÍNH (NO LARPER)</div>
+            <p id="result-rank-desc" class="larper-desc">Bạn là người am hiểu thực thụ!</p>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div id="stat-score" class="stat-value">0</div>
+                    <div class="stat-label">Tổng Điểm</div>
+                </div>
+                <div class="stat-box">
+                    <div id="stat-accuracy" class="stat-value">0%</div>
+                    <div class="stat-label">Tỷ Lệ Chính Xác</div>
+                </div>
+                <div class="stat-box">
+                    <div id="stat-correct" class="stat-value">0 / 0</div>
+                    <div class="stat-label">Số Câu Đúng</div>
+                </div>
+                <div class="stat-box">
+                    <div id="stat-max-streak" class="stat-value">0</div>
+                    <div class="stat-label">Chuỗi Đúng Dài Nhất</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="restartSoloGame()">Làm Lại</button>
+                <a href="/" class="btn btn-secondary">Về Trang Chủ</a>
+                <a href="/leaderboard" class="btn btn-secondary">Bảng Xếp Hạng</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
+    </footer>
+
+    <script src="/js/solo.js"></script>
+</body>
+</html>

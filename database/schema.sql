@@ -1,17 +1,44 @@
 -- ===================================================
--- DATABASE SCHEMA CHO HỆ THỐNG QUIZ ONE PIECE
+-- REALTIME QUIZ PLATFORM - COMPLETE DATABASE SCHEMA
 -- ===================================================
 
--- 1. Tạo database nếu chưa tồn tại
 CREATE DATABASE IF NOT EXISTS `quiz_db` 
 CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
 
 USE `quiz_db`;
 
--- 2. Tạo bảng questions
+-- 1. Topics Table
+CREATE TABLE IF NOT EXISTS `topics` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `slug` VARCHAR(255) NOT NULL UNIQUE,
+    `description` TEXT,
+    `icon` VARCHAR(255) DEFAULT '⚓',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. Quizzes Table
+CREATE TABLE IF NOT EXISTS `quizzes` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `topic_id` INT NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `slug` VARCHAR(255) NOT NULL,
+    `description` TEXT,
+    `time_per_question` INT DEFAULT 15,
+    `total_questions` INT DEFAULT 20,
+    `is_random` BOOLEAN DEFAULT TRUE,
+    `random_answers` BOOLEAN DEFAULT FALSE,
+    `status` ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'PUBLISHED',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`topic_id`) REFERENCES `topics`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. Questions Table
 CREATE TABLE IF NOT EXISTS `questions` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `quiz_id` INT NULL,
+    `topic_id` INT NULL,
     `question_text` TEXT NOT NULL,
     `option_a` TEXT NOT NULL,
     `option_b` TEXT NOT NULL,
@@ -22,35 +49,108 @@ CREATE TABLE IF NOT EXISTS `questions` (
     `category` VARCHAR(100) DEFAULT 'Chung',
     `difficulty` INT DEFAULT 1,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_quiz_id` (`quiz_id`),
+    INDEX `idx_topic_id` (`topic_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3. Xóa dữ liệu cũ nếu muốn reset (tùy chọn)
--- TRUNCATE TABLE `questions`;
+-- 4. Players Table
+CREATE TABLE IF NOT EXISTS `players` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `username` VARCHAR(100) NOT NULL,
+    `session_token` VARCHAR(255) NOT NULL UNIQUE,
+    `avatar` VARCHAR(255) DEFAULT '/images/A.jpg',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `last_active` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_session_token` (`session_token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 4. Chèn dữ liệu 12 câu hỏi gốc từ file onepiece.html
-INSERT INTO `questions` 
-(`id`, `question_text`, `option_a`, `option_b`, `option_c`, `option_d`, `correct_answer`, `explanation`, `category`, `difficulty`) 
-VALUES
-(1, 'Ai là thành viên đầu tiên gia nhập băng hải tặc Mũ Rơm?', 'Nami', 'Usopp', 'Roronoa Zoro', 'Sanji', 'C', 'Zoro là thành viên đầu tiên Luffy chiêu mộ tại Shells Town sau khi cứu anh khỏi Đại tá Morgan.', 'Nhân vật', 1),
-(2, 'Trái ác quỷ Gomu Gomu no Mi thực chất có tên thật là gì?', 'Hito Hito no Mi, Model: Nika', 'Mera Mera no Mi', 'Yomi Yomi no Mi', 'Bari Bari no Mi', 'A', 'Ngũ Lão Tinh đã tiết lộ trái Gomu Gomu thực chất là trái Zoan Thần Thoại Hito Hito no Mi, Model: Nika.', 'Trái Ác Quỷ', 1),
-(3, 'Vương quốc Alabasta được bảo vệ bởi vị thần hộ mệnh mang năng lực Trái Ác Quỷ gì?', 'Chó sói', 'Chim ưng (Falcon)', 'Báo đốm', 'Sư tử', 'B', 'Pell sở hữu trái Tori Tori no Mi, Model: Falcon. Anh cùng với Chaka (Jackal) là hai thần hộ mệnh của Alabasta.', 'Arc', 2),
-(4, 'Trụ sở chính của Hải Quân (Marineford) ban đầu nằm ở đâu?', 'Tân Thế Giới', 'Biển Đông (East Blue)', 'Nửa đầu Grand Line (Paradise)', 'Calm Belt', 'C', 'Marineford ban đầu nằm ở Paradise. Sau timeskip, Akainu đã đổi vị trí Marineford với chi nhánh G-1 ở Tân Thế Giới.', 'Hải quân', 2),
-(5, 'Rayleigh đã hướng dẫn Luffy học Haki trên hòn đảo nào?', 'Sabaody Archipelago', 'Amazon Lily', 'Rusukaina', 'Punk Hazard', 'C', 'Rusukaina là hòn đảo có thời tiết thay đổi 48 mùa một năm, nằm gần Amazon Lily, nơi Rayleigh huấn luyện Luffy trong 1.5 năm.', 'Haki', 3),
-(6, 'Vũ khí cổ đại Pluton được miêu tả là gì?', 'Một nàng tiên cá', 'Một trái ác quỷ', 'Một hòn đảo', 'Một chiến hạm khổng lồ', 'D', 'Pluton là một chiến hạm khổng lồ có sức mạnh hủy diệt một hòn đảo trong một phát bắn. Bản vẽ của nó từng được Franky giữ.', 'Vũ Khí Cổ Đại', 3),
-(7, 'Trên Skypiea, Gol D. Roger đã để lại một thông điệp trên khối Poneglyph bằng ngôn ngữ cổ đại. Ai là người đã khắc thông điệp đó cho Roger?', 'Silvers Rayleigh', 'Kozuki Oden', 'Clover', 'Nico Robin', 'B', 'Trong đoạn flashback, chính Kozuki Oden, người có khả năng đọc và khắc văn tự cổ của gia tộc Kozuki, đã khắc dòng chữ đó cho Roger.', 'Lore', 4),
-(8, 'Tên thật của ''Râu Đen'' (Blackbeard) là gì?', 'Marshall D. Teach', 'Rocks D. Xebec', 'Gol D. Teach', 'Jaguar D. Saul', 'A', 'Tên đầy đủ của Râu Đen là Marshall D. Teach, một người mang ý chí của D.', 'Nhân vật', 4),
-(9, 'Ai là người ĐẦU TIÊN đề cập đến cái tên ''Sun God Nika'' trong mạch truyện chính của Manga?', 'Gorosei (Ngũ Lão Tinh)', 'Who''s-Who', 'Vegapunk', 'Jinbe', 'B', 'Who''s-Who đã hỏi Jinbe về truyền thuyết Sun God Nika mà hắn nghe được từ một lính canh khi bị giam ở Impel Down.', 'Lore', 5),
-(10, 'Có tổng cộng bao nhiêu khối Road Poneglyph (Poneglyph Đỏ) trên thế giới dùng để chỉ đường đến Laugh Tale?', '3', '4', '7', '9', 'B', 'Có đúng 4 khối Road Poneglyph. Khi xác định được vị trí giao nhau của 4 tọa độ từ 4 khối này, đó chính là Laugh Tale.', 'Poneglyph', 5),
-(11, 'Mức truy nã chính xác của Vua Hải Tặc Gol D. Roger là bao nhiêu?', '5,046,000,000 Berries', '5,564,800,000 Berries', '4,388,000,000 Berries', '5,600,000,000 Berries', 'B', 'Tiền truy nã của Roger là 5,564,800,000. Của Râu Trắng là 5,046,000,000 (đáp án A).', 'Lịch sử', 6),
-(12, 'Số hiệu tù nhân của Luffy tại mỏ đá Udon (Wano) là bao nhiêu?', '312', '5592', '9412', '1520', 'B', 'Số hiệu tù nhân của Luffy ở Udon là 5592, Kid là 3150.', 'Chi tiết nhỏ', 6)
-ON DUPLICATE KEY UPDATE 
-`question_text` = VALUES(`question_text`),
-`option_a` = VALUES(`option_a`),
-`option_b` = VALUES(`option_b`),
-`option_c` = VALUES(`option_c`),
-`option_d` = VALUES(`option_d`),
-`correct_answer` = VALUES(`correct_answer`),
-`explanation` = VALUES(`explanation`),
-`category` = VALUES(`category`),
-`difficulty` = VALUES(`difficulty`);
+-- 5. Rooms Table
+CREATE TABLE IF NOT EXISTS `rooms` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `room_code` VARCHAR(16) NOT NULL UNIQUE,
+    `host_session_token` VARCHAR(255) NOT NULL,
+    `quiz_id` INT NOT NULL,
+    `status` ENUM('WAITING', 'STARTING', 'IN_GAME', 'FINISHED', 'CANCELLED') DEFAULT 'WAITING',
+    `max_players` INT DEFAULT 50,
+    `is_public` BOOLEAN DEFAULT TRUE,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`quiz_id`) REFERENCES `quizzes`(`id`) ON DELETE CASCADE,
+    INDEX `idx_room_code` (`room_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. Game Sessions Table
+CREATE TABLE IF NOT EXISTS `game_sessions` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `room_id` INT NULL,
+    `quiz_id` INT NOT NULL,
+    `mode` ENUM('MULTIPLAYER', 'SOLO', 'PRACTICE') DEFAULT 'MULTIPLAYER',
+    `total_questions_count` INT DEFAULT 20,
+    `started_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `finished_at` TIMESTAMP NULL,
+    FOREIGN KEY (`quiz_id`) REFERENCES `quizzes`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. Game Session Questions (Immutable Snapshot)
+CREATE TABLE IF NOT EXISTS `game_session_questions` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `game_session_id` INT NOT NULL,
+    `question_order` INT NOT NULL,
+    `original_question_id` INT NULL,
+    `question_text` TEXT NOT NULL,
+    `option_a` TEXT NOT NULL,
+    `option_b` TEXT NOT NULL,
+    `option_c` TEXT NOT NULL,
+    `option_d` TEXT NOT NULL,
+    `correct_answer` ENUM('A', 'B', 'C', 'D') NOT NULL,
+    `explanation` TEXT,
+    `category` VARCHAR(100) DEFAULT 'Chung',
+    `difficulty` INT DEFAULT 1,
+    FOREIGN KEY (`game_session_id`) REFERENCES `game_sessions`(`id`) ON DELETE CASCADE,
+    INDEX `idx_session_order` (`game_session_id`, `question_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. Game Player Answers
+CREATE TABLE IF NOT EXISTS `game_player_answers` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `game_session_id` INT NOT NULL,
+    `player_id` INT NOT NULL,
+    `question_order` INT NOT NULL,
+    `selected_answer` ENUM('A', 'B', 'C', 'D') NULL,
+    `is_correct` BOOLEAN DEFAULT FALSE,
+    `response_time_ms` INT DEFAULT 0,
+    `score_awarded` INT DEFAULT 0,
+    `answered_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`game_session_id`) REFERENCES `game_sessions`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE,
+    INDEX `idx_player_session` (`game_session_id`, `player_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. Game Player Results
+CREATE TABLE IF NOT EXISTS `game_player_results` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `game_session_id` INT NOT NULL,
+    `player_id` INT NOT NULL,
+    `total_score` INT DEFAULT 0,
+    `correct_count` INT DEFAULT 0,
+    `wrong_count` INT DEFAULT 0,
+    `accuracy` FLOAT DEFAULT 0,
+    `avg_response_time_ms` INT DEFAULT 0,
+    `final_rank` INT DEFAULT 1,
+    FOREIGN KEY (`game_session_id`) REFERENCES `game_sessions`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE,
+    INDEX `idx_session_results` (`game_session_id`, `final_rank`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed Default Topics and Quizzes if not exists
+INSERT INTO `topics` (`id`, `name`, `slug`, `description`, `icon`)
+VALUES 
+(1, 'One Piece Universe', 'one-piece-universe', 'Vũ trụ thế giới One Piece, Hải tặc, Hải quân và Trái Ác Quỷ', '⚓'),
+(2, 'Lập Trình & Công Nghệ', 'lap-trinh-cong-nghe', 'Thử thách kiến thức Lập trình Web, JavaScript, Database và Network', '💻')
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+
+INSERT INTO `quizzes` (`id`, `topic_id`, `title`, `slug`, `description`, `time_per_question`, `total_questions`, `is_random`, `status`)
+VALUES 
+(1, 1, 'Đại Thử Thách One Piece - Chống Larper', 'one-piece-grand-test', 'Thử thách kiến thức One Piece từ cơ bản đến cực khó (20 câu hỏi).', 15, 20, TRUE, 'PUBLISHED'),
+(2, 2, 'Kiến Thức Lập Trình Cơ Bản', 'lap-trinh-co-ban', 'Các câu hỏi thú vị về JavaScript, Web và Công nghệ.', 15, 20, TRUE, 'PUBLISHED')
+ON DUPLICATE KEY UPDATE `title` = VALUES(`title`);
