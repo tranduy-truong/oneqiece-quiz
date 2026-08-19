@@ -10,34 +10,36 @@
 </head>
 <body>
 
-    <!-- Sticky Glass Game Navbar -->
-    <header class="game-navbar">
-        <div class="nav-inner">
-            <a href="/" class="brand-link">
-                <div class="brand-icon">⚓</div>
-                <span>ONE PIECE <span class="brand-title-accent">ADMIN</span></span>
-            </a>
+    <!-- Floating Liquid Glass Navbar -->
+    <div class="game-navbar-wrapper">
+        <header class="game-navbar">
+            <div class="nav-inner">
+                <a href="/" class="brand-link">
+                    <div class="brand-icon">⚓</div>
+                    <span>ONE PIECE <span class="brand-title-accent">ADMIN</span></span>
+                </a>
 
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
-                    <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
-                </ul>
-            </nav>
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
+                        <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
+                    </ul>
+                </nav>
 
-            <div>
-                <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
-                    ☀️ <span class="theme-btn-text">Sáng</span>
-                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                        ☀️ <span class="theme-btn-text">Sáng</span>
+                    </button>
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
+    </div>
 
     <main class="container" style="max-width: 460px; margin: 40px auto;">
-        <div class="card" style="box-shadow: var(--game-shadow-elevated);">
+        <div class="card" style="box-shadow: var(--glass-shadow);">
             <div class="card-header-game" style="justify-content: center; text-align: center;">
                 <div class="card-title-game">
-                    <span>🔐 ĐĂNG NHẬP QUẢN TRỊ STUDIO</span>
+                    <span>ĐĂNG NHẬP QUẢN TRỊ STUDIO</span>
                 </div>
             </div>
 
@@ -57,7 +59,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg" id="btn-login-submit" style="width: 100%; margin-bottom: 12px;">
-                    ĐĂNG NHẬP ➔
+                    Đăng Nhập
                 </button>
 
                 <a href="/" class="btn btn-secondary" style="width: 100%;">

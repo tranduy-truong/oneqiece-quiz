@@ -624,4 +624,246 @@ router.get('/games/:id', requireAdminAuth, async (req, res) => {
     }
 });
 
+// ==========================================
+// 5. QUẢN LÝ AVATAR CHIẾN BINH (AVATARS CRUD & UPLOAD)
+// ==========================================
+
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const uploadDir = path.join(__dirname, '../../public/uploads/avatars');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'avatar-' + uniqueSuffix + ext);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: function (req, file, cb) {
+        const allowed = /jpeg|jpg|png|webp|gif/;
+        const mime = allowed.test(file.mimetype);
+        const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+        if (mime && ext) {
+            return cb(null, true);
+        }
+        cb(new Error('Chỉ cho phép tải lên file hình ảnh (PNG, JPG, WEBP, GIF).'));
+    }
+});
+
+/**
+ * GET /api/admin/avatars
+ */
+router.get('/avatars', requireAdminAuth, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM avatars ORDER BY is_default DESC, id DESC');
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error('Admin: Lỗi lấy danh sách avatars:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi lấy danh sách avatar.' });
+    }
+});
+
+/**
+ * POST /api/admin/avatars/upload
+ * Tải file ảnh avatar từ máy tính
+ */
+router.post('/avatars/upload', requireAdminAuth, upload.single('avatar_file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'Vui lòng chọn file hình ảnh để tải lên.' });
+        }
+
+        const name = req.body.avatar_name ? String(req.body.avatar_name).trim() : path.parse(req.file.originalname).name;
+        const imageUrl = `/uploads/avatars/${req.file.filename}`;
+
+        const [result] = await pool.query(
+            'INSERT INTO avatars (name, image_url, is_default) VALUES (?, ?, FALSE)',
+            [name || 'Warrior', imageUrl]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Tải lên avatar thành công!',
+            data: {
+                id: result.insertId,
+                name: name,
+                image_url: imageUrl
+            }
+        });
+    } catch (err) {
+        console.error('Admin: Lỗi upload avatar:', err);
+        res.status(500).json({ success: false, error: err.message || 'Lỗi khi upload avatar.' });
+    }
+});
+
+/**
+ * DELETE /api/admin/avatars/:id
+ */
+router.delete('/avatars/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const avatarId = parseInt(req.params.id, 10);
+        const [rows] = await pool.query('SELECT * FROM avatars WHERE id = ?', [avatarId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy avatar để xóa.' });
+        }
+
+        const avatar = rows[0];
+        if (avatar.is_default) {
+            return res.status(400).json({ success: false, error: 'Không thể xóa avatar mặc định của hệ thống.' });
+        }
+
+        // Xóa file trên đĩa nếu nằm trong /uploads/avatars/
+        if (avatar.image_url.startsWith('/uploads/avatars/')) {
+            const filePath = path.join(__dirname, '../../public', avatar.image_url);
+            if (fs.existsSync(filePath)) {
+                try { fs.unlinkSync(filePath); } catch (e) {}
+            }
+        }
+
+        await pool.query('DELETE FROM avatars WHERE id = ?', [avatarId]);
+
+        res.json({ success: true, message: 'Đã xóa avatar thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi xóa avatar:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi xóa avatar.' });
+    }
+});
+
+// ==========================================
+// 6. QUẢN LÝ KHO NHẠC NỀN (MUSIC TRACKS CRUD)
+// ==========================================
+
+function extractYouTubeVideoId(url) {
+    if (!url) return null;
+    const cleanUrl = url.trim();
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = cleanUrl.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+/**
+ * GET /api/admin/music
+ */
+router.get('/music', requireAdminAuth, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM music_tracks ORDER BY id DESC');
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error('Admin: Lỗi lấy danh sách nhạc:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi lấy danh sách nhạc.' });
+    }
+});
+
+/**
+ * POST /api/admin/music
+ * Thêm bài hát YouTube mới
+ */
+router.post('/music', requireAdminAuth, async (req, res) => {
+    try {
+        const { title, youtube_url, category, status } = req.body;
+
+        if (!title || !youtube_url) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập tiêu đề bài hát và link YouTube.' });
+        }
+
+        const videoId = extractYouTubeVideoId(youtube_url);
+        if (!videoId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Link YouTube không hợp lệ. Vui lòng dán link dạng https://www.youtube.com/watch?v=... hoặc https://youtu.be/...'
+            });
+        }
+
+        const cleanTitle = String(title).trim();
+        const cleanCategory = category ? String(category).trim() : 'Gaming';
+        const cleanStatus = status === 'DRAFT' ? 'DRAFT' : 'PUBLISHED';
+        const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+        const [result] = await pool.query(
+            'INSERT INTO music_tracks (title, youtube_video_id, youtube_url, category, thumbnail_url, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [cleanTitle, videoId, String(youtube_url).trim(), cleanCategory, thumbnailUrl, cleanStatus]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Thêm bài hát thành công!',
+            data: { id: result.insertId, title: cleanTitle, youtube_video_id: videoId }
+        });
+    } catch (err) {
+        console.error('Admin: Lỗi thêm bài hát:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi thêm bài hát mới.' });
+    }
+});
+
+/**
+ * PUT /api/admin/music/:id
+ */
+router.put('/music/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const trackId = parseInt(req.params.id, 10);
+        const { title, youtube_url, category, status } = req.body;
+
+        if (!title || !youtube_url) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập đầy đủ tiêu đề và link YouTube.' });
+        }
+
+        const videoId = extractYouTubeVideoId(youtube_url);
+        if (!videoId) {
+            return res.status(400).json({ success: false, error: 'Link YouTube không hợp lệ.' });
+        }
+
+        const cleanTitle = String(title).trim();
+        const cleanCategory = category ? String(category).trim() : 'Gaming';
+        const cleanStatus = status === 'DRAFT' ? 'DRAFT' : 'PUBLISHED';
+        const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+        const [result] = await pool.query(
+            'UPDATE music_tracks SET title = ?, youtube_video_id = ?, youtube_url = ?, category = ?, thumbnail_url = ?, status = ? WHERE id = ?',
+            [cleanTitle, videoId, String(youtube_url).trim(), cleanCategory, thumbnailUrl, cleanStatus, trackId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy bài hát để cập nhật.' });
+        }
+
+        res.json({ success: true, message: 'Cập nhật bài hát thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi cập nhật bài hát:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi cập nhật bài hát.' });
+    }
+});
+
+/**
+ * DELETE /api/admin/music/:id
+ */
+router.delete('/music/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const trackId = parseInt(req.params.id, 10);
+        const [result] = await pool.query('DELETE FROM music_tracks WHERE id = ?', [trackId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy bài hát để xóa.' });
+        }
+
+        res.json({ success: true, message: 'Đã xóa bài hát thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi xóa bài hát:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi xóa bài hát.' });
+    }
+});
+
 module.exports = router;
+

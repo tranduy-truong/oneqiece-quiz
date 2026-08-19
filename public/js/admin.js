@@ -66,16 +66,20 @@ async function loadInitialData() {
 
 function switchAdminTab(tabName) {
     document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+    const targetBtn = document.getElementById(`tab-btn-${tabName}`);
+    if (targetBtn) targetBtn.classList.add('active');
 
-    const tabs = ['stats', 'questions', 'quizzes', 'games'];
+    const tabs = ['stats', 'questions', 'quizzes', 'music', 'avatars', 'games'];
     tabs.forEach(t => {
-        document.getElementById(`tab-content-${t}`).style.display = (t === tabName) ? 'block' : 'none';
+        const tabEl = document.getElementById(`tab-content-${t}`);
+        if (tabEl) tabEl.style.display = (t === tabName) ? 'block' : 'none';
     });
 
     if (tabName === 'stats') loadDashboardStats();
     else if (tabName === 'questions') loadQuestions();
     else if (tabName === 'quizzes') { loadAdminQuizzes(); loadAdminTopics(); }
+    else if (tabName === 'music') loadAdminMusic();
+    else if (tabName === 'avatars') loadAdminAvatars();
     else if (tabName === 'games') loadAdminGames();
 }
 
@@ -801,3 +805,271 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+// ==========================================
+// 5. QUẢN LÝ KHO NHẠC NỀN YOUTUBE
+// ==========================================
+
+let allMusic = [];
+
+async function loadAdminMusic() {
+    const tbody = document.getElementById('music-table-body');
+    try {
+        const res = await fetch('/api/admin/music', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            allMusic = result.data;
+            renderMusicTable(allMusic);
+        } else {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--game-danger); padding: 20px;">${result.error || 'Lỗi khi tải danh sách nhạc.'}</td></tr>`;
+        }
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--game-danger); padding: 20px;">Lỗi kết nối máy chủ.</td></tr>';
+    }
+}
+
+function renderMusicTable(tracks) {
+    const tbody = document.getElementById('music-table-body');
+    if (!tbody) return;
+
+    if (tracks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--game-text-muted);">Chưa có bài hát nào trong kho nhạc. Hãy bấm "Thêm Bài Hát Mới"!</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = tracks.map(t => {
+        const statusBadge = t.status === 'PUBLISHED' 
+            ? '<span class="live-status-pill"><div class="live-status-dot"></div><span>Công Khai</span></span>'
+            : '<span style="color: var(--game-text-muted); font-size: 0.8rem; font-weight: 700;">Bản Nháp</span>';
+
+        return `
+            <tr>
+                <td style="font-weight: 700; color: var(--game-primary);">#${t.id}</td>
+                <td>
+                    <img src="${t.thumbnail_url || `https://img.youtube.com/vi/${t.youtube_video_id}/hqdefault.jpg`}" style="width: 70px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--glass-border);" alt="Thumb" onerror="this.src='/favicon.svg'">
+                </td>
+                <td>
+                    <strong style="color: var(--game-text-primary); font-size: 0.95rem;">${escapeHtml(t.title)}</strong>
+                </td>
+                <td>
+                    <span class="quiz-card-topic">${escapeHtml(t.category || 'Gaming')}</span>
+                </td>
+                <td>
+                    <a href="${escapeHtml(t.youtube_url)}" target="_blank" rel="noopener noreferrer" style="color: var(--game-primary); font-size: 0.85rem; text-decoration: none;">
+                        📺 Xem Trên YouTube
+                    </a>
+                </td>
+                <td style="text-align: center;">${statusBadge}</td>
+                <td style="text-align: center;">
+                    <div style="display: flex; gap: 6px; justify-content: center;">
+                        <button class="btn btn-secondary btn-sm" onclick="openEditMusicModal(${t.id})">Sửa</button>
+                        <button class="btn btn-danger btn-sm" onclick="handleDeleteMusic(${t.id})">Xóa</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openAddMusicModal() {
+    document.getElementById('music-modal-title').innerText = 'Thêm Bài Hát Mới';
+    document.getElementById('music-form').reset();
+    document.getElementById('form-music-edit-id').value = '';
+    document.getElementById('form-music-status').value = 'PUBLISHED';
+    document.getElementById('music-modal').classList.add('open');
+}
+
+function openEditMusicModal(id) {
+    const track = allMusic.find(m => m.id === id);
+    if (!track) return;
+
+    document.getElementById('music-modal-title').innerText = `Chỉnh Sửa Bài Hát #${id}`;
+    document.getElementById('form-music-edit-id').value = track.id;
+    document.getElementById('form-music-title').value = track.title;
+    document.getElementById('form-music-url').value = track.youtube_url;
+    document.getElementById('form-music-category').value = track.category || 'Gaming';
+    document.getElementById('form-music-status').value = track.status || 'PUBLISHED';
+
+    document.getElementById('music-modal').classList.add('open');
+}
+
+function closeMusicModal() {
+    document.getElementById('music-modal').classList.remove('open');
+}
+
+async function handleSaveMusic(e) {
+    e.preventDefault();
+    const id = document.getElementById('form-music-edit-id').value;
+    const isEdit = Boolean(id);
+
+    const payload = {
+        title: document.getElementById('form-music-title').value.trim(),
+        youtube_url: document.getElementById('form-music-url').value.trim(),
+        category: document.getElementById('form-music-category').value,
+        status: document.getElementById('form-music-status').value
+    };
+
+    try {
+        const url = isEdit ? `/api/admin/music/${id}` : '/api/admin/music';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            showAlert(result.message || 'Lưu bài hát thành công!', 'success');
+            closeMusicModal();
+            loadAdminMusic();
+        } else {
+            alert(result.error || 'Lỗi khi lưu bài hát.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
+    }
+}
+
+async function handleDeleteMusic(id) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa bài hát #${id} khỏi kho nhạc?`)) return;
+
+    try {
+        const res = await fetch(`/api/admin/music/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            showAlert('Đã xóa bài hát thành công!', 'success');
+            loadAdminMusic();
+        } else {
+            alert(result.error || 'Lỗi khi xóa bài hát.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
+    }
+}
+
+// ==========================================
+// 6. QUẢN LÝ AVATAR CHIẾN BINH (AVATARS UPLOAD)
+// ==========================================
+
+let allAvatars = [];
+
+async function loadAdminAvatars() {
+    const grid = document.getElementById('admin-avatar-grid');
+    try {
+        const res = await fetch('/api/admin/avatars', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            allAvatars = result.data;
+            renderAdminAvatars(allAvatars);
+        } else {
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--game-danger);">${result.error || 'Lỗi khi tải danh sách avatar.'}</div>`;
+        }
+    } catch (err) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--game-danger);">Lỗi kết nối máy chủ.</div>';
+    }
+}
+
+function renderAdminAvatars(avatars) {
+    const grid = document.getElementById('admin-avatar-grid');
+    if (!grid) return;
+
+    if (avatars.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--game-text-muted); padding: 30px;">Chưa có avatar nào.</div>';
+        return;
+    }
+
+    grid.innerHTML = avatars.map(av => `
+        <div class="avatar-admin-card">
+            <img src="${av.image_url}" class="avatar-admin-img" alt="${escapeHtml(av.name)}" onerror="this.src='/images/A.jpg'">
+            <strong style="font-size: 0.95rem; color: var(--game-text-primary); margin-bottom: 4px;">${escapeHtml(av.name)}</strong>
+            <div style="font-size: 0.75rem; color: var(--game-text-muted); margin-bottom: 10px;">
+                ${av.is_default ? '<span style="color: var(--game-gold); font-weight: 700;">★ Mặc Định</span>' : 'Tùy Chỉnh (Uploaded)'}
+            </div>
+            ${!av.is_default ? `
+                <button class="btn btn-danger btn-sm" onclick="handleDeleteAvatar(${av.id})" style="width: 100%;">
+                    Xóa Avatar
+                </button>
+            ` : `
+                <span style="font-size: 0.75rem; color: var(--game-text-muted);">Không thể xóa</span>
+            `}
+        </div>
+    `).join('');
+}
+
+async function handleUploadAvatar(e) {
+    e.preventDefault();
+    const nameInput = document.getElementById('avatar-name-input');
+    const fileInput = document.getElementById('avatar-file-input');
+    const submitBtn = document.getElementById('btn-upload-avatar');
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Vui lòng chọn file hình ảnh từ máy tính.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('avatar_name', nameInput.value.trim());
+    formData.append('avatar_file', fileInput.files[0]);
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Đang tải lên...';
+
+    try {
+        const res = await fetch('/api/admin/avatars/upload', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            showAlert('Tải lên avatar mới thành công!', 'success');
+            document.getElementById('avatar-upload-form').reset();
+            loadAdminAvatars();
+        } else {
+            alert(result.error || 'Lỗi khi tải lên avatar.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ khi upload ảnh.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Tải Lên Avatar';
+    }
+}
+
+async function handleDeleteAvatar(id) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa avatar này khỏi hệ thống?`)) return;
+
+    try {
+        const res = await fetch(`/api/admin/avatars/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            showAlert('Đã xóa avatar thành công!', 'success');
+            loadAdminAvatars();
+        } else {
+            alert(result.error || 'Lỗi khi xóa avatar.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
+    }
+}
+

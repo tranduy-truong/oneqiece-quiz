@@ -12,6 +12,8 @@ const quizRoutes = require('./routes/quizzes');
 const questionRoutes = require('./routes/questions');
 const soloRoutes = require('./routes/solo');
 const leaderboardRoutes = require('./routes/leaderboard');
+const musicRoutes = require('./routes/music');
+const avatarRoutes = require('./routes/avatars');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
@@ -32,8 +34,9 @@ setupSocketIO(io);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Phục vụ file tĩnh từ thư mục public
+// Phục vụ file tĩnh từ thư mục public và uploads
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // Đăng ký API Routes
 app.use('/api/topics', topicRoutes);
@@ -43,6 +46,8 @@ app.use('/api/quiz', questionRoutes);
 app.use('/api/solo', soloRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/player', leaderboardRoutes);
+app.use('/api/music', musicRoutes);
+app.use('/api/avatars', avatarRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Đăng ký Route điều hướng trang HTML thân thiện

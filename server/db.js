@@ -276,6 +276,58 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
+        // 10. Music Tracks Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`music_tracks\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`title\` VARCHAR(255) NOT NULL,
+                \`youtube_video_id\` VARCHAR(32) NOT NULL,
+                \`youtube_url\` VARCHAR(500) NOT NULL,
+                \`category\` VARCHAR(100) DEFAULT 'Gaming',
+                \`thumbnail_url\` VARCHAR(500) NULL,
+                \`status\` ENUM('PUBLISHED', 'DRAFT') DEFAULT 'PUBLISHED',
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 11. Warrior Avatars Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`avatars\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`name\` VARCHAR(100) NOT NULL,
+                \`image_url\` VARCHAR(500) NOT NULL,
+                \`is_default\` BOOLEAN DEFAULT FALSE,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // Seed Default Avatars if empty
+        const [avatarRows] = await connection.query('SELECT COUNT(*) as count FROM `avatars`');
+        if (avatarRows[0].count === 0) {
+            await connection.query(`
+                INSERT INTO \`avatars\` (\`name\`, \`image_url\`, \`is_default\`)
+                VALUES 
+                ('Luffy', '/images/A.jpg', TRUE),
+                ('Zoro', '/images/B.jpg', TRUE),
+                ('Nami', '/images/C.jpg', TRUE),
+                ('Sanji', '/images/D.jpg', TRUE)
+            `);
+        }
+
+        // Seed Default Music Tracks if empty
+        const [musicRows] = await connection.query('SELECT COUNT(*) as count FROM `music_tracks`');
+        if (musicRows[0].count === 0) {
+            await connection.query(`
+                INSERT INTO \`music_tracks\` (\`title\`, \`youtube_video_id\`, \`youtube_url\`, \`category\`, \`thumbnail_url\`, \`status\`)
+                VALUES 
+                ('One Piece - Overtaken (Epic Battle OST)', '8A_h_OQ3Kk8', 'https://www.youtube.com/watch?v=8A_h_OQ3Kk8', 'Epic', 'https://img.youtube.com/vi/8A_h_OQ3Kk8/hqdefault.jpg', 'PUBLISHED'),
+                ('One Piece - We Are! (Acoustic / Lofi Remix)', 'da3W4h4xK6E', 'https://www.youtube.com/watch?v=da3W4h4xK6E', 'Lo-fi', 'https://img.youtube.com/vi/da3W4h4xK6E/hqdefault.jpg', 'PUBLISHED'),
+                ('Gaming Chill / Study Beats (Instrumental)', 'jfKfPfyJRdk', 'https://www.youtube.com/watch?v=jfKfPfyJRdk', 'Chill', 'https://img.youtube.com/vi/jfKfPfyJRdk/hqdefault.jpg', 'PUBLISHED'),
+                ('One Piece - The Very, Very Strongest (Battle Theme)', '4J7K3yacig4', 'https://www.youtube.com/watch?v=4J7K3yacig4', 'Gaming', 'https://img.youtube.com/vi/4J7K3yacig4/hqdefault.jpg', 'PUBLISHED')
+            `);
+        }
+
         // Nạp Default Topics nếu chưa có
         await connection.query(`
             INSERT INTO \`topics\` (\`id\`, \`name\`, \`slug\`, \`description\`, \`icon\`)

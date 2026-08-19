@@ -11,101 +11,99 @@
 </head>
 <body>
 
-    <!-- Sticky Glass Game Navbar -->
-    <header class="game-navbar">
-        <div class="nav-inner">
-            <a href="/" class="brand-link">
-                <div class="brand-icon">⚓</div>
-                <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
-            </a>
+    <!-- Floating Liquid Glass Navbar -->
+    <div class="game-navbar-wrapper">
+        <header class="game-navbar">
+            <div class="nav-inner">
+                <a href="/" class="brand-link">
+                    <div class="brand-icon">⚓</div>
+                    <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
+                </a>
 
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="/" class="nav-item-link active">Trang Chủ</a></li>
-                    <li><a href="/solo" class="nav-item-link">🎮 Chơi Solo</a></li>
-                    <li><a href="/join" class="nav-item-link">⚡ Vào Phòng</a></li>
-                    <li><a href="/host" class="nav-item-link">👑 Tạo Phòng</a></li>
-                    <li><a href="/leaderboard" class="nav-item-link">🏆 Bảng Vàng</a></li>
-                    <li><a href="/admin" class="nav-item-link">⚙️ Quản Trị</a></li>
-                </ul>
-            </nav>
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/" class="nav-item-link active">Trang Chủ</a></li>
+                        <li><a href="/solo" class="nav-item-link">Chơi Solo</a></li>
+                        <li><a href="/join" class="nav-item-link">Vào Phòng</a></li>
+                        <li><a href="/host" class="nav-item-link">Tạo Phòng</a></li>
+                        <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
+                        <li><a href="/admin" class="nav-item-link">Quản Trị</a></li>
+                    </ul>
+                </nav>
 
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
-                    ☀️ <span class="theme-btn-text">Sáng</span>
-                </button>
-                <div class="live-status-pill">
-                    <div class="live-status-dot"></div>
-                    <span>Trực Tuyến</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                        ☀️ <span class="theme-btn-text">Sáng</span>
+                    </button>
+                    <button class="theme-toggle-btn" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
+                        🎵 Nhạc Nền
+                    </button>
+                    <div class="live-status-pill">
+                        <div class="live-status-dot"></div>
+                        <span>Trực Tuyến</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </header>
+        </header>
+    </div>
 
     <main class="container container-wide">
-        <!-- Hero Section with Signature Mascot -->
-        <section class="card card-hero" style="margin-top: 10px;">
-            <div class="hero-grid">
-                <div>
-                    <div class="hero-tag">
-                        <span>⚡ ĐẤU TRƯỜNG THỜI GIAN THỰC CHUẨN KAHOOT</span>
-                    </div>
-                    <h1 class="hero-title">
-                        HÃY CHỨNG MINH BẠN <br>
-                        <span class="hero-title-highlight">KHÔNG PHẢI LÀ LARPER!</span>
-                    </h1>
-                    <p class="hero-desc">
-                        Nền tảng thi đấu trắc nghiệm One Piece & Công Nghệ trực tiếp giữa nhiều người chơi. Kiểm tra kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!
-                    </p>
-                    <div class="hero-actions">
-                        <a href="/join" class="btn btn-primary btn-lg">
-                            ⚡ THI ĐẤU MULTIPLAYER
-                        </a>
-                        <a href="/solo" class="btn btn-secondary btn-lg">
-                            🎮 Luyện Tập Solo
-                        </a>
-                        <a href="/host" class="btn btn-accent btn-lg">
-                            👑 Tạo Phòng (Host)
-                        </a>
-                    </div>
+        <!-- Full-Screen Hero Viewport with Floating Chopper Mascot -->
+        <section class="hero-fullscreen">
+            <div class="hero-content-box">
+                <div class="hero-mascot-float">
+                    <img src="https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif" alt="Chopper Mascot">
                 </div>
 
-                <div>
-                    <div class="hero-mascot-wrapper">
-                        <img class="hero-mascot-img" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" alt="Kizaru Smile Mascot">
-                    </div>
+                <h1 class="hero-title">
+                    HÃY CHỨNG MINH BẠN <br>
+                    <span class="hero-title-highlight">KHÔNG PHẢI LÀ LARPER!</span>
+                </h1>
+                <p class="hero-desc">
+                    Đấu trường trắc nghiệm One Piece & Công Nghệ trực tuyến. Thử thách kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!
+                </p>
+
+                <div class="hero-actions">
+                    <a href="/solo" class="btn btn-primary btn-lg">
+                        Bắt Đầu Chơi Ngay
+                    </a>
+                    <a href="/join" class="btn btn-secondary btn-lg">
+                        Vào Phòng Thi Đấu
+                    </a>
+                    <a href="/host" class="btn btn-accent btn-lg">
+                        Tạo Phòng Host
+                    </a>
                 </div>
             </div>
         </section>
 
         <!-- Quick PIN Code Entry Bar -->
-        <section class="pin-entry-card">
-            <div class="pin-input-group">
-                <span style="font-size: 1.5rem;">🔑</span>
+        <section class="card" style="margin-top: 24px; padding: 20px 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
                 <div>
-                    <div style="font-weight: 800; font-size: 1rem; color: var(--game-text-primary);">VÀO NHANH PHÒNG THI ĐẤU:</div>
-                    <div style="font-size: 0.82rem; color: var(--game-text-muted);">Nhập mã PIN 6 ký tự được cấp từ Host</div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: var(--game-text-primary);">VÀO NHANH PHÒNG THI ĐẤU</div>
+                    <div style="font-size: 0.85rem; color: var(--game-text-muted);">Nhập mã PIN 6 ký tự được cấp từ Host để tham gia ngay</div>
                 </div>
-            </div>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="text" id="quick-pin-input" class="pin-input" placeholder="VD: 8F3K2A" maxlength="6">
-                <button class="btn btn-primary" onclick="handleQuickJoin()">Vào Phòng ➔</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="quick-pin-input" class="form-control" placeholder="MÃ PIN: 8F3K2A" maxlength="6" style="max-width: 180px; text-transform: uppercase; font-weight: 800; text-align: center; font-size: 1.1rem; letter-spacing: 2px;">
+                    <button class="btn btn-primary" onclick="handleQuickJoin()">Vào Phòng</button>
+                </div>
             </div>
         </section>
 
         <!-- Game Catalog (Explore Quizzes) -->
-        <section>
-            <div class="section-heading">
-                <h2 class="section-title">
-                    <span>📚 CÁC BỘ ĐỀ THI NỔI BẬT</span>
+        <section style="margin-top: 36px;">
+            <div class="card-header-game" style="border: none; padding-bottom: 0;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--game-text-primary);">
+                    CÁC BỘ ĐỀ THI NỔI BẬT
                 </h2>
-                <a href="/solo" class="btn btn-secondary btn-sm">Xem Tất Cả ➔</a>
+                <a href="/solo" class="btn btn-secondary btn-sm">Xem Tất Cả</a>
             </div>
 
-            <div id="home-quiz-catalog" class="catalog-grid">
+            <div id="home-quiz-catalog" class="catalog-grid" style="margin-top: 16px;">
                 <!-- Dynamically loaded -->
-                <div class="quiz-game-card" style="text-align: center; padding: 40px;">
+                <div class="card" style="text-align: center; padding: 40px; grid-column: 1/-1;">
                     <div style="color: var(--game-text-muted);">Đang tải danh sách bộ đề thi...</div>
                 </div>
             </div>
@@ -116,6 +114,7 @@
         <p>© 2026 • Hệ thống trắc nghiệm thi đấu Realtime One Piece & Công Nghệ • Designed for Real Fans</p>
     </footer>
 
+    <script src="/js/musicPlayer.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             await loadHomeQuizzes();
@@ -128,20 +127,20 @@
                 const result = await res.json();
                 if (res.ok && result.success && result.data.length > 0) {
                     container.innerHTML = result.data.map(q => `
-                        <div class="quiz-game-card">
+                        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
                             <div>
-                                <div class="quiz-card-badge-row">
-                                    <span class="quiz-card-topic">${q.topic_icon || '⚓'} ${q.topic_name || 'Chung'}</span>
-                                    <span style="font-size: 0.78rem; font-weight: 700; color: #34d399;">🟢 ĐANG MỞ</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--game-primary);">${q.topic_icon || '⚓'} ${q.topic_name || 'Chung'}</span>
+                                    <span style="font-size: 0.75rem; font-weight: 700; color: #10b981;">ĐANG MỞ</span>
                                 </div>
-                                <h3 class="quiz-card-title">${escapeHtml(q.title)}</h3>
-                                <p class="quiz-card-desc">${escapeHtml(q.description || 'Thử thách kiến thức trắc nghiệm đỉnh cao.')}</p>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--game-text-primary); margin-bottom: 8px;">${escapeHtml(q.title)}</h3>
+                                <p style="color: var(--game-text-secondary); font-size: 0.88rem; margin-bottom: 16px;">${escapeHtml(q.description || 'Thử thách kiến thức trắc nghiệm đỉnh cao.')}</p>
                             </div>
-                            <div class="quiz-card-footer">
-                                <div class="quiz-card-meta">
-                                    ⏱️ ${q.time_per_question || 15}s/câu • ❓ ${q.total_questions || 20} câu
+                            <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 12px;">
+                                <div style="font-size: 0.82rem; color: var(--game-text-muted);">
+                                    ⏱️ ${q.time_per_question || 15}s • ${q.total_questions || 20} câu
                                 </div>
-                                <a href="/solo" class="btn btn-primary btn-sm">Chơi Ngay ➔</a>
+                                <a href="/solo" class="btn btn-primary btn-sm">Chơi Ngay</a>
                             </div>
                         </div>
                     `).join('');

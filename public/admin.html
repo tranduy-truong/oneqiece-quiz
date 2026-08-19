@@ -3,40 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Trị Hệ Thống - Realtime Quiz Admin</title>
+    <title>Quản Trị Hệ Thống — Realtime Quiz Studio</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/theme.js"></script>
 </head>
 <body>
 
-    <!-- Sticky Glass Game Navbar -->
-    <header class="game-navbar">
-        <div class="nav-inner">
-            <a href="/admin" class="brand-link">
-                <div class="brand-icon">⚙️</div>
-                <span>ONE PIECE <span class="brand-title-accent">ADMIN STUDIO</span></span>
-            </a>
+    <!-- Floating Liquid Glass Navbar -->
+    <div class="game-navbar-wrapper">
+        <header class="game-navbar">
+            <div class="nav-inner">
+                <a href="/admin" class="brand-link">
+                    <div class="brand-icon">⚙️</div>
+                    <span>ONE PIECE <span class="brand-title-accent">ADMIN STUDIO</span></span>
+                </a>
 
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="/" class="nav-item-link">Xem Trang Chủ</a></li>
-                    <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
-                    <li><button class="nav-item-link" id="btn-logout" onclick="handleLogout()" style="cursor: pointer; background: transparent; border: none;">Đăng Xuất</button></li>
-                </ul>
-            </nav>
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/" class="nav-item-link">Xem Trang Chủ</a></li>
+                        <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
+                        <li><button class="nav-item-link" id="btn-logout" onclick="handleLogout()" style="cursor: pointer; background: transparent; border: none;">Đăng Xuất</button></li>
+                    </ul>
+                </nav>
 
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
-                    ☀️ <span class="theme-btn-text">Sáng</span>
-                </button>
-                <div class="live-status-pill">
-                    <div class="live-status-dot"></div>
-                    <span>Admin Mode</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                        ☀️ <span class="theme-btn-text">Sáng</span>
+                    </button>
+                    <button class="theme-toggle-btn" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
+                        🎵 Nhạc Nền
+                    </button>
+                    <div class="live-status-pill">
+                        <div class="live-status-dot"></div>
+                        <span>Admin Mode</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </header>
+        </header>
+    </div>
 
     <main class="container container-wide">
         <!-- Alert Notification -->
@@ -46,16 +51,22 @@
             <!-- Tabs Header -->
             <div class="admin-tabs">
                 <button class="admin-tab-btn active" onclick="switchAdminTab('stats')" id="tab-btn-stats">
-                    📊 Thống Kê Tổng Quan
+                    Thống Kê Tổng Quan
                 </button>
                 <button class="admin-tab-btn" onclick="switchAdminTab('questions')" id="tab-btn-questions">
-                    ❓ Quản Lý Câu Hỏi
+                    Quản Lý Câu Hỏi
                 </button>
                 <button class="admin-tab-btn" onclick="switchAdminTab('quizzes')" id="tab-btn-quizzes">
-                    📚 Chủ Đề & Bộ Đề
+                    Chủ Đề & Bộ Đề
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('music')" id="tab-btn-music">
+                    Kho Nhạc Nền YouTube
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('avatars')" id="tab-btn-avatars">
+                    Avatar Chiến Binh
                 </button>
                 <button class="admin-tab-btn" onclick="switchAdminTab('games')" id="tab-btn-games">
-                    🎮 Lịch Sử Trận Đấu
+                    Lịch Sử Trận Đấu
                 </button>
             </div>
 
@@ -78,15 +89,15 @@
                     </div>
                     <div class="stat-box">
                         <div id="stat-total-games" class="stat-value">0</div>
-                        <div class="stat-label">Trận Đấu Đã Chơi</div>
+                        <div class="stat-label">Trận Đã Chơi</div>
                     </div>
                     <div class="stat-box">
                         <div id="stat-total-players" class="stat-value">0</div>
                         <div class="stat-label">Tổng Người Chơi</div>
                     </div>
                     <div class="stat-box">
-                        <div id="stat-games-today" class="stat-value" style="color: #34d399;">0</div>
-                        <div class="stat-label">Trận Đấu Hôm Nay</div>
+                        <div id="stat-games-today" class="stat-value" style="color: #10b981;">0</div>
+                        <div class="stat-label">Trận Hôm Nay</div>
                     </div>
                 </div>
             </div>
@@ -97,22 +108,21 @@
             <div id="tab-content-questions" style="display: none;">
                 <div class="admin-toolbar">
                     <div>
-                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
+                        <h2 style="font-size: 1.25rem; color: var(--game-primary); margin-bottom: 4px; font-weight: 700;">
                             Danh Sách Câu Hỏi (<span id="total-count">0</span>)
                         </h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">Quản lý toàn bộ câu hỏi trong hệ thống</p>
+                        <p style="color: var(--game-text-muted); font-size: 0.85rem;">Quản lý toàn bộ câu hỏi trong hệ thống</p>
                     </div>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <!-- Filter by Quiz -->
                         <select id="filter-quiz" class="form-control" style="width: auto; min-width: 180px;" onchange="handleSearch()">
                             <option value="">-- Tất cả bộ đề --</option>
                         </select>
                         <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm câu hỏi..." oninput="handleSearch()">
                         <button class="btn btn-secondary" onclick="openBulkModal()" id="btn-bulk-import">
-                            📥 Nhập Hàng Loạt
+                            Nhập Hàng Loạt
                         </button>
                         <button class="btn btn-primary" onclick="openAddModal()" id="btn-add-question">
-                            ➕ Thêm Câu Hỏi Mới
+                            Thêm Câu Hỏi Mới
                         </button>
                     </div>
                 </div>
@@ -130,7 +140,7 @@
                         </thead>
                         <tbody id="questions-table-body">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                <td colspan="5" style="text-align: center; padding: 30px; color: var(--game-text-muted);">
                                     Đang tải danh sách câu hỏi...
                                 </td>
                             </tr>
@@ -146,14 +156,14 @@
                 <!-- 3.1 QUẢN LÝ BỘ ĐỀ (QUIZZES) -->
                 <div class="admin-toolbar" style="margin-top: 10px;">
                     <div>
-                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
-                            📚 Danh Sách Bộ Đề Thi (Quizzes)
+                        <h2 style="font-size: 1.25rem; color: var(--game-primary); margin-bottom: 4px; font-weight: 700;">
+                            Danh Sách Bộ Đề Thi (Quizzes)
                         </h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">Tạo, chỉnh sửa thời gian và cấu hình câu hỏi cho từng bộ đề</p>
+                        <p style="color: var(--game-text-muted); font-size: 0.85rem;">Tạo, chỉnh sửa thời gian và cấu hình câu hỏi cho từng bộ đề</p>
                     </div>
                     <div>
                         <button class="btn btn-primary" onclick="openAddQuizModal()">
-                            ➕ Thêm Bộ Đề Mới
+                            Thêm Bộ Đề Mới
                         </button>
                     </div>
                 </div>
@@ -173,7 +183,7 @@
                         </thead>
                         <tbody id="quizzes-table-body">
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                <td colspan="7" style="text-align: center; padding: 30px; color: var(--game-text-muted);">
                                     Đang tải danh sách bộ đề...
                                 </td>
                             </tr>
@@ -184,14 +194,14 @@
                 <!-- 3.2 QUẢN LÝ CHỦ ĐỀ (TOPICS) -->
                 <div class="admin-toolbar">
                     <div>
-                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
-                            ⚓ Danh Sách Chủ Đề (Topics)
+                        <h2 style="font-size: 1.25rem; color: var(--game-primary); margin-bottom: 4px; font-weight: 700;">
+                            Danh Sách Chủ Đề (Topics)
                         </h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">Nhóm phân loại các bộ đề thi</p>
+                        <p style="color: var(--game-text-muted); font-size: 0.85rem;">Nhóm phân loại các bộ đề thi</p>
                     </div>
                     <div>
                         <button class="btn btn-secondary" onclick="openAddTopicModal()">
-                            ➕ Thêm Chủ Đề Mới
+                            Thêm Chủ Đề Mới
                         </button>
                     </div>
                 </div>
@@ -209,7 +219,7 @@
                         </thead>
                         <tbody id="topics-table-body">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                <td colspan="5" style="text-align: center; padding: 30px; color: var(--game-text-muted);">
                                     Đang tải danh sách chủ đề...
                                 </td>
                             </tr>
@@ -219,15 +229,93 @@
             </div>
 
             <!-- ==========================================
-                 TAB 4: LỊCH SỬ TRẬN ĐẤU
+                 TAB 4: KHO NHẠC NỀN YOUTUBE
+                 ========================================== -->
+            <div id="tab-content-music" style="display: none;">
+                <div class="admin-toolbar">
+                    <div>
+                        <h2 style="font-size: 1.25rem; color: var(--game-primary); margin-bottom: 4px; font-weight: 700;">
+                            Kho Nhạc Nền YouTube
+                        </h2>
+                        <p style="color: var(--game-text-muted); font-size: 0.85rem;">Thêm link YouTube để người chơi tự do lựa chọn làm soundtrack cá nhân</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="openAddMusicModal()">
+                            Thêm Bài Hát Mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ID</th>
+                                <th style="width: 100px;">Thumbnail</th>
+                                <th>Tiêu Đề Bài Hát</th>
+                                <th>Thể Loại</th>
+                                <th>YouTube Link</th>
+                                <th style="text-align: center;">Trạng Thái</th>
+                                <th style="width: 140px; text-align: center;">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="music-table-body">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 30px; color: var(--game-text-muted);">
+                                    Đang tải danh sách bài hát...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 5: AVATAR CHIẾN BINH (UPLOAD TỪ MÁY TÍNH)
+                 ========================================== -->
+            <div id="tab-content-avatars" style="display: none;">
+                <div class="admin-toolbar">
+                    <div>
+                        <h2 style="font-size: 1.25rem; color: var(--game-primary); margin-bottom: 4px; font-weight: 700;">
+                            Quản Lý Avatar Chiến Binh
+                        </h2>
+                        <p style="color: var(--game-text-muted); font-size: 0.85rem;">Tải ảnh avatar từ máy tính lên hệ thống cho người chơi tùy chọn</p>
+                    </div>
+                </div>
+
+                <!-- Form Upload Avatar -->
+                <div style="background: var(--game-bg-elevated); padding: 20px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 24px;">
+                    <form id="avatar-upload-form" onsubmit="handleUploadAvatar(event)" style="display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                            <label class="form-label" for="avatar-name-input">Tên nhân vật / Avatar:</label>
+                            <input type="text" id="avatar-name-input" class="form-control" placeholder="VD: Ace Hỏa Quyền, Sabo..." required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                            <label class="form-label" for="avatar-file-input">Chọn file ảnh từ máy (.png, .jpg, .webp):</label>
+                            <input type="file" id="avatar-file-input" class="form-control" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btn-upload-avatar" style="height: 48px;">
+                            Tải Lên Avatar
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Avatar Gallery Grid -->
+                <div id="admin-avatar-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 6: LỊCH SỬ TRẬN ĐẤU
                  ========================================== -->
             <div id="tab-content-games" style="display: none;">
                 <div class="admin-toolbar">
                     <div>
-                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
-                            🎮 Lịch Sử Các Trận Đấu
+                        <h2 style="font-size: 1.25rem; color: var(--game-primary); margin-bottom: 4px; font-weight: 700;">
+                            Lịch Sử Các Trận Đấu
                         </h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">Xem kết quả chi tiết từng trận đấu đã diễn ra</p>
+                        <p style="color: var(--game-text-muted); font-size: 0.85rem;">Xem kết quả chi tiết từng trận đấu đã diễn ra</p>
                     </div>
                 </div>
 
@@ -245,7 +333,7 @@
                         </thead>
                         <tbody id="games-table-body">
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--game-text-muted);">
                                     Đang tải lịch sử trận đấu...
                                 </td>
                             </tr>
@@ -257,7 +345,7 @@
     </main>
 
     <!-- ==========================================
-         MODAL 1: THÊM / SỬA CÂU HỎI
+         MODAL: THÊM / SỬA CÂU HỎI
          ========================================== -->
     <div id="question-modal" class="modal-backdrop">
         <div class="modal-card">
@@ -270,42 +358,40 @@
                 <input type="hidden" id="form-question-id">
 
                 <div class="form-group">
-                    <label class="form-label" for="form-quiz-id">Thuộc Bộ Đề (Quiz) <span style="color: var(--color-wrong);">*</span></label>
-                    <select id="form-quiz-id" class="form-control" required>
-                        <!-- Populated by JS -->
-                    </select>
+                    <label class="form-label" for="form-quiz-id">Thuộc Bộ Đề (Quiz) *</label>
+                    <select id="form-quiz-id" class="form-control" required></select>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="form-question-text">Nội dung câu hỏi <span style="color: var(--color-wrong);">*</span></label>
+                    <label class="form-label" for="form-question-text">Nội dung câu hỏi *</label>
                     <textarea id="form-question-text" class="form-control" placeholder="Nhập nội dung câu hỏi..." required></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-a">Đáp án A <span style="color: var(--color-wrong);">*</span></label>
+                        <label class="form-label" for="form-opt-a">Đáp án A *</label>
                         <input type="text" id="form-opt-a" class="form-control" placeholder="Lựa chọn A" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-b">Đáp án B <span style="color: var(--color-wrong);">*</span></label>
+                        <label class="form-label" for="form-opt-b">Đáp án B *</label>
                         <input type="text" id="form-opt-b" class="form-control" placeholder="Lựa chọn B" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-c">Đáp án C <span style="color: var(--color-wrong);">*</span></label>
+                        <label class="form-label" for="form-opt-c">Đáp án C *</label>
                         <input type="text" id="form-opt-c" class="form-control" placeholder="Lựa chọn C" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="form-opt-d">Đáp án D <span style="color: var(--color-wrong);">*</span></label>
+                        <label class="form-label" for="form-opt-d">Đáp án D *</label>
                         <input type="text" id="form-opt-d" class="form-control" placeholder="Lựa chọn D" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="form-correct-answer">Đáp án đúng <span style="color: var(--color-wrong);">*</span></label>
+                        <label class="form-label" for="form-correct-answer">Đáp án đúng *</label>
                         <select id="form-correct-answer" class="form-control" required>
                             <option value="A">A</option>
                             <option value="B">B</option>
@@ -314,8 +400,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="form-category">Thể loại (Category)</label>
-                        <input type="text" id="form-category" class="form-control" placeholder="VD: Trái Ác Quỷ, Lore, Nhân vật...">
+                        <label class="form-label" for="form-category">Thể loại</label>
+                        <input type="text" id="form-category" class="form-control" placeholder="VD: Lore, Nhân vật...">
                     </div>
                 </div>
 
@@ -327,13 +413,13 @@
                         <option value="3">Level 3 (Trung Bình)</option>
                         <option value="4">Level 4 (Khá)</option>
                         <option value="5">Level 5 (Khó)</option>
-                        <option value="6">Level 6 (Cực Khó / Chi Tiết Nhỏ)</option>
+                        <option value="6">Level 6 (Cực Khó)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="form-explanation">Giải thích chi tiết & Nguồn tham khảo</label>
-                    <textarea id="form-explanation" class="form-control" placeholder="Nhập lời giải thích hiển thị ngay khi người dùng chọn..."></textarea>
+                    <label class="form-label" for="form-explanation">Giải thích chi tiết & Nguồn</label>
+                    <textarea id="form-explanation" class="form-control" placeholder="Nhập lời giải thích..."></textarea>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
@@ -345,7 +431,7 @@
     </div>
 
     <!-- ==========================================
-         MODAL 2: NHẬP HÀNG LOẠT CÂU HỎI
+         MODAL: NHẬP HÀNG LOẠT CÂU HỎI
          ========================================== -->
     <div id="bulk-modal" class="modal-backdrop">
         <div class="modal-card" style="max-width: 750px;">
@@ -354,53 +440,24 @@
                 <button class="btn-close" onclick="closeBulkModal()">&times;</button>
             </div>
 
-            <div class="form-group" style="margin-bottom: 14px;">
+            <div class="form-group">
                 <label class="form-label" for="bulk-quiz-id">Nhập vào Bộ Đề nào:</label>
-                <select id="bulk-quiz-id" class="form-control">
-                    <!-- Populated by JS -->
-                </select>
-            </div>
-
-            <div style="margin-bottom: 12px; font-size: 0.9rem; color: var(--text-muted);">
-                Dán danh sách câu hỏi dạng <strong>JSON</strong> hoặc <strong>Văn bản thường</strong>:
+                <select id="bulk-quiz-id" class="form-control"></select>
             </div>
 
             <div class="form-group">
-                <textarea id="bulk-input" class="form-control" style="min-height: 200px; font-family: monospace; font-size: 0.85rem;" placeholder="Ví dụ mẫu:
-
-Câu 1: Luffy ăn trái ác quỷ gì?
-A. Gomu Gomu no Mi
-B. Mera Mera no Mi
-C. Ope Ope no Mi
-D. Hito Hito no Mi
-Đáp án: A
-Chủ đề: Trái Ác Quỷ
-Độ khó: 1
-Giải thích: Luffy đã vô tình ăn trái Gomu Gomu từ rương của Shanks.
-
----
-
-Câu 2: Kiếm sĩ của băng Mũ Rơm là ai?
-A. Sanji
-B. Zoro
-C. Usopp
-D. Franky
-Đáp án: B"></textarea>
+                <textarea id="bulk-input" class="form-control" style="min-height: 200px; font-family: monospace; font-size: 0.85rem;" placeholder="Dán văn bản hoặc JSON câu hỏi vào đây..."></textarea>
             </div>
-
-            <div id="bulk-preview-status" style="font-size: 0.9rem; color: var(--color-skyblue); margin-bottom: 16px;"></div>
 
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">Hủy</button>
-                <button type="button" class="btn btn-primary" id="btn-submit-bulk" onclick="handleProcessBulk()">
-                    Tiến Hành Nhập Dữ Liệu
-                </button>
+                <button type="button" class="btn btn-primary" onclick="handleProcessBulk()">Tiến Hành Nhập</button>
             </div>
         </div>
     </div>
 
     <!-- ==========================================
-         MODAL 3: THÊM / SỬA BỘ ĐỀ (QUIZ)
+         MODAL: THÊM / SỬA BỘ ĐỀ (QUIZ)
          ========================================== -->
     <div id="quiz-modal" class="modal-backdrop">
         <div class="modal-card">
@@ -413,24 +470,21 @@ D. Franky
                 <input type="hidden" id="form-quiz-edit-id">
 
                 <div class="form-group">
-                    <label class="form-label" for="form-quiz-title">Tên Bộ Đề <span style="color: var(--color-wrong);">*</span></label>
+                    <label class="form-label" for="form-quiz-title">Tên Bộ Đề *</label>
                     <input type="text" id="form-quiz-title" class="form-control" placeholder="VD: Thử Thách Wano Quốc..." required>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="form-quiz-topic">Thuộc Chủ Đề (Topic)</label>
-                        <select id="form-quiz-topic" class="form-control" required>
-                            <!-- Populated by JS -->
-                        </select>
+                        <label class="form-label" for="form-quiz-topic">Thuộc Chủ Đề</label>
+                        <select id="form-quiz-topic" class="form-control" required></select>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="form-quiz-status">Trạng Thái</label>
                         <select id="form-quiz-status" class="form-control">
-                            <option value="PUBLISHED">🟢 Công Khai (PUBLISHED)</option>
-                            <option value="DRAFT">🟡 Bản Nháp (DRAFT)</option>
-                            <option value="ARCHIVED">🔴 Lưu Trữ (ARCHIVED)</option>
+                            <option value="PUBLISHED">Công Khai (PUBLISHED)</option>
+                            <option value="DRAFT">Bản Nháp (DRAFT)</option>
                         </select>
                     </div>
                 </div>
@@ -442,14 +496,14 @@ D. Franky
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="form-quiz-total">Số câu hỏi mỗi trận đấu</label>
+                        <label class="form-label" for="form-quiz-total">Số câu hỏi mỗi trận</label>
                         <input type="number" id="form-quiz-total" class="form-control" value="20" min="5" max="200" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="form-quiz-desc">Mô tả bộ đề thi</label>
-                    <textarea id="form-quiz-desc" class="form-control" placeholder="Nhập mô tả tóm tắt về bộ đề..."></textarea>
+                    <label class="form-label" for="form-quiz-desc">Mô tả bộ đề</label>
+                    <textarea id="form-quiz-desc" class="form-control" placeholder="Nhập mô tả tóm tắt..."></textarea>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
@@ -461,7 +515,7 @@ D. Franky
     </div>
 
     <!-- ==========================================
-         MODAL 4: THÊM / SỬA CHỦ ĐỀ (TOPIC)
+         MODAL: THÊM / SỬA CHỦ ĐỀ (TOPIC)
          ========================================== -->
     <div id="topic-modal" class="modal-backdrop">
         <div class="modal-card">
@@ -475,13 +529,13 @@ D. Franky
 
                 <div class="form-row">
                     <div class="form-group" style="flex: 2;">
-                        <label class="form-label" for="form-topic-name">Tên Chủ Đề <span style="color: var(--color-wrong);">*</span></label>
+                        <label class="form-label" for="form-topic-name">Tên Chủ Đề *</label>
                         <input type="text" id="form-topic-name" class="form-control" placeholder="VD: Dragon Ball Universe..." required>
                     </div>
 
                     <div class="form-group" style="flex: 1;">
                         <label class="form-label" for="form-topic-icon">Icon Emoji</label>
-                        <input type="text" id="form-topic-icon" class="form-control" value="⚓" placeholder="VD: ⚓, 💻, 🐉">
+                        <input type="text" id="form-topic-icon" class="form-control" value="⚓">
                     </div>
                 </div>
 
@@ -492,7 +546,60 @@ D. Franky
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="closeTopicModal()">Hủy</button>
-                    <button type="submit" class="btn btn-primary" id="btn-save-topic">Lưu Chủ Đề</button>
+                    <button type="submit" class="btn btn-primary">Lưu Chủ Đề</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL: THÊM / SỬA BÀI HÁT YOUTUBE
+         ========================================== -->
+    <div id="music-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="music-modal-title" class="modal-title">Thêm Bài Hát Mới</h3>
+                <button class="btn-close" onclick="closeMusicModal()">&times;</button>
+            </div>
+
+            <form id="music-form" onsubmit="handleSaveMusic(event)">
+                <input type="hidden" id="form-music-edit-id">
+
+                <div class="form-group">
+                    <label class="form-label" for="form-music-title">Tiêu Đề Bài Hát *</label>
+                    <input type="text" id="form-music-title" class="form-control" placeholder="VD: One Piece - Overtaken..." required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-music-url">Đường Dẫn YouTube Link *</label>
+                    <input type="url" id="form-music-url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." required>
+                    <small style="color: var(--game-text-muted); font-size: 0.8rem; margin-top: 4px; display: block;">Hỗ trợ link: youtube.com/watch?v=..., youtu.be/... hoặc youtube.com/shorts/...</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="form-music-category">Thể Loại</label>
+                        <select id="form-music-category" class="form-control">
+                            <option value="Epic">Epic</option>
+                            <option value="Gaming">Gaming</option>
+                            <option value="Lo-fi">Lo-fi</option>
+                            <option value="Chill">Chill</option>
+                            <option value="Anime">Anime</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="form-music-status">Trạng Thái</label>
+                        <select id="form-music-status" class="form-control">
+                            <option value="PUBLISHED">Công Khai (PUBLISHED)</option>
+                            <option value="DRAFT">Bản Nháp (DRAFT)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeMusicModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-music">Lưu Bài Hát</button>
                 </div>
             </form>
         </div>
@@ -503,5 +610,6 @@ D. Franky
     </footer>
 
     <script src="/js/admin.js"></script>
+    <script src="/js/musicPlayer.js"></script>
 </body>
 </html>

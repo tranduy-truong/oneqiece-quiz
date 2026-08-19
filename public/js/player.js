@@ -45,16 +45,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (roomParam) {
         inputRoomCode.value = roomParam.toUpperCase();
     }
+
+    loadAvailableAvatars();
 });
 
+async function loadAvailableAvatars() {
+    const container = document.getElementById('avatar-picker-container');
+    if (!container) return;
+
+    try {
+        const res = await fetch('/api/avatars');
+        const data = await res.json();
+        if (res.ok && data.success && data.data.length > 0) {
+            container.innerHTML = data.data.map((av, idx) => `
+                <img src="${av.image_url}" 
+                     class="avatar-pick ${idx === 0 ? 'active' : ''}" 
+                     data-src="${av.image_url}" 
+                     title="${escapeHtml(av.name)}"
+                     onclick="pickAvatar(this)" 
+                     alt="${escapeHtml(av.name)}"
+                     onerror="this.src='/images/A.jpg'">
+            `).join('');
+            selectedAvatar = data.data[0].image_url;
+        }
+    } catch (err) {
+        console.warn('Lỗi tải avatar:', err);
+    }
+}
+
 function pickAvatar(imgEl) {
-    document.querySelectorAll('.avatar-pick').forEach(el => {
-        el.classList.remove('active');
-        el.style.borderColor = 'transparent';
-    });
+    document.querySelectorAll('.avatar-pick').forEach(el => el.classList.remove('active'));
     imgEl.classList.add('active');
-    imgEl.style.borderColor = 'var(--color-skyblue)';
-    selectedAvatar = imgEl.dataset.src || '/images/A.jpg';
+    selectedAvatar = imgEl.dataset.src || imgEl.src;
 }
 
 function showScreen(screenEl) {
