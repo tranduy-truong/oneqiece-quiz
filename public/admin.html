@@ -6,6 +6,7 @@
     <title>Quản Trị Hệ Thống - Realtime Quiz Admin</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
 </head>
 <body>
 
@@ -25,9 +26,14 @@
                 </ul>
             </nav>
 
-            <div class="live-status-pill">
-                <div class="live-status-dot"></div>
-                <span>Admin Mode</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                    ☀️ <span class="theme-btn-text">Sáng</span>
+                </button>
+                <div class="live-status-pill">
+                    <div class="live-status-dot"></div>
+                    <span>Admin Mode</span>
+                </div>
             </div>
         </div>
     </header>
