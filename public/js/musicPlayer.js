@@ -344,10 +344,18 @@ function injectMusicPlayerDom() {
                         <button class="btn-control" onclick="openMusicLibraryModal()" title="Thư viện nhạc">📚</button>
                     </div>
 
-                    <!-- Volume Row -->
+                    <!-- Background Music Volume Row -->
+                    <div class="player-volume-row" style="margin-bottom: 6px;">
+                        <button id="music-btn-mute" class="btn-mute" onclick="toggleMuteMusic()" title="Bật/Tắt Nhạc Nền">🔊</button>
+                        <span style="font-size: 0.72rem; color: var(--game-text-muted); font-weight: 700; width: 32px;">BGM</span>
+                        <input type="range" id="music-volume-slider" class="player-vol-slider" min="0" max="100" value="${currentVolume}" oninput="handleVolumeChange(this.value)" title="Âm lượng Nhạc Nền">
+                    </div>
+
+                    <!-- Game SFX Sound Volume Row -->
                     <div class="player-volume-row">
-                        <button id="music-btn-mute" class="btn-mute" onclick="toggleMuteMusic()">🔊</button>
-                        <input type="range" id="music-volume-slider" class="player-vol-slider" min="0" max="100" value="${currentVolume}" oninput="handleVolumeChange(this.value)">
+                        <button id="sfx-btn-mute" class="btn-mute" onclick="toggleMuteSfx()" title="Bật/Tắt Âm Thanh Hiệu Ứng">🔔</button>
+                        <span style="font-size: 0.72rem; color: var(--game-primary); font-weight: 700; width: 32px;">SFX</span>
+                        <input type="range" id="sfx-volume-slider" class="player-vol-slider" min="0" max="100" value="${Math.round((parseFloat(localStorage.getItem('app_sfx_volume') ?? 0.7)) * 100)}" oninput="handleSfxVolumeChange(this.value)" title="Âm lượng Hiệu Ứng SFX">
                     </div>
                 </div>
             </div>
@@ -378,6 +386,30 @@ function injectMusicPlayerDom() {
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', playerHtml);
+    }
+}
+
+function handleSfxVolumeChange(val) {
+    const vol = parseInt(val, 10) / 100;
+    if (window.SoundFX) {
+        window.SoundFX.setVolume(vol);
+    }
+    updateSfxDisplay();
+}
+
+function toggleMuteSfx() {
+    if (window.SoundFX) {
+        window.SoundFX.toggleMute();
+        updateSfxDisplay();
+    }
+}
+
+function updateSfxDisplay() {
+    const sfxBtn = document.getElementById('sfx-btn-mute');
+    const sfxSlider = document.getElementById('sfx-volume-slider');
+    if (window.SoundFX) {
+        if (sfxBtn) sfxBtn.innerHTML = window.SoundFX.isMuted || window.SoundFX.volume === 0 ? '🔕' : '🔔';
+        if (sfxSlider) sfxSlider.value = window.SoundFX.isMuted ? 0 : Math.round(window.SoundFX.volume * 100);
     }
 }
 

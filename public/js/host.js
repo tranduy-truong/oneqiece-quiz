@@ -150,6 +150,7 @@ function startHostTimer(timeLimitSec, startTime) {
     const timerBar = document.getElementById('host-timer-bar');
     const timerText = document.getElementById('host-timer-text');
     const totalMs = timeLimitSec * 1000;
+    let lastTickedSec = -1;
 
     function update() {
         const elapsed = Date.now() - startTime;
@@ -159,6 +160,11 @@ function startHostTimer(timeLimitSec, startTime) {
 
         timerText.innerText = `${remainingSec}s`;
         timerBar.style.width = `${percent}%`;
+
+        if (remainingSec <= 5 && remainingSec > 0 && remainingSec !== lastTickedSec) {
+            lastTickedSec = remainingSec;
+            if (window.SoundFX) window.SoundFX.playTick();
+        }
 
         if (remaining <= 3000) {
             timerBar.style.background = '#ef4444';
@@ -192,13 +198,16 @@ socket.on('GAME_STARTING', (data) => {
     let count = data.countdown || 3;
     const numEl = document.getElementById('host-countdown-num');
     numEl.innerText = count;
+    if (window.SoundFX) window.SoundFX.playCountdown(count);
 
     const interval = setInterval(() => {
         count--;
         if (count > 0) {
             numEl.innerText = count;
+            if (window.SoundFX) window.SoundFX.playCountdown(count);
         } else {
             clearInterval(interval);
+            if (window.SoundFX) window.SoundFX.playCountdown('GO');
             hostCountdownOverlay.style.display = 'none';
         }
     }, 1000);
@@ -206,6 +215,8 @@ socket.on('GAME_STARTING', (data) => {
 
 socket.on('QUESTION_STARTED', (data) => {
     hostCountdownOverlay.style.display = 'none';
+
+    if (window.SoundFX) window.SoundFX.playClick();
 
     document.getElementById('host-q-progress').innerText = `${data.questionNumber} / ${data.totalQuestions}`;
     document.getElementById('host-answered-progress').innerText = `0 / ${totalPlayersInGame}`;
@@ -226,6 +237,8 @@ socket.on('ANSWER_SUBMITTED_PROGRESS', (data) => {
 
 socket.on('QUESTION_ENDED', (data) => {
     if (hostTimerInterval) clearInterval(hostTimerInterval);
+
+    if (window.SoundFX) window.SoundFX.playCorrect();
 
     document.getElementById('host-correct-answer').innerText = data.correctAnswer;
     document.getElementById('host-explanation-text').innerText = data.explanation || 'Không có giải thích bổ sung.';
@@ -284,6 +297,8 @@ socket.on('LEADERBOARD_UPDATE', (data) => {
 
 socket.on('GAME_FINISHED', (data) => {
     if (hostTimerInterval) clearInterval(hostTimerInterval);
+
+    if (window.SoundFX) window.SoundFX.playVictory();
 
     const podium = data.podium || {};
 

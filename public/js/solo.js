@@ -337,7 +337,12 @@ async function handleSelectOption(q, selectedKey, clickedElement) {
 
                 const pointTable = { 1: 10, 2: 20, 3: 30, 4: 50, 5: 75, 6: 100 };
                 let pts = pointTable[data.difficulty] || 10;
-                if (streak >= 3) pts += 10;
+                if (streak >= 3) {
+                    pts += 10;
+                    if (window.SoundFX) window.SoundFX.playStreak();
+                } else {
+                    if (window.SoundFX) window.SoundFX.playCorrect();
+                }
                 score += pts;
             } else {
                 clickedElement.classList.add('wrong');
@@ -345,6 +350,8 @@ async function handleSelectOption(q, selectedKey, clickedElement) {
                 explanationGif.src = GIF_WRONG;
                 explanationStatus.className = 'explanation-status wrong';
                 explanationStatus.innerText = `CHƯA CHÍNH XÁC! (Đáp án đúng: ${correctKey})`;
+
+                if (window.SoundFX) window.SoundFX.playWrong();
 
                 allOptions.forEach(el => {
                     if (el.dataset.key === correctKey) {
@@ -371,6 +378,7 @@ async function handleSelectOption(q, selectedKey, clickedElement) {
 
 function prevQuestion() {
     if (currentIndex > 0) {
+        if (window.SoundFX) window.SoundFX.playClick();
         currentIndex--;
         renderCurrentQuestion();
     }
@@ -378,6 +386,7 @@ function prevQuestion() {
 
 function nextQuestion() {
     if (currentIndex < questions.length - 1) {
+        if (window.SoundFX) window.SoundFX.playClick();
         currentIndex++;
         renderCurrentQuestion();
     }
@@ -385,6 +394,7 @@ function nextQuestion() {
 
 function jumpToQuestion(index) {
     if (index >= 0 && index < questions.length) {
+        if (window.SoundFX) window.SoundFX.playClick();
         currentIndex = index;
         renderCurrentQuestion();
     }
@@ -417,6 +427,8 @@ async function finishSoloQuiz() {
         if (response.ok && result.success) {
             loadingState.style.display = 'none';
             resultScreen.style.display = 'block';
+
+            if (window.SoundFX) window.SoundFX.playVictory();
 
             const summary = result.summary;
             document.getElementById('result-rank').innerText = summary.rank;

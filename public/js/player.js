@@ -166,27 +166,23 @@ function renderLobbyPlayers(playerList) {
 /**
  * Nộp đáp án A, B, C, D
  */
-function submitPlayerAnswer(choiceKey) {
-    if (hasAnsweredCurrentQuestion) return;
+function submitPlayerAnswer(choice) {
+    if (hasAnsweredCurrentQuestion || !currentQuestionData) return;
     hasAnsweredCurrentQuestion = true;
 
-    // Highlight nút đã chọn
+    if (window.SoundFX) window.SoundFX.playClick();
+
     document.querySelectorAll('.arena-opt-btn').forEach(btn => {
         btn.classList.add('disabled');
+        if (btn.dataset.choice === choice) {
+            btn.classList.add('selected');
+        }
     });
-    const chosenBtn = document.getElementById(`opt-btn-${choiceKey}`);
-    if (chosenBtn) chosenBtn.classList.add('selected');
-
     document.getElementById('arena-answered-notice').style.display = 'block';
 
     socket.emit('SUBMIT_ANSWER', {
         room_code: currentRoomCode,
-        selected_answer: choiceKey
-    }, (res) => {
-        if (res && res.success) {
-            myTotalScore = res.totalScore;
-            document.getElementById('arena-score').innerText = myTotalScore;
-        }
+        answer: choice
     });
 }
 
@@ -199,6 +195,7 @@ function startClientTimer(timeLimitSec, startTime) {
     const timerBar = document.getElementById('arena-timer-bar');
     const timerText = document.getElementById('arena-timer-text');
     const totalMs = timeLimitSec * 1000;
+    let lastTickedSec = -1;
 
     function update() {
         const elapsed = Date.now() - startTime;
@@ -208,6 +205,11 @@ function startClientTimer(timeLimitSec, startTime) {
 
         timerText.innerText = `${remainingSec}s`;
         timerBar.style.width = `${percent}%`;
+
+        if (remainingSec <= 5 && remainingSec > 0 && remainingSec !== lastTickedSec) {
+            lastTickedSec = remainingSec;
+            if (window.SoundFX) window.SoundFX.playTick();
+        }
 
         if (remaining <= 3000) {
             timerBar.style.background = '#ef4444';
@@ -251,13 +253,16 @@ socket.on('GAME_STARTING', (data) => {
     let count = data.countdown || 3;
     const numEl = document.getElementById('countdown-number');
     numEl.innerText = count;
+    if (window.SoundFX) window.SoundFX.playCountdown(count);
 
     const interval = setInterval(() => {
         count--;
         if (count > 0) {
             numEl.innerText = count;
+            if (window.SoundFX) window.SoundFX.playCountdown(count);
         } else {
             clearInterval(interval);
+            if (window.SoundFX) window.SoundFX.playCountdown('GO');
             countdownOverlay.style.display = 'none';
         }
     }, 1000);
@@ -268,6 +273,8 @@ socket.on('QUESTION_STARTED', (data) => {
     countdownOverlay.style.display = 'none';
     currentQuestionData = data;
     hasAnsweredCurrentQuestion = false;
+
+    if (window.SoundFX) window.SoundFX.playClick();
 
     document.getElementById('arena-q-num').innerText = data.questionNumber;
     document.getElementById('arena-q-total').innerText = data.totalQuestions;
@@ -305,11 +312,13 @@ socket.on('QUESTION_ENDED', (data) => {
         statusEl.style.color = 'var(--color-correct)';
         pointsEl.innerText = `+${myRankItem.scoreAwardedLast.toLocaleString()} điểm`;
         gifEl.src = GIF_CORRECT;
+        if (window.SoundFX) window.SoundFX.playCorrect();
     } else {
         statusEl.innerText = `CHƯA CHÍNH XÁC! (Đáp án: ${data.correctAnswer})`;
         statusEl.style.color = 'var(--color-wrong)';
         pointsEl.innerText = '+0 điểm';
         gifEl.src = GIF_WRONG;
+        if (window.SoundFX) window.SoundFX.playWrong();
     }
 
     expEl.innerText = data.explanation || 'Không có giải thích bổ sung.';
@@ -356,6 +365,8 @@ socket.on('LEADERBOARD_UPDATE', (data) => {
 // 8. Kết thúc trận đấu -> Podium
 socket.on('GAME_FINISHED', (data) => {
     if (clientTimerInterval) clearInterval(clientTimerInterval);
+
+    if (window.SoundFX) window.SoundFX.playVictory();
 
     const podium = data.podium || {};
 
