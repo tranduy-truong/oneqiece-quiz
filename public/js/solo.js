@@ -2,10 +2,11 @@
  * Solo & Practice Mode Controller
  */
 
-const GIF_CORRECT = 'https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif';
-const GIF_WRONG = 'https://media.tenor.com/nXjNCZY_PE4AAAAM/happy-dance-moves.gif';
+let GIF_CORRECT = 'https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif';
+let GIF_WRONG = 'https://media.tenor.com/nXjNCZY_PE4AAAAM/happy-dance-moves.gif';
+let GIF_LOADING = 'https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif';
 
-const OPTION_IMAGES = {
+let OPTION_IMAGES = {
     'A': '/images/A.jpg',
     'B': '/images/B.jpg',
     'C': '/images/C.jpg',
@@ -52,14 +53,44 @@ const btnPrev = document.getElementById('btn-prev');
 const btnNext = document.getElementById('btn-next');
 const btnFinish = document.getElementById('btn-finish');
 
-// Tải danh sách bộ đề khi load trang
+// Tải danh sách bộ đề & media assets khi load trang
 document.addEventListener('DOMContentLoaded', async () => {
     // Khôi phục nickname đã lưu nếu có
     const savedName = localStorage.getItem('player_username');
     if (savedName) playerUsername.value = savedName;
 
-    await loadQuizOptions();
+    await Promise.all([
+        loadSiteMediaSettings(),
+        loadQuizOptions()
+    ]);
 });
+
+async function loadSiteMediaSettings() {
+    try {
+        const res = await fetch('/api/site/settings');
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+            const s = data.data;
+            if (s.icon_option_a) OPTION_IMAGES['A'] = s.icon_option_a;
+            if (s.icon_option_b) OPTION_IMAGES['B'] = s.icon_option_b;
+            if (s.icon_option_c) OPTION_IMAGES['C'] = s.icon_option_c;
+            if (s.icon_option_d) OPTION_IMAGES['D'] = s.icon_option_d;
+            if (s.gif_correct) GIF_CORRECT = s.gif_correct;
+            if (s.gif_wrong) GIF_WRONG = s.gif_wrong;
+            if (s.gif_loading) {
+                GIF_LOADING = s.gif_loading;
+                const loadImg = document.querySelector('#loading-state img');
+                if (loadImg) loadImg.src = s.gif_loading;
+            }
+            if (s.banner_image) {
+                const bg = document.getElementById('site-bg-img');
+                if (bg) bg.src = s.banner_image;
+            }
+        }
+    } catch (e) {
+        console.warn('Lỗi load media settings:', e);
+    }
+}
 
 async function loadQuizOptions() {
     try {

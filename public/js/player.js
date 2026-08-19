@@ -1,9 +1,11 @@
-/**
- * Player Realtime Socket Controller
- */
-
-const GIF_CORRECT = 'https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif';
-const GIF_WRONG = 'https://media.tenor.com/nXjNCZY_PE4AAAAM/happy-dance-moves.gif';
+let GIF_CORRECT = 'https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif';
+let GIF_WRONG = 'https://media.tenor.com/nXjNCZY_PE4AAAAM/happy-dance-moves.gif';
+let OPTION_IMAGES = {
+    'A': '/images/A.jpg',
+    'B': '/images/B.jpg',
+    'C': '/images/C.jpg',
+    'D': '/images/D.jpg'
+};
 
 const socket = io();
 
@@ -28,7 +30,7 @@ const countdownOverlay = document.getElementById('countdown-overlay');
 const inputRoomCode = document.getElementById('input-room-code');
 const inputUsername = document.getElementById('input-username');
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Khởi tạo session token duy nhất cho thiết bị
     currentSessionToken = localStorage.getItem('session_token');
     if (!currentSessionToken) {
@@ -46,8 +48,33 @@ document.addEventListener('DOMContentLoaded', () => {
         inputRoomCode.value = roomParam.toUpperCase();
     }
 
-    loadAvailableAvatars();
+    await Promise.all([
+        loadSiteMediaSettings(),
+        loadAvailableAvatars()
+    ]);
 });
+
+async function loadSiteMediaSettings() {
+    try {
+        const res = await fetch('/api/site/settings');
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+            const s = data.data;
+            if (s.icon_option_a) { OPTION_IMAGES['A'] = s.icon_option_a; const el = document.querySelector('#opt-btn-A img'); if (el) el.src = s.icon_option_a; }
+            if (s.icon_option_b) { OPTION_IMAGES['B'] = s.icon_option_b; const el = document.querySelector('#opt-btn-B img'); if (el) el.src = s.icon_option_b; }
+            if (s.icon_option_c) { OPTION_IMAGES['C'] = s.icon_option_c; const el = document.querySelector('#opt-btn-C img'); if (el) el.src = s.icon_option_c; }
+            if (s.icon_option_d) { OPTION_IMAGES['D'] = s.icon_option_d; const el = document.querySelector('#opt-btn-D img'); if (el) el.src = s.icon_option_d; }
+            if (s.gif_correct) GIF_CORRECT = s.gif_correct;
+            if (s.gif_wrong) GIF_WRONG = s.gif_wrong;
+            if (s.banner_image) {
+                const bg = document.getElementById('site-bg-img');
+                if (bg) bg.src = s.banner_image;
+            }
+        }
+    } catch (e) {
+        console.warn('Lỗi load media settings:', e);
+    }
+}
 
 async function loadAvailableAvatars() {
     const container = document.getElementById('avatar-picker-container');

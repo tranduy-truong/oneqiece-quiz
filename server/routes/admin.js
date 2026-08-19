@@ -780,25 +780,23 @@ router.get('/settings', requireAdminAuth, async (req, res) => {
  */
 router.post('/settings', requireAdminAuth, async (req, res) => {
     try {
-        const { banner_image, hero_title, hero_subtitle, site_name } = req.body;
-        const updates = {
-            banner_image: banner_image ? String(banner_image).trim() : undefined,
-            hero_title: hero_title ? String(hero_title).trim() : undefined,
-            hero_subtitle: hero_subtitle ? String(hero_subtitle).trim() : undefined,
-            site_name: site_name ? String(site_name).trim() : undefined
-        };
+        const updates = req.body;
+        if (!updates || typeof updates !== 'object') {
+            return res.status(400).json({ success: false, error: 'Dữ liệu không hợp lệ.' });
+        }
 
         for (const [key, val] of Object.entries(updates)) {
-            if (val !== undefined) {
+            if (val !== undefined && val !== null) {
                 await pool.query(
                     'INSERT INTO site_settings (key_name, value_content) VALUES (?, ?) ON DUPLICATE KEY UPDATE value_content = VALUES(value_content)',
-                    [key, val]
+                    [String(key).trim(), String(val).trim()]
                 );
             }
         }
 
-        res.json({ success: true, message: 'Đã lưu cài đặt giao diện thành công!' });
+        res.json({ success: true, message: 'Đã lưu cấu hình thành công!' });
     } catch (err) {
+        console.error('Lỗi lưu settings:', err);
         res.status(500).json({ success: false, error: 'Lỗi khi lưu cấu hình web.' });
     }
 });
@@ -825,6 +823,38 @@ router.post('/settings/upload-banner', requireAdminAuth, bannerUpload.single('ba
         });
     } catch (err) {
         res.status(500).json({ success: false, error: 'Lỗi khi tải lên ảnh nền.' });
+    }
+});
+
+/**
+ * POST /api/admin/settings/upload-asset
+ * Tải lên ảnh Icon (A, B, C, D) hoặc GIF phản hồi từ máy
+ */
+router.post('/settings/upload-asset', requireAdminAuth, bannerUpload.single('asset_file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'Vui lòng chọn file hình ảnh / GIF để tải lên.' });
+        }
+
+        const targetKey = req.body.target_key;
+        const assetUrl = `/uploads/${req.file.filename}`;
+
+        if (targetKey) {
+            await pool.query(
+                'INSERT INTO site_settings (key_name, value_content) VALUES (?, ?) ON DUPLICATE KEY UPDATE value_content = VALUES(value_content)',
+                [targetKey, assetUrl]
+            );
+        }
+
+        res.json({
+            success: true,
+            message: 'Tải lên file thành công!',
+            asset_url: assetUrl,
+            target_key: targetKey
+        });
+    } catch (err) {
+        console.error('Lỗi upload asset:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi tải file lên.' });
     }
 });
 

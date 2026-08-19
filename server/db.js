@@ -347,7 +347,14 @@ async function ensureTablesExist(connection) {
                 ('hero_title', 'HÃY CHỨNG MINH BẠN KHÔNG PHẢI LÀ LARPER!'),
                 ('hero_subtitle', 'Đấu trường trắc nghiệm One Piece & Công Nghệ trực tuyến. Thử thách kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!'),
                 ('site_name', 'ONE PIECE QUIZ'),
-                ('primary_color', '#38bdf8')
+                ('primary_color', '#38bdf8'),
+                ('icon_option_a', '/images/A.jpg'),
+                ('icon_option_b', '/images/B.jpg'),
+                ('icon_option_c', '/images/C.jpg'),
+                ('icon_option_d', '/images/D.jpg'),
+                ('gif_correct', 'https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif'),
+                ('gif_wrong', 'https://media.tenor.com/nXjNCZY_PE4AAAAM/happy-dance-moves.gif'),
+                ('gif_loading', 'https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif')
                 ON DUPLICATE KEY UPDATE \`value_content\` = VALUES(\`value_content\`)
             `);
         }

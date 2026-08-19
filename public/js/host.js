@@ -27,8 +27,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('host_token', hostSessionToken);
     }
 
-    await loadHostQuizzes();
+    await Promise.all([
+        loadSiteMediaSettings(),
+        loadHostQuizzes()
+    ]);
 });
+
+async function loadSiteMediaSettings() {
+    try {
+        const res = await fetch('/api/site/settings');
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+            const s = data.data;
+            if (s.icon_option_a) { const el = document.querySelector('#host-opt-A img'); if (el) el.src = s.icon_option_a; }
+            if (s.icon_option_b) { const el = document.querySelector('#host-opt-B img'); if (el) el.src = s.icon_option_b; }
+            if (s.icon_option_c) { const el = document.querySelector('#host-opt-C img'); if (el) el.src = s.icon_option_c; }
+            if (s.icon_option_d) { const el = document.querySelector('#host-opt-D img'); if (el) el.src = s.icon_option_d; }
+            if (s.banner_image) {
+                const bg = document.getElementById('site-bg-img');
+                if (bg) bg.src = s.banner_image;
+            }
+        }
+    } catch (e) {
+        console.warn('Lỗi load media settings:', e);
+    }
+}
 
 async function loadHostQuizzes() {
     try {

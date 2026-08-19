@@ -157,6 +157,111 @@
                         </div>
                     </div>
                 </div>
+
+                <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+
+                <!-- 1.2 ICON ĐÁP ÁN A, B, C, D -->
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <strong style="color: var(--game-text-primary); font-size: 1.1rem;">🔤 Tùy Chỉnh Icon Đáp Án (A, B, C, D)</strong>
+                            <div style="color: var(--game-text-muted); font-size: 0.82rem;">Đổi ảnh đại diện cho từng nút đáp án khi người chơi làm bài</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                        <!-- Option A -->
+                        <div class="card" style="padding: 14px; background: var(--game-bg-elevated); border: 1px solid var(--glass-border); text-align: center;">
+                            <div style="font-weight: 800; color: var(--game-choice-a); margin-bottom: 6px;">ĐÁP ÁN A</div>
+                            <div style="width: 50px; height: 50px; margin: 0 auto 10px; border-radius: var(--game-radius-sm); overflow: hidden; border: 2px solid var(--game-choice-a);">
+                                <img id="preview-opt-a" src="/images/A.jpg" style="width: 100%; height: 100%; object-fit: cover;" alt="A">
+                            </div>
+                            <input type="text" id="setting-opt-a-url" class="form-control" placeholder="URL ảnh..." style="font-size: 0.82rem; margin-bottom: 6px;">
+                            <input type="file" id="file-opt-a" class="form-control" accept="image/*" style="font-size: 0.78rem; margin-bottom: 8px;">
+                            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="handleSaveOptionAsset('A')">Lưu Icon A</button>
+                        </div>
+
+                        <!-- Option B -->
+                        <div class="card" style="padding: 14px; background: var(--game-bg-elevated); border: 1px solid var(--glass-border); text-align: center;">
+                            <div style="font-weight: 800; color: var(--game-choice-b); margin-bottom: 6px;">ĐÁP ÁN B</div>
+                            <div style="width: 50px; height: 50px; margin: 0 auto 10px; border-radius: var(--game-radius-sm); overflow: hidden; border: 2px solid var(--game-choice-b);">
+                                <img id="preview-opt-b" src="/images/B.jpg" style="width: 100%; height: 100%; object-fit: cover;" alt="B">
+                            </div>
+                            <input type="text" id="setting-opt-b-url" class="form-control" placeholder="URL ảnh..." style="font-size: 0.82rem; margin-bottom: 6px;">
+                            <input type="file" id="file-opt-b" class="form-control" accept="image/*" style="font-size: 0.78rem; margin-bottom: 8px;">
+                            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="handleSaveOptionAsset('B')">Lưu Icon B</button>
+                        </div>
+
+                        <!-- Option C -->
+                        <div class="card" style="padding: 14px; background: var(--game-bg-elevated); border: 1px solid var(--glass-border); text-align: center;">
+                            <div style="font-weight: 800; color: var(--game-choice-c); margin-bottom: 6px;">ĐÁP ÁN C</div>
+                            <div style="width: 50px; height: 50px; margin: 0 auto 10px; border-radius: var(--game-radius-sm); overflow: hidden; border: 2px solid var(--game-choice-c);">
+                                <img id="preview-opt-c" src="/images/C.jpg" style="width: 100%; height: 100%; object-fit: cover;" alt="C">
+                            </div>
+                            <input type="text" id="setting-opt-c-url" class="form-control" placeholder="URL ảnh..." style="font-size: 0.82rem; margin-bottom: 6px;">
+                            <input type="file" id="file-opt-c" class="form-control" accept="image/*" style="font-size: 0.78rem; margin-bottom: 8px;">
+                            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="handleSaveOptionAsset('C')">Lưu Icon C</button>
+                        </div>
+
+                        <!-- Option D -->
+                        <div class="card" style="padding: 14px; background: var(--game-bg-elevated); border: 1px solid var(--glass-border); text-align: center;">
+                            <div style="font-weight: 800; color: var(--game-choice-d); margin-bottom: 6px;">ĐÁP ÁN D</div>
+                            <div style="width: 50px; height: 50px; margin: 0 auto 10px; border-radius: var(--game-radius-sm); overflow: hidden; border: 2px solid var(--game-choice-d);">
+                                <img id="preview-opt-d" src="/images/D.jpg" style="width: 100%; height: 100%; object-fit: cover;" alt="D">
+                            </div>
+                            <input type="text" id="setting-opt-d-url" class="form-control" placeholder="URL ảnh..." style="font-size: 0.82rem; margin-bottom: 6px;">
+                            <input type="file" id="file-opt-d" class="form-control" accept="image/*" style="font-size: 0.78rem; margin-bottom: 8px;">
+                            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="handleSaveOptionAsset('D')">Lưu Icon D</button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+
+                <!-- 1.3 GIF PHẢN HỒI ĐÚNG / SAI & LOADING -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <strong style="color: var(--game-text-primary); font-size: 1.1rem;">🎬 Tùy Chỉnh GIF Phản Hồi Khi Làm Bài</strong>
+                            <div style="color: var(--game-text-muted); font-size: 0.82rem;">Đổi các hình động mascot khi người chơi trả lời Đúng, Sai và khi Tải câu hỏi</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+                        <!-- Correct GIF -->
+                        <div class="card" style="padding: 14px; background: var(--game-bg-elevated); border: 1px solid var(--glass-border); text-align: center;">
+                            <div style="font-weight: 800; color: var(--game-success); margin-bottom: 6px;">GIF KHI LÀM ĐÚNG (CORRECT)</div>
+                            <div style="width: 80px; height: 80px; margin: 0 auto 10px; border-radius: var(--game-radius-md); overflow: hidden; border: 2px solid var(--game-success);">
+                                <img id="preview-gif-correct" src="https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif" style="width: 100%; height: 100%; object-fit: cover;" alt="Correct GIF">
+                            </div>
+                            <input type="text" id="setting-gif-correct-url" class="form-control" placeholder="URL GIF đúng..." style="font-size: 0.82rem; margin-bottom: 6px;">
+                            <input type="file" id="file-gif-correct" class="form-control" accept="image/*" style="font-size: 0.78rem; margin-bottom: 8px;">
+                            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="handleSaveGifAsset('correct')">Lưu GIF Đúng</button>
+                        </div>
+
+                        <!-- Wrong GIF -->
+                        <div class="card" style="padding: 14px; background: var(--game-bg-elevated); border: 1px solid var(--glass-border); text-align: center;">
+                            <div style="font-weight: 800; color: var(--game-danger); margin-bottom: 6px;">GIF KHI LÀM SAI (WRONG)</div>
+                            <div style="width: 80px; height: 80px; margin: 0 auto 10px; border-radius: var(--game-radius-md); overflow: hidden; border: 2px solid var(--game-danger);">
+                                <img id="preview-gif-wrong" src="https://media.tenor.com/nXjNCZY_PE4AAAAM/happy-dance-moves.gif" style="width: 100%; height: 100%; object-fit: cover;" alt="Wrong GIF">
+                            </div>
+                            <input type="text" id="setting-gif-wrong-url" class="form-control" placeholder="URL GIF sai..." style="font-size: 0.82rem; margin-bottom: 6px;">
+                            <input type="file" id="file-gif-wrong" class="form-control" accept="image/*" style="font-size: 0.78rem; margin-bottom: 8px;">
+                            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="handleSaveGifAsset('wrong')">Lưu GIF Sai</button>
+                        </div>
+
+                        <!-- Loading GIF -->
+                        <div class="card" style="padding: 14px; background: var(--game-bg-elevated); border: 1px solid var(--glass-border); text-align: center;">
+                            <div style="font-weight: 800; color: var(--game-primary); margin-bottom: 6px;">GIF MÀN HÌNH CHỜ (LOADING)</div>
+                            <div style="width: 80px; height: 80px; margin: 0 auto 10px; border-radius: var(--game-radius-md); overflow: hidden; border: 2px solid var(--game-primary);">
+                                <img id="preview-gif-loading" src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" style="width: 100%; height: 100%; object-fit: cover;" alt="Loading GIF">
+                            </div>
+                            <input type="text" id="setting-gif-loading-url" class="form-control" placeholder="URL GIF loading..." style="font-size: 0.82rem; margin-bottom: 6px;">
+                            <input type="file" id="file-gif-loading" class="form-control" accept="image/*" style="font-size: 0.78rem; margin-bottom: 8px;">
+                            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="handleSaveGifAsset('loading')">Lưu GIF Loading</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ==========================================

@@ -705,6 +705,152 @@ body {
 }
 
 /* ==========================================
+   EXPLANATION CARD & MASCOT GIF FEEDBACK
+   ========================================== */
+
+.explanation-card {
+    background: var(--game-bg-elevated);
+    backdrop-filter: var(--glass-blur);
+    border: 1.5px solid var(--glass-border);
+    border-radius: var(--game-radius-md);
+    padding: 16px;
+    margin: 20px 0 16px;
+    box-shadow: var(--glass-shadow);
+    display: none;
+    clear: both;
+}
+
+.explanation-card.correct-card {
+    border-color: var(--game-success);
+    background: rgba(16, 185, 129, 0.12);
+}
+
+.explanation-card.wrong-card {
+    border-color: var(--game-danger);
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.explanation-content-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 16px !important;
+}
+
+.explanation-gif-container {
+    width: 100px !important;
+    height: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+    border-radius: var(--game-radius-md) !important;
+    overflow: hidden !important;
+    border: 2px solid var(--glass-border) !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+    background: var(--game-bg-root);
+}
+
+.explanation-gif {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+.explanation-body {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    text-align: left !important;
+}
+
+.explanation-status {
+    font-size: 1.15rem;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.explanation-status.correct {
+    color: var(--game-success);
+}
+
+.explanation-status.wrong {
+    color: var(--game-danger);
+}
+
+.explanation-text {
+    font-size: 0.95rem;
+    color: var(--game-text-primary);
+    line-height: 1.5;
+    margin-bottom: 6px;
+}
+
+.explanation-note {
+    font-size: 0.8rem;
+    color: var(--game-text-muted);
+    font-weight: 700;
+}
+
+/* ==========================================
+   QUESTION NAVIGATOR GRID
+   ========================================== */
+
+.nav-grid-wrapper {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--glass-border);
+    clear: both;
+}
+
+.nav-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nav-grid-item {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--game-radius-sm);
+    border: 1.5px solid var(--glass-border);
+    background: var(--game-bg-elevated);
+    color: var(--game-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--game-ease-fast);
+    user-select: none;
+}
+
+.nav-grid-item:hover {
+    border-color: var(--game-primary);
+    color: var(--game-primary);
+}
+
+.nav-grid-item.active {
+    border-color: var(--game-primary) !important;
+    background: var(--game-primary) !important;
+    color: var(--game-text-dark) !important;
+    box-shadow: 0 0 10px var(--game-primary-glow);
+}
+
+.nav-grid-item.answered-correct {
+    border-color: var(--game-success) !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #10b981 !important;
+}
+
+.nav-grid-item.answered-wrong {
+    border-color: var(--game-danger) !important;
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #ef4444 !important;
+}
+
+/* ==========================================
    FLOATING MUSIC PLAYER
    ========================================== */
 

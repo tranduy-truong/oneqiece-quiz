@@ -121,9 +121,146 @@ async function loadSiteSettingsAdmin() {
                 const bg = document.getElementById('site-bg-img');
                 if (bg) bg.src = s.banner_image;
             }
+
+            // Options A, B, C, D
+            ['a', 'b', 'c', 'd'].forEach(letter => {
+                const key = `icon_option_${letter}`;
+                const urlInput = document.getElementById(`setting-opt-${letter}-url`);
+                const previewImg = document.getElementById(`preview-opt-${letter}`);
+                if (s[key]) {
+                    if (urlInput) urlInput.value = s[key];
+                    if (previewImg) previewImg.src = s[key];
+                }
+            });
+
+            // GIFs
+            ['correct', 'wrong', 'loading'].forEach(type => {
+                const key = `gif_${type}`;
+                const urlInput = document.getElementById(`setting-gif-${type}-url`);
+                const previewImg = document.getElementById(`preview-gif-${type}`);
+                if (s[key]) {
+                    if (urlInput) urlInput.value = s[key];
+                    if (previewImg) previewImg.src = s[key];
+                }
+            });
         }
     } catch (e) {
         console.warn('Lỗi load settings:', e);
+    }
+}
+
+async function handleSaveOptionAsset(letter) {
+    const l = letter.toLowerCase();
+    const fileInput = document.getElementById(`file-opt-${l}`);
+    const urlInput = document.getElementById(`setting-opt-${l}-url`);
+    const previewImg = document.getElementById(`preview-opt-${l}`);
+    const targetKey = `icon_option_${l}`;
+
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append('asset_file', fileInput.files[0]);
+        formData.append('target_key', targetKey);
+
+        try {
+            const res = await fetch('/api/admin/settings/upload-asset', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${authToken}` },
+                body: formData
+            });
+            const result = await res.json();
+            if (res.ok && result.success) {
+                showAlert(`Tải lên Icon ${letter} thành công!`, 'success');
+                if (urlInput) urlInput.value = result.asset_url;
+                if (previewImg) previewImg.src = result.asset_url;
+                fileInput.value = '';
+            } else {
+                alert(result.error || 'Lỗi upload ảnh.');
+            }
+        } catch (err) {
+            alert('Lỗi kết nối máy chủ.');
+        }
+    } else if (urlInput && urlInput.value.trim()) {
+        const payload = {};
+        payload[targetKey] = urlInput.value.trim();
+
+        try {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok && result.success) {
+                showAlert(`Cập nhật Icon ${letter} thành công!`, 'success');
+                if (previewImg) previewImg.src = payload[targetKey];
+            } else {
+                alert(result.error || 'Lỗi khi lưu.');
+            }
+        } catch (err) {
+            alert('Lỗi kết nối máy chủ.');
+        }
+    } else {
+        alert(`Vui lòng chọn file hoặc nhập URL ảnh cho Icon ${letter}.`);
+    }
+}
+
+async function handleSaveGifAsset(type) {
+    const fileInput = document.getElementById(`file-gif-${type}`);
+    const urlInput = document.getElementById(`setting-gif-${type}-url`);
+    const previewImg = document.getElementById(`preview-gif-${type}`);
+    const targetKey = `gif_${type}`;
+
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append('asset_file', fileInput.files[0]);
+        formData.append('target_key', targetKey);
+
+        try {
+            const res = await fetch('/api/admin/settings/upload-asset', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${authToken}` },
+                body: formData
+            });
+            const result = await res.json();
+            if (res.ok && result.success) {
+                showAlert(`Tải lên GIF ${type} thành công!`, 'success');
+                if (urlInput) urlInput.value = result.asset_url;
+                if (previewImg) previewImg.src = result.asset_url;
+                fileInput.value = '';
+            } else {
+                alert(result.error || 'Lỗi upload GIF.');
+            }
+        } catch (err) {
+            alert('Lỗi kết nối máy chủ.');
+        }
+    } else if (urlInput && urlInput.value.trim()) {
+        const payload = {};
+        payload[targetKey] = urlInput.value.trim();
+
+        try {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok && result.success) {
+                showAlert(`Cập nhật GIF ${type} thành công!`, 'success');
+                if (previewImg) previewImg.src = payload[targetKey];
+            } else {
+                alert(result.error || 'Lỗi khi lưu.');
+            }
+        } catch (err) {
+            alert('Lỗi kết nối máy chủ.');
+        }
+    } else {
+        alert(`Vui lòng chọn file GIF hoặc nhập URL GIF.`);
     }
 }
 
