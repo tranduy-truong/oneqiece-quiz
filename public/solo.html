@@ -10,6 +10,10 @@
 </head>
 <body>
 
+    <!-- Fullscreen Site Background Layers -->
+    <img id="site-bg-img" class="fullscreen-site-bg" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop" alt="Background">
+    <div class="fullscreen-site-overlay"></div>
+
     <!-- Floating Liquid Glass Navbar -->
     <div class="game-navbar-wrapper">
         <header class="game-navbar">
@@ -29,11 +33,11 @@
                     </ul>
                 </nav>
 
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                <div class="nav-actions">
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
                         ☀️ <span class="theme-btn-text">Sáng</span>
                     </button>
-                    <button class="theme-toggle-btn" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
+                    <button id="btn-music-open" class="btn-music-open" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
                         🎵 Nhạc Nền
                     </button>
                     <div class="live-status-pill">
@@ -47,7 +51,7 @@
 
     <main class="container">
         <!-- 1. Setup Screen -->
-        <div id="setup-screen" class="card" style="max-width: 600px; margin: 30px auto;">
+        <div id="setup-screen" class="card" style="max-width: 560px; margin: 24px auto;">
             <div class="card-header-game">
                 <div class="card-title-game">
                     <span>CÀI ĐẶT BÀI THI SOLO</span>
@@ -70,30 +74,30 @@
                 <div class="form-group">
                     <label class="form-label" for="select-mode">Chế độ chơi:</label>
                     <select id="select-mode" class="form-control">
-                        <option value="SOLO">Thi Đấu Solo (Tính Điểm & Xếp Hạng)</option>
-                        <option value="PRACTICE">Luyện Tập (Xem Giải Thích Tức Thì)</option>
+                        <option value="SOLO">Thi Đấu (Xếp Hạng)</option>
+                        <option value="PRACTICE">Luyện Tập (Xem Giải Thích)</option>
                     </select>
                 </div>
             </div>
 
-            <button class="btn btn-primary btn-lg" onclick="startSoloGame()" style="width: 100%; margin-top: 10px;">
+            <button class="btn btn-primary btn-lg" onclick="startSoloGame()" style="width: 100%; margin-top: 8px;">
                 Bắt Đầu Làm Bài
             </button>
         </div>
 
         <!-- 2. Loading State -->
-        <div id="loading-state" class="card loading-screen" style="display: none; max-width: 600px; margin: 40px auto; text-align: center;">
-            <div style="max-width: 320px; border-radius: var(--game-radius-lg); overflow: hidden; margin: 0 auto 16px; border: 2px solid var(--game-primary); box-shadow: var(--glass-shadow);">
+        <div id="loading-state" class="card loading-screen" style="display: none; max-width: 560px; margin: 30px auto; text-align: center;">
+            <div style="max-width: 280px; border-radius: var(--game-radius-lg); overflow: hidden; margin: 0 auto 14px; border: 2px solid var(--game-primary); box-shadow: var(--glass-shadow);">
                 <img src="https://media1.tenor.com/m/EQLp7bbM_7gAAAAC/kizaru-smile-one-piece.gif" style="width: 100%; display: block;" alt="Loading">
             </div>
-            <div style="font-size: 1.15rem; font-weight: 800; color: var(--game-primary);">Đang tải câu hỏi...</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--game-primary);">Đang tải câu hỏi...</div>
         </div>
 
         <!-- 3. Quiz Game Arena Screen -->
         <div id="quiz-screen" class="card" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--game-bg-elevated); padding: 12px 18px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--game-bg-elevated); padding: 10px 16px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 14px;">
                 <div>Tiến độ: <strong id="question-progress" style="color: var(--game-primary);">Câu 1 / 20</strong></div>
-                <div>Điểm: <strong id="score-display" style="color: var(--game-gold); font-size: 1.1rem;">0</strong></div>
+                <div>Điểm: <strong id="score-display" style="color: var(--game-gold); font-size: 1.05rem;">0</strong></div>
                 <div>Chuỗi đúng: <strong id="streak-display" style="color: #10b981;">0</strong></div>
             </div>
 
@@ -101,12 +105,12 @@
                 <div id="progress-bar" class="progress-bar"></div>
             </div>
 
-            <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
                 <span id="badge-category" class="quiz-card-topic">Chủ đề</span>
-                <span id="badge-difficulty" class="badge-difficulty" style="background: var(--game-bg-elevated); padding: 4px 10px; border-radius: var(--game-radius-pill); font-size: 0.8rem; font-weight: 700; border: 1px solid var(--glass-border);">Level 1</span>
+                <span id="badge-difficulty" style="background: var(--game-bg-elevated); padding: 3px 8px; border-radius: var(--game-radius-pill); font-size: 0.78rem; font-weight: 700; border: 1px solid var(--glass-border);">Level 1</span>
             </div>
 
-            <div id="question-text" class="question-text" style="font-size: 1.35rem; font-weight: 800; margin-bottom: 20px; line-height: 1.5;">
+            <div id="question-text" class="question-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 18px; line-height: 1.45;">
                 Nội dung câu hỏi...
             </div>
 
@@ -116,30 +120,30 @@
             </div>
 
             <!-- Instant Explanation Card with Mascot GIF -->
-            <div id="explanation-box" class="explanation-card" style="display: none;">
-                <div class="explanation-content-wrapper">
-                    <div class="explanation-gif-container">
+            <div id="explanation-box" class="explanation-card" style="display: none; padding: 14px;">
+                <div class="explanation-content-wrapper" style="gap: 14px;">
+                    <div class="explanation-gif-container" style="width: 100px; height: 100px;">
                         <img id="explanation-gif" class="explanation-gif" src="" alt="Feedback GIF">
                     </div>
                     <div class="explanation-body">
-                        <div id="explanation-status" class="explanation-status"></div>
-                        <div id="explanation-text" class="explanation-text"></div>
-                        <div id="explanation-note" class="explanation-note"></div>
+                        <div id="explanation-status" class="explanation-status" style="font-size: 1.1rem;"></div>
+                        <div id="explanation-text" class="explanation-text" style="font-size: 0.92rem;"></div>
+                        <div id="explanation-note" class="explanation-note" style="font-size: 0.82rem;"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Question Navigator Grid -->
             <div class="nav-grid-wrapper">
-                <div style="font-size: 0.85rem; color: var(--game-text-muted); font-weight: 700; margin-bottom: 10px;">BẢNG CHUYỂN CÂU HỎI:</div>
+                <div style="font-size: 0.8rem; color: var(--game-text-muted); font-weight: 700; margin-bottom: 8px;">BẢNG CHUYỂN CÂU HỎI:</div>
                 <div id="question-navigator" class="nav-grid">
                     <!-- Dots 1..N -->
                 </div>
             </div>
 
             <!-- Action Controls -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 12px; flex-wrap: wrap;">
-                <div style="display: flex; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px;">
                     <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()" disabled>
                         Câu Trước
                     </button>
@@ -148,21 +152,21 @@
                     </button>
                 </div>
                 <button class="btn btn-primary btn-lg" id="btn-finish" onclick="finishSoloQuiz()" style="display: none;">
-                    Xem Kết Quả Bài Thi
+                    Xem Kết Quả
                 </button>
             </div>
         </div>
 
         <!-- 4. Result Screen -->
-        <div id="result-screen" class="card" style="display: none; max-width: 680px; margin: 30px auto; text-align: center;">
-            <h2 style="text-transform: uppercase; letter-spacing: 2px; color: var(--game-text-secondary); font-size: 1.1rem; margin-bottom: 8px;">KẾT QUẢ ĐÁNH GIÁ THỰC LỰC</h2>
+        <div id="result-screen" class="card" style="display: none; max-width: 640px; margin: 24px auto; text-align: center;">
+            <h2 style="text-transform: uppercase; letter-spacing: 1.5px; color: var(--game-text-secondary); font-size: 1rem; margin-bottom: 6px;">KẾT QUẢ ĐÁNH GIÁ THỰC LỰC</h2>
             
-            <div id="result-rank" style="font-size: 2.2rem; font-weight: 900; color: var(--game-primary); margin-bottom: 6px;">
+            <div id="result-rank" style="font-size: 1.9rem; font-weight: 900; color: var(--game-primary); margin-bottom: 4px;">
                 FAN CHÂN CHÍNH (NO LARPER)
             </div>
-            <p id="result-rank-desc" style="color: var(--game-text-secondary); font-size: 1.05rem; margin-bottom: 28px;">Bạn là người am hiểu thực thụ!</p>
+            <p id="result-rank-desc" style="color: var(--game-text-secondary); font-size: 0.95rem; margin-bottom: 24px;">Bạn là người am hiểu thực thụ!</p>
 
-            <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stats-grid" style="margin-bottom: 24px;">
                 <div class="stat-box">
                     <div id="stat-score" class="stat-value" style="color: var(--game-gold);">0</div>
                     <div class="stat-label">Tổng Điểm</div>
@@ -181,7 +185,7 @@
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="restartSoloGame()">Làm Lại Bài</button>
                 <a href="/" class="btn btn-secondary">Về Trang Chủ</a>
                 <a href="/leaderboard" class="btn btn-secondary">Bảng Xếp Hạng</a>

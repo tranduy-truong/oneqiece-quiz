@@ -10,6 +10,10 @@
 </head>
 <body>
 
+    <!-- Fullscreen Site Background Layers -->
+    <img id="site-bg-img" class="fullscreen-site-bg" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop" alt="Background">
+    <div class="fullscreen-site-overlay"></div>
+
     <!-- Floating Liquid Glass Navbar -->
     <div class="game-navbar-wrapper">
         <header class="game-navbar">
@@ -29,11 +33,11 @@
                     </ul>
                 </nav>
 
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                <div class="nav-actions">
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
                         ☀️ <span class="theme-btn-text">Sáng</span>
                     </button>
-                    <button class="theme-toggle-btn" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
+                    <button id="btn-music-open" class="btn-music-open" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
                         🎵 Nhạc Nền
                     </button>
                     <div class="live-status-pill">
@@ -48,11 +52,11 @@
     <main class="container container-wide">
         <div class="card" style="margin-top: 10px;">
             <!-- Tabs -->
-            <div class="admin-tabs">
-                <button class="admin-tab-btn active" onclick="switchLbTab('global')" id="tab-btn-global">
+            <div class="admin-sub-tabs" style="border-bottom: 1px solid var(--glass-border); margin-bottom: 16px;">
+                <button class="admin-sub-tab-btn active" onclick="switchLbTab('global')" id="tab-btn-global">
                     Bảng Xếp Hạng Toàn Cầu
                 </button>
-                <button class="admin-tab-btn" onclick="switchLbTab('recent')" id="tab-btn-recent">
+                <button class="admin-sub-tab-btn" onclick="switchLbTab('recent')" id="tab-btn-recent">
                     Trận Đấu Gần Đây
                 </button>
             </div>
@@ -63,7 +67,7 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th style="width: 80px; text-align: center;">Hạng</th>
+                                <th style="width: 70px; text-align: center;">Hạng</th>
                                 <th>Chiến Binh</th>
                                 <th style="text-align: right;">Tổng Điểm</th>
                                 <th style="text-align: center;">Tỷ Lệ Đúng</th>
@@ -73,7 +77,7 @@
                         </thead>
                         <tbody id="global-lb-tbody">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: var(--game-text-muted); padding: 30px;">
+                                <td colspan="6" style="text-align: center; color: var(--game-text-muted); padding: 24px;">
                                     Đang tải dữ liệu bảng vàng...
                                 </td>
                             </tr>
@@ -88,7 +92,7 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th style="width: 80px;">Trận</th>
+                                <th style="width: 70px;">Trận</th>
                                 <th>Bộ Đề Thi</th>
                                 <th>Chế Độ</th>
                                 <th style="text-align: center;">Số Người</th>
@@ -98,7 +102,7 @@
                         </thead>
                         <tbody id="recent-matches-tbody">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: var(--game-text-muted); padding: 30px;">
+                                <td colspan="6" style="text-align: center; color: var(--game-text-muted); padding: 24px;">
                                     Đang tải lịch sử các trận đấu...
                                 </td>
                             </tr>

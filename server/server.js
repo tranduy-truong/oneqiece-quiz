@@ -45,10 +45,22 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/quiz', questionRoutes);
 app.use('/api/solo', soloRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
-app.use('/api/player', leaderboardRoutes);
 app.use('/api/music', musicRoutes);
 app.use('/api/avatars', avatarRoutes);
 app.use('/api/admin', adminRoutes);
+
+// API công khai lấy cấu hình website cho trang chủ
+app.get('/api/site/settings', async (req, res) => {
+    try {
+        const { pool } = require('./db');
+        const [rows] = await pool.query('SELECT key_name, value_content FROM site_settings');
+        const settings = {};
+        rows.forEach(r => { settings[r.key_name] = r.value_content; });
+        res.json({ success: true, data: settings });
+    } catch (err) {
+        res.json({ success: false, data: {} });
+    }
+});
 
 // Đăng ký Route điều hướng trang HTML thân thiện
 app.get('/admin', (req, res) => {

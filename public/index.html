@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HÃY CHỨNG MINH BẠN KHÔNG PHẢI LÀ LARPER — Realtime Quiz Game Platform</title>
+    <title>ONE PIECE QUIZ — Realtime Competition Platform</title>
     <meta name="description" content="Đấu trường trắc nghiệm One Piece & Lập trình thời gian thực chuẩn Kahoot!">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
@@ -11,13 +11,17 @@
 </head>
 <body>
 
+    <!-- Fullscreen Site Background Layers -->
+    <img id="site-bg-img" class="fullscreen-site-bg" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop" alt="Background">
+    <div class="fullscreen-site-overlay"></div>
+
     <!-- Floating Liquid Glass Navbar -->
     <div class="game-navbar-wrapper">
         <header class="game-navbar">
             <div class="nav-inner">
                 <a href="/" class="brand-link">
                     <div class="brand-icon">⚓</div>
-                    <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
+                    <span id="nav-brand-title">ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
                 </a>
 
                 <nav>
@@ -31,11 +35,11 @@
                     </ul>
                 </nav>
 
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                <div class="nav-actions">
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
                         ☀️ <span class="theme-btn-text">Sáng</span>
                     </button>
-                    <button class="theme-toggle-btn" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
+                    <button id="btn-music-open" class="btn-music-open" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
                         🎵 Nhạc Nền
                     </button>
                     <div class="live-status-pill">
@@ -48,62 +52,55 @@
     </div>
 
     <main class="container container-wide">
-        <!-- Full-Screen Hero Viewport with Floating Chopper Mascot -->
-        <section class="hero-fullscreen">
-            <div class="hero-content-box">
-                <div class="hero-mascot-float">
-                    <img src="https://media1.tenor.com/m/nI7qFkM-K_wAAAAC/tony-tony-chopper-dance.gif" alt="Chopper Mascot">
-                </div>
+        <!-- Minimalist Hero Viewport (Full Screen Canvas) -->
+        <section class="hero-minimal">
+            <h1 id="hero-main-title" class="hero-title-main">
+                HÃY CHỨNG MINH BẠN <br>
+                <span class="hero-title-gradient">KHÔNG PHẢI LÀ LARPER!</span>
+            </h1>
+            <p id="hero-main-subtitle" class="hero-subtitle">
+                Đấu trường trắc nghiệm One Piece & Công Nghệ trực tuyến. Thử thách kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!
+            </p>
 
-                <h1 class="hero-title">
-                    HÃY CHỨNG MINH BẠN <br>
-                    <span class="hero-title-highlight">KHÔNG PHẢI LÀ LARPER!</span>
-                </h1>
-                <p class="hero-desc">
-                    Đấu trường trắc nghiệm One Piece & Công Nghệ trực tuyến. Thử thách kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!
-                </p>
-
-                <div class="hero-actions">
-                    <a href="/solo" class="btn btn-primary btn-lg">
-                        Bắt Đầu Chơi Ngay
-                    </a>
-                    <a href="/join" class="btn btn-secondary btn-lg">
-                        Vào Phòng Thi Đấu
-                    </a>
-                    <a href="/host" class="btn btn-accent btn-lg">
-                        Tạo Phòng Host
-                    </a>
-                </div>
+            <div class="hero-cta-group">
+                <a href="/solo" class="btn btn-primary btn-lg">
+                    Bắt Đầu Chơi Ngay
+                </a>
+                <a href="/join" class="btn btn-secondary btn-lg">
+                    Vào Phòng Thi Đấu
+                </a>
+                <a href="/host" class="btn btn-accent btn-lg">
+                    Tạo Phòng Host
+                </a>
             </div>
         </section>
 
         <!-- Quick PIN Code Entry Bar -->
-        <section class="card" style="margin-top: 24px; padding: 20px 24px;">
+        <section class="card" style="margin-top: 10px; padding: 18px 22px;">
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
                 <div>
-                    <div style="font-weight: 800; font-size: 1.1rem; color: var(--game-text-primary);">VÀO NHANH PHÒNG THI ĐẤU</div>
-                    <div style="font-size: 0.85rem; color: var(--game-text-muted);">Nhập mã PIN 6 ký tự được cấp từ Host để tham gia ngay</div>
+                    <div style="font-weight: 800; font-size: 1.05rem; color: var(--game-text-primary);">VÀO NHANH PHÒNG THI ĐẤU</div>
+                    <div style="font-size: 0.82rem; color: var(--game-text-muted);">Nhập mã PIN 6 ký tự được cấp từ Host để tham gia ngay</div>
                 </div>
 
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="quick-pin-input" class="form-control" placeholder="MÃ PIN: 8F3K2A" maxlength="6" style="max-width: 180px; text-transform: uppercase; font-weight: 800; text-align: center; font-size: 1.1rem; letter-spacing: 2px;">
+                    <input type="text" id="quick-pin-input" class="form-control" placeholder="MÃ PIN: 8F3K2A" maxlength="6" style="max-width: 170px; text-transform: uppercase; font-weight: 800; text-align: center; font-size: 1.05rem; letter-spacing: 2px;">
                     <button class="btn btn-primary" onclick="handleQuickJoin()">Vào Phòng</button>
                 </div>
             </div>
         </section>
 
         <!-- Game Catalog (Explore Quizzes) -->
-        <section style="margin-top: 36px;">
+        <section style="margin-top: 32px;">
             <div class="card-header-game" style="border: none; padding-bottom: 0;">
-                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--game-text-primary);">
+                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--game-text-primary);">
                     CÁC BỘ ĐỀ THI NỔI BẬT
                 </h2>
                 <a href="/solo" class="btn btn-secondary btn-sm">Xem Tất Cả</a>
             </div>
 
-            <div id="home-quiz-catalog" class="catalog-grid" style="margin-top: 16px;">
-                <!-- Dynamically loaded -->
-                <div class="card" style="text-align: center; padding: 40px; grid-column: 1/-1;">
+            <div id="home-quiz-catalog" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div class="card" style="text-align: center; padding: 30px; grid-column: 1/-1;">
                     <div style="color: var(--game-text-muted);">Đang tải danh sách bộ đề thi...</div>
                 </div>
             </div>
@@ -111,14 +108,31 @@
     </main>
 
     <footer class="app-footer">
-        <p>© 2026 • Hệ thống trắc nghiệm thi đấu Realtime One Piece & Công Nghệ • Designed for Real Fans</p>
+        <p>© 2026 • Hệ thống trắc nghiệm thi đấu Realtime One Piece & Công Nghệ</p>
     </footer>
 
     <script src="/js/musicPlayer.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            await loadHomeQuizzes();
+            await Promise.all([loadSiteSettings(), loadHomeQuizzes()]);
         });
+
+        async function loadSiteSettings() {
+            try {
+                const res = await fetch('/api/site/settings');
+                const result = await res.json();
+                if (res.ok && result.success && result.data) {
+                    const s = result.data;
+                    if (s.banner_image) document.getElementById('site-bg-img').src = s.banner_image;
+                    if (s.hero_title) {
+                        document.getElementById('hero-main-title').innerHTML = escapeHtml(s.hero_title).replace(/\n/g, '<br>');
+                    }
+                    if (s.hero_subtitle) document.getElementById('hero-main-subtitle').innerText = s.hero_subtitle;
+                }
+            } catch (err) {
+                console.warn('Không thể tải settings:', err);
+            }
+        }
 
         async function loadHomeQuizzes() {
             const container = document.getElementById('home-quiz-catalog');
@@ -131,13 +145,13 @@
                             <div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <span style="font-size: 0.8rem; font-weight: 700; color: var(--game-primary);">${q.topic_icon || '⚓'} ${q.topic_name || 'Chung'}</span>
-                                    <span style="font-size: 0.75rem; font-weight: 700; color: #10b981;">ĐANG MỞ</span>
+                                    <span style="font-size: 0.72rem; font-weight: 700; color: #10b981;">ĐANG MỞ</span>
                                 </div>
-                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--game-text-primary); margin-bottom: 8px;">${escapeHtml(q.title)}</h3>
-                                <p style="color: var(--game-text-secondary); font-size: 0.88rem; margin-bottom: 16px;">${escapeHtml(q.description || 'Thử thách kiến thức trắc nghiệm đỉnh cao.')}</p>
+                                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--game-text-primary); margin-bottom: 8px;">${escapeHtml(q.title)}</h3>
+                                <p style="color: var(--game-text-secondary); font-size: 0.85rem; margin-bottom: 16px;">${escapeHtml(q.description || 'Thử thách kiến thức trắc nghiệm đỉnh cao.')}</p>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 12px;">
-                                <div style="font-size: 0.82rem; color: var(--game-text-muted);">
+                                <div style="font-size: 0.8rem; color: var(--game-text-muted);">
                                     ⏱️ ${q.time_per_question || 15}s • ${q.total_questions || 20} câu
                                 </div>
                                 <a href="/solo" class="btn btn-primary btn-sm">Chơi Ngay</a>

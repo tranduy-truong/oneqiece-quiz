@@ -710,6 +710,7 @@ router.post('/avatars/upload', requireAdminAuth, upload.single('avatar_file'), a
 
 /**
  * DELETE /api/admin/avatars/:id
+ * Cho phép xóa 100% bất kỳ avatar nào (kể cả avatar ban đầu)
  */
 router.delete('/avatars/:id', requireAdminAuth, async (req, res) => {
     try {
@@ -721,9 +722,6 @@ router.delete('/avatars/:id', requireAdminAuth, async (req, res) => {
         }
 
         const avatar = rows[0];
-        if (avatar.is_default) {
-            return res.status(400).json({ success: false, error: 'Không thể xóa avatar mặc định của hệ thống.' });
-        }
 
         // Xóa file trên đĩa nếu nằm trong /uploads/avatars/
         if (avatar.image_url.startsWith('/uploads/avatars/')) {
@@ -739,6 +737,94 @@ router.delete('/avatars/:id', requireAdminAuth, async (req, res) => {
     } catch (err) {
         console.error('Admin: Lỗi xóa avatar:', err);
         res.status(500).json({ success: false, error: 'Lỗi máy chủ khi xóa avatar.' });
+    }
+});
+
+// ==========================================
+// 7. CẤU HÌNH GIAO DIỆN & WEBSITE (SITE SETTINGS)
+// ==========================================
+
+const bannerStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const bannerDir = path.join(__dirname, '../../public/uploads');
+        if (!fs.existsSync(bannerDir)) fs.mkdirSync(bannerDir, { recursive: true });
+        cb(null, bannerDir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        cb(null, 'site-banner-' + Date.now() + ext);
+    }
+});
+
+const bannerUpload = multer({
+    storage: bannerStorage,
+    limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+/**
+ * GET /api/admin/settings
+ */
+router.get('/settings', requireAdminAuth, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT key_name, value_content FROM site_settings');
+        const settings = {};
+        rows.forEach(r => { settings[r.key_name] = r.value_content; });
+        res.json({ success: true, data: settings });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Lỗi khi tải cấu hình web.' });
+    }
+});
+
+/**
+ * POST /api/admin/settings
+ */
+router.post('/settings', requireAdminAuth, async (req, res) => {
+    try {
+        const { banner_image, hero_title, hero_subtitle, site_name } = req.body;
+        const updates = {
+            banner_image: banner_image ? String(banner_image).trim() : undefined,
+            hero_title: hero_title ? String(hero_title).trim() : undefined,
+            hero_subtitle: hero_subtitle ? String(hero_subtitle).trim() : undefined,
+            site_name: site_name ? String(site_name).trim() : undefined
+        };
+
+        for (const [key, val] of Object.entries(updates)) {
+            if (val !== undefined) {
+                await pool.query(
+                    'INSERT INTO site_settings (key_name, value_content) VALUES (?, ?) ON DUPLICATE KEY UPDATE value_content = VALUES(value_content)',
+                    [key, val]
+                );
+            }
+        }
+
+        res.json({ success: true, message: 'Đã lưu cài đặt giao diện thành công!' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Lỗi khi lưu cấu hình web.' });
+    }
+});
+
+/**
+ * POST /api/admin/settings/upload-banner
+ */
+router.post('/settings/upload-banner', requireAdminAuth, bannerUpload.single('banner_file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'Vui lòng chọn file hình ảnh background.' });
+        }
+
+        const bannerUrl = `/uploads/${req.file.filename}`;
+        await pool.query(
+            'INSERT INTO site_settings (key_name, value_content) VALUES ("banner_image", ?) ON DUPLICATE KEY UPDATE value_content = VALUES(value_content)',
+            [bannerUrl]
+        );
+
+        res.json({
+            success: true,
+            message: 'Tải lên ảnh nền trang chủ thành công!',
+            banner_url: bannerUrl
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Lỗi khi tải lên ảnh nền.' });
     }
 });
 

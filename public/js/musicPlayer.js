@@ -89,6 +89,7 @@ function initMusicSystem() {
         width: '0',
         videoId: initialTrack.youtube_video_id,
         playerVars: {
+            autoplay: 1,
             playsinline: 1,
             controls: 0,
             disablekb: 1,
@@ -109,9 +110,11 @@ function onPlayerReady(event) {
     if (isMuted) ytPlayer.mute();
     updateVolumeDisplay();
 
-    // Nếu người dùng đã tương tác thì phát luôn
-    if (hasUserInteracted) {
-        ytPlayer.playVideo();
+    // Tự động phát ngay lập tức
+    try {
+        event.target.playVideo();
+    } catch (e) {
+        console.log('Chờ tương tác người dùng để phát nhạc');
     }
 }
 

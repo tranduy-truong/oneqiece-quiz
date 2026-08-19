@@ -328,6 +328,30 @@ async function ensureTablesExist(connection) {
             `);
         }
 
+        // 12. Site Settings Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`site_settings\` (
+                \`key_name\` VARCHAR(100) PRIMARY KEY,
+                \`value_content\` TEXT NOT NULL,
+                \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // Seed Default Site Settings if empty
+        const [settingsRows] = await connection.query('SELECT COUNT(*) as count FROM `site_settings`');
+        if (settingsRows[0].count === 0) {
+            await connection.query(`
+                INSERT INTO \`site_settings\` (\`key_name\`, \`value_content\`)
+                VALUES 
+                ('banner_image', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop'),
+                ('hero_title', 'HÃY CHỨNG MINH BẠN KHÔNG PHẢI LÀ LARPER!'),
+                ('hero_subtitle', 'Đấu trường trắc nghiệm One Piece & Công Nghệ trực tuyến. Thử thách kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!'),
+                ('site_name', 'ONE PIECE QUIZ'),
+                ('primary_color', '#38bdf8')
+                ON DUPLICATE KEY UPDATE \`value_content\` = VALUES(\`value_content\`)
+            `);
+        }
+
         // Nạp Default Topics nếu chưa có
         await connection.query(`
             INSERT INTO \`topics\` (\`id\`, \`name\`, \`slug\`, \`description\`, \`icon\`)

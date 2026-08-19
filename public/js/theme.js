@@ -17,7 +17,8 @@ function toggleTheme() {
 
 function updateThemeToggleButtons() {
     const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    // CHỈ CẬP NHẬT ĐÚNG NÚT THEME TOGGLE (.btn-theme-toggle hoặc #btn-theme-toggle)
+    document.querySelectorAll('.btn-theme-toggle, #btn-theme-toggle').forEach(btn => {
         if (current === 'dark') {
             btn.innerHTML = '☀️ <span class="theme-btn-text">Sáng</span>';
             btn.setAttribute('title', 'Chuyển sang giao diện Sáng (Facebook Style)');

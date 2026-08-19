@@ -11,6 +11,10 @@
 </head>
 <body>
 
+    <!-- Fullscreen Site Background Layers -->
+    <img id="site-bg-img" class="fullscreen-site-bg" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop" alt="Background">
+    <div class="fullscreen-site-overlay"></div>
+
     <!-- Floating Liquid Glass Navbar -->
     <div class="game-navbar-wrapper">
         <header class="game-navbar">
@@ -30,11 +34,11 @@
                     </ul>
                 </nav>
 
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                <div class="nav-actions">
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
                         ☀️ <span class="theme-btn-text">Sáng</span>
                     </button>
-                    <button class="theme-toggle-btn" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
+                    <button id="btn-music-open" class="btn-music-open" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
                         🎵 Nhạc Nền
                     </button>
                     <div class="live-status-pill">
@@ -48,7 +52,7 @@
 
     <main class="container">
         <!-- 1. Join Room Form -->
-        <div id="join-card" class="card" style="max-width: 520px; margin: 30px auto;">
+        <div id="join-card" class="card" style="max-width: 500px; margin: 24px auto;">
             <div class="card-header-game">
                 <div class="card-title-game">
                     <span>THAM GIA ĐẤU TRƯỜNG</span>
@@ -57,7 +61,7 @@
 
             <div class="form-group">
                 <label class="form-label" for="input-room-code">Mã Phòng (Room PIN):</label>
-                <input type="text" id="input-room-code" class="form-control" placeholder="VD: 8F3K2A" maxlength="6" style="text-transform: uppercase; font-size: 1.5rem; font-weight: 900; letter-spacing: 4px; text-align: center; color: var(--game-primary);">
+                <input type="text" id="input-room-code" class="form-control" placeholder="VD: 8F3K2A" maxlength="6" style="text-transform: uppercase; font-size: 1.4rem; font-weight: 900; letter-spacing: 3px; text-align: center; color: var(--game-primary);">
             </div>
 
             <div class="form-group">
@@ -72,51 +76,52 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary btn-lg" onclick="handleJoinRoom()" style="width: 100%; margin-top: 14px;">
+            <button class="btn btn-primary btn-lg" onclick="handleJoinRoom()" style="width: 100%; margin-top: 10px;">
                 Tham Gia Phòng Ngay
             </button>
         </div>
 
         <!-- 2. Player Lobby Screen -->
-        <div id="lobby-card" class="card" style="display: none; text-align: center; max-width: 680px; margin: 30px auto;">
-            <div style="color: var(--game-text-secondary); font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">BẠN ĐANG Ở PHÒNG THI ĐẤU</div>
-            <div class="room-pin-display">
-                <div id="lobby-room-code" class="room-pin-code">------</div>
+        <div id="lobby-card" class="card" style="display: none; text-align: center; max-width: 640px; margin: 24px auto;">
+            <div style="color: var(--game-text-secondary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">BẠN ĐANG Ở PHÒNG THI ĐẤU</div>
+            
+            <div style="margin: 12px 0;">
+                <span id="lobby-room-code" style="font-size: 3rem; font-weight: 900; letter-spacing: 4px; color: var(--game-primary);">------</span>
             </div>
 
-            <h3 id="lobby-quiz-title" style="color: var(--game-text-primary); font-size: 1.25rem; margin-bottom: 6px;">One Piece Grand Test</h3>
-            <p style="color: var(--game-text-muted); font-size: 0.9rem; margin-bottom: 16px;">
-                Chiến binh trong phòng: <strong id="lobby-count" style="color: var(--game-primary); font-size: 1.1rem;">1</strong>
+            <h3 id="lobby-quiz-title" style="color: var(--game-text-primary); font-size: 1.2rem; margin-bottom: 4px;">One Piece Grand Test</h3>
+            <p style="color: var(--game-text-muted); font-size: 0.88rem; margin-bottom: 12px;">
+                Chiến binh trong phòng: <strong id="lobby-count" style="color: var(--game-primary); font-size: 1rem;">1</strong>
             </p>
 
-            <!-- Roster Grid -->
+            <!-- Roster Grid with STRICT avatar constraints -->
             <div id="lobby-players" class="lobby-roster-grid">
                 <!-- Roster Chips -->
             </div>
 
-            <div style="padding: 16px; background: rgba(56, 189, 248, 0.08); border-radius: var(--game-radius-md); border: 1.5px dashed var(--game-primary); margin-top: 20px;">
-                <p style="color: var(--game-primary); font-weight: 800; font-size: 1.05rem;">
+            <div style="padding: 14px; background: rgba(56, 189, 248, 0.08); border-radius: var(--game-radius-md); border: 1.5px dashed var(--game-primary); margin-top: 16px;">
+                <p style="color: var(--game-primary); font-weight: 800; font-size: 1rem;">
                     Đang chờ Host bắt đầu trận đấu...
                 </p>
-                <p style="color: var(--game-text-muted); font-size: 0.85rem; margin-top: 4px;">
-                    Hãy giữ nguyên màn hình! Trận đấu sẽ đếm ngược và bắt đầu cùng lúc cho tất cả người chơi.
+                <p style="color: var(--game-text-muted); font-size: 0.82rem; margin-top: 2px;">
+                    Hãy giữ nguyên màn hình! Trận đấu sẽ đếm ngược và bắt đầu cùng lúc.
                 </p>
             </div>
         </div>
 
         <!-- 3. Question Arena Screen -->
         <div id="arena-card" class="card" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--game-bg-elevated); padding: 12px 18px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--game-bg-elevated); padding: 10px 16px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 14px;">
                 <div>Câu <span id="arena-q-num" style="color: var(--game-primary); font-weight: 800;">1</span>/<span id="arena-q-total" style="font-weight: 700;">20</span></div>
-                <div>Điểm của bạn: <span id="arena-score" style="color: var(--game-gold); font-weight: 800; font-size: 1.15rem;">0</span></div>
-                <div>Thời gian: <span id="arena-timer-text" style="color: #fca5a5; font-weight: 800; font-size: 1.1rem;">15s</span></div>
+                <div>Điểm: <span id="arena-score" style="color: var(--game-gold); font-weight: 800; font-size: 1.1rem;">0</span></div>
+                <div>Thời gian: <span id="arena-timer-text" style="color: #fca5a5; font-weight: 800; font-size: 1.05rem;">15s</span></div>
             </div>
 
             <div class="progress-container">
                 <div id="arena-timer-bar" class="progress-bar" style="width: 100%;"></div>
             </div>
 
-            <div id="arena-q-text" class="question-text" style="font-size: 1.4rem; font-weight: 800; text-align: center; margin: 20px 0 24px; line-height: 1.5;">
+            <div id="arena-q-text" class="question-text" style="font-size: 1.3rem; font-weight: 800; text-align: center; margin: 18px 0 20px; line-height: 1.45;">
                 Nội dung câu hỏi...
             </div>
 
@@ -140,30 +145,30 @@
                 </div>
             </div>
 
-            <div id="arena-answered-notice" style="display: none; margin-top: 18px; text-align: center; color: var(--game-primary); font-weight: 800; font-size: 1.05rem;">
+            <div id="arena-answered-notice" style="display: none; margin-top: 14px; text-align: center; color: var(--game-primary); font-weight: 800; font-size: 1rem;">
                 ✓ ĐÃ GHI NHẬN ĐÁP ÁN! Đang đợi những người chơi khác...
             </div>
         </div>
 
         <!-- 4. Question Result Screen with Mascot Feedback -->
-        <div id="result-card-question" class="card" style="display: none; text-align: center; max-width: 650px; margin: 30px auto;">
-            <div id="result-q-status" style="font-size: 2rem; font-weight: 900; margin-bottom: 6px;">CHÍNH XÁC!</div>
-            <div id="result-q-points" style="color: var(--game-gold); font-size: 1.35rem; font-weight: 900; margin-bottom: 18px;">+1,420 điểm</div>
+        <div id="result-card-question" class="card" style="display: none; text-align: center; max-width: 600px; margin: 24px auto;">
+            <div id="result-q-status" style="font-size: 1.8rem; font-weight: 900; margin-bottom: 4px;">CHÍNH XÁC!</div>
+            <div id="result-q-points" style="color: var(--game-gold); font-size: 1.25rem; font-weight: 900; margin-bottom: 16px;">+1,420 điểm</div>
 
-            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                <div class="explanation-gif-container">
+            <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+                <div class="explanation-gif-container" style="width: 100px; height: 100px;">
                     <img id="result-q-gif" class="explanation-gif" src="" alt="Feedback GIF">
                 </div>
             </div>
 
-            <div style="background: var(--game-bg-elevated); padding: 18px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); text-align: left;">
-                <div style="color: var(--game-text-muted); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">GIẢI THÍCH CHI TIẾT:</div>
-                <div id="result-q-explanation" style="font-size: 0.98rem; color: var(--game-text-primary); line-height: 1.6;">...</div>
+            <div style="background: var(--game-bg-elevated); padding: 14px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); text-align: left;">
+                <div style="color: var(--game-text-muted); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">GIẢI THÍCH CHI TIẾT:</div>
+                <div id="result-q-explanation" style="font-size: 0.92rem; color: var(--game-text-primary); line-height: 1.5;">...</div>
             </div>
         </div>
 
         <!-- 5. Realtime Leaderboard Transition Screen -->
-        <div id="leaderboard-card-live" class="card" style="display: none; max-width: 720px; margin: 30px auto;">
+        <div id="leaderboard-card-live" class="card" style="display: none; max-width: 680px; margin: 24px auto;">
             <div class="card-header-game">
                 <div class="card-title-game">
                     <span>BẢNG XẾP HẠNG (CÂU <span id="lb-q-curr">1</span>/<span id="lb-q-tot">20</span>)</span>
@@ -178,11 +183,11 @@
         </div>
 
         <!-- 6. Final Victory Podium Screen -->
-        <div id="podium-card" class="card" style="display: none; max-width: 720px; margin: 30px auto; text-align: center;">
-            <h1 style="text-transform: uppercase; letter-spacing: 2px; color: var(--game-gold); font-size: 1.8rem; margin-bottom: 6px;">
+        <div id="podium-card" class="card" style="display: none; max-width: 680px; margin: 24px auto; text-align: center;">
+            <h1 style="text-transform: uppercase; letter-spacing: 1.5px; color: var(--game-gold); font-size: 1.6rem; margin-bottom: 4px;">
                 CHUNG CUỘC TRẬN ĐẤU
             </h1>
-            <p style="color: var(--game-text-secondary); margin-bottom: 24px;">Vinh danh những chiến binh xuất sắc nhất!</p>
+            <p style="color: var(--game-text-secondary); margin-bottom: 20px; font-size: 0.95rem;">Vinh danh những chiến binh xuất sắc nhất!</p>
 
             <div class="podium-container">
                 <!-- 2nd Place -->
@@ -210,23 +215,23 @@
                 </div>
             </div>
 
-            <div style="margin-top: 24px; padding: 16px; background: var(--game-bg-elevated); border-radius: var(--game-radius-md); border: 1px solid var(--glass-border);">
-                <div style="font-size: 1.2rem; font-weight: 800; color: var(--game-primary);">
+            <div style="margin-top: 20px; padding: 14px; background: var(--game-bg-elevated); border-radius: var(--game-radius-md); border: 1px solid var(--glass-border);">
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--game-primary);">
                     Thứ hạng của bạn: #<span id="player-final-rank">1</span> • Tổng điểm: <span id="player-final-score" style="color: var(--game-gold);">0</span> pts
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: center; gap: 14px; margin-top: 28px; flex-wrap: wrap;">
-                <a href="/join" class="btn btn-primary btn-lg">Tham Gia Trận Khác</a>
-                <a href="/" class="btn btn-secondary btn-lg">Về Trang Chủ</a>
-                <a href="/leaderboard" class="btn btn-secondary btn-lg">Bảng Vàng Danh Dự</a>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 24px; flex-wrap: wrap;">
+                <a href="/join" class="btn btn-primary">Tham Gia Trận Khác</a>
+                <a href="/" class="btn btn-secondary">Về Trang Chủ</a>
+                <a href="/leaderboard" class="btn btn-secondary">Bảng Vàng</a>
             </div>
         </div>
     </main>
 
     <!-- Fullscreen Countdown Overlay -->
     <div id="countdown-overlay" class="countdown-overlay" style="display: none;">
-        <div style="color: var(--game-text-secondary); font-size: 1.3rem; font-weight: 800; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 2px;">
+        <div style="color: var(--game-text-secondary); font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">
             CHUẨN BỊ BẮT ĐẦU...
         </div>
         <div id="countdown-number" class="countdown-num">3</div>

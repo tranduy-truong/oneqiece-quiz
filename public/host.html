@@ -11,6 +11,10 @@
 </head>
 <body>
 
+    <!-- Fullscreen Site Background Layers -->
+    <img id="site-bg-img" class="fullscreen-site-bg" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop" alt="Background">
+    <div class="fullscreen-site-overlay"></div>
+
     <!-- Floating Liquid Glass Navbar -->
     <div class="game-navbar-wrapper">
         <header class="game-navbar">
@@ -30,11 +34,11 @@
                     </ul>
                 </nav>
 
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                <div class="nav-actions">
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
                         ☀️ <span class="theme-btn-text">Sáng</span>
                     </button>
-                    <button class="theme-toggle-btn" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
+                    <button id="btn-music-open" class="btn-music-open" onclick="openMusicLibraryModal()" title="Thư viện nhạc nền">
                         🎵 Nhạc Nền
                     </button>
                     <div class="live-status-pill">
@@ -48,7 +52,7 @@
 
     <main class="container container-wide">
         <!-- 1. Create Room Setup -->
-        <div id="host-setup-card" class="card" style="max-width: 560px; margin: 30px auto;">
+        <div id="host-setup-card" class="card" style="max-width: 520px; margin: 24px auto;">
             <div class="card-header-game">
                 <div class="card-title-game">
                     <span>THIẾT LẬP PHÒNG THI ĐẤU (HOST)</span>
@@ -77,38 +81,38 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary btn-lg" onclick="handleCreateRoom()" style="width: 100%; margin-top: 10px;">
+            <button class="btn btn-primary btn-lg" onclick="handleCreateRoom()" style="width: 100%; margin-top: 8px;">
                 Tạo Phòng Ngay
             </button>
         </div>
 
         <!-- 2. Host Lobby Screen -->
-        <div id="host-lobby-card" class="card" style="display: none; text-align: center; max-width: 780px; margin: 30px auto;">
-            <div style="color: var(--game-text-secondary); font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">
+        <div id="host-lobby-card" class="card" style="display: none; text-align: center; max-width: 740px; margin: 24px auto;">
+            <div style="color: var(--game-text-secondary); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">
                 MÃ PIN THAM GIA PHÒNG
             </div>
             
-            <div class="room-pin-display">
-                <div id="host-display-code" class="room-pin-code" style="font-size: 4.2rem;">------</div>
+            <div style="margin: 10px 0;">
+                <span id="host-display-code" style="font-size: 4rem; font-weight: 900; letter-spacing: 6px; color: var(--game-primary);">------</span>
             </div>
             
-            <div style="margin-bottom: 20px; background: var(--game-bg-elevated); padding: 12px 24px; border-radius: var(--game-radius-pill); display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--glass-border);">
-                <span style="color: var(--game-text-muted);">Đường link tham gia:</span>
+            <div style="margin-bottom: 16px; background: var(--game-bg-elevated); padding: 8px 18px; border-radius: var(--game-radius-pill); display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--glass-border); font-size: 0.88rem;">
+                <span style="color: var(--game-text-muted);">Link:</span>
                 <strong style="color: var(--game-primary);" id="host-join-url">https://oneqiece-quiz.onrender.com/join</strong>
             </div>
 
-            <h3 id="host-quiz-name" style="color: var(--game-text-primary); font-size: 1.4rem; margin-bottom: 6px;">One Piece Grand Test</h3>
-            <p style="color: var(--game-text-muted); font-size: 1rem; margin-bottom: 20px;">
-                Người chơi đã tham gia: <strong id="host-player-count" style="color: var(--game-primary); font-size: 1.3rem;">0</strong>
+            <h3 id="host-quiz-name" style="color: var(--game-text-primary); font-size: 1.25rem; margin-bottom: 4px;">One Piece Grand Test</h3>
+            <p style="color: var(--game-text-muted); font-size: 0.92rem; margin-bottom: 16px;">
+                Người chơi đã tham gia: <strong id="host-player-count" style="color: var(--game-primary); font-size: 1.15rem;">0</strong>
             </p>
 
-            <!-- Connected Players Roster -->
-            <div id="host-lobby-players" class="lobby-roster-grid" style="min-height: 180px;">
+            <!-- Connected Players Roster with STRICT avatar styling -->
+            <div id="host-lobby-players" class="lobby-roster-grid" style="min-height: 140px;">
                 <!-- Roster Chips -->
             </div>
 
-            <div style="margin-top: 28px;">
-                <button id="btn-host-start" class="btn btn-primary btn-lg" onclick="handleHostStartGame()" style="font-size: 1.2rem; padding: 16px 48px;">
+            <div style="margin-top: 24px;">
+                <button id="btn-host-start" class="btn btn-primary btn-lg" onclick="handleHostStartGame()" style="font-size: 1.1rem; padding: 14px 40px;">
                     Bắt Đầu Trận Đấu (Start Game)
                 </button>
             </div>
@@ -116,73 +120,73 @@
 
         <!-- 3. Host Live Question Projection Screen -->
         <div id="host-question-card" class="card" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--game-bg-elevated); padding: 14px 24px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 20px;">
-                <div>CÂU HỎI: <span id="host-q-progress" style="color: var(--game-primary); font-weight: 800; font-size: 1.2rem;">1 / 20</span></div>
-                <div>ĐÃ TRẢ LỜI: <span id="host-answered-progress" style="color: var(--game-gold); font-weight: 800; font-size: 1.2rem;">0 / 0</span></div>
-                <div>THỜI GIAN: <span id="host-timer-text" style="color: #fca5a5; font-weight: 900; font-size: 1.3rem;">15s</span></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--game-bg-elevated); padding: 12px 20px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 16px;">
+                <div>CÂU HỎI: <span id="host-q-progress" style="color: var(--game-primary); font-weight: 800; font-size: 1.1rem;">1 / 20</span></div>
+                <div>ĐÃ TRẢ LỜI: <span id="host-answered-progress" style="color: var(--game-gold); font-weight: 800; font-size: 1.1rem;">0 / 0</span></div>
+                <div>THỜI GIAN: <span id="host-timer-text" style="color: #fca5a5; font-weight: 900; font-size: 1.2rem;">15s</span></div>
             </div>
 
-            <div class="progress-container" style="height: 10px;">
+            <div class="progress-container" style="height: 8px;">
                 <div id="host-timer-bar" class="progress-bar" style="width: 100%;"></div>
             </div>
 
-            <div id="host-q-text" class="question-text" style="font-size: 1.8rem; font-weight: 800; text-align: center; margin: 28px 0 36px; line-height: 1.5; color: var(--game-text-primary);">
+            <div id="host-q-text" class="question-text" style="font-size: 1.5rem; font-weight: 800; text-align: center; margin: 24px 0 28px; line-height: 1.45; color: var(--game-text-primary);">
                 Nội dung câu hỏi trình chiếu...
             </div>
 
             <div class="arena-options-grid">
                 <div class="arena-opt-btn disabled" id="host-opt-A" data-choice="A">
                     <div class="option-key"><img src="/images/A.jpg" class="option-key-img" alt="A"></div>
-                    <div class="option-text" id="host-opt-text-A" style="font-size: 1.2rem;">Đáp án A</div>
+                    <div class="option-text" id="host-opt-text-A" style="font-size: 1.1rem;">Đáp án A</div>
                 </div>
                 <div class="arena-opt-btn disabled" id="host-opt-B" data-choice="B">
                     <div class="option-key"><img src="/images/B.jpg" class="option-key-img" alt="B"></div>
-                    <div class="option-text" id="host-opt-text-B" style="font-size: 1.2rem;">Đáp án B</div>
+                    <div class="option-text" id="host-opt-text-B" style="font-size: 1.1rem;">Đáp án B</div>
                 </div>
                 <div class="arena-opt-btn disabled" id="host-opt-C" data-choice="C">
                     <div class="option-key"><img src="/images/C.jpg" class="option-key-img" alt="C"></div>
-                    <div class="option-text" id="host-opt-text-C" style="font-size: 1.2rem;">Đáp án C</div>
+                    <div class="option-text" id="host-opt-text-C" style="font-size: 1.1rem;">Đáp án C</div>
                 </div>
                 <div class="arena-opt-btn disabled" id="host-opt-D" data-choice="D">
                     <div class="option-key"><img src="/images/D.jpg" class="option-key-img" alt="D"></div>
-                    <div class="option-text" id="host-opt-text-D" style="font-size: 1.2rem;">Đáp án D</div>
+                    <div class="option-text" id="host-opt-text-D" style="font-size: 1.1rem;">Đáp án D</div>
                 </div>
             </div>
         </div>
 
         <!-- 4. Host Question Result & Stats Bar Chart -->
         <div id="host-result-card" class="card" style="display: none;">
-            <h2 style="color: var(--game-success); text-align: center; font-size: 1.8rem; font-weight: 900; margin-bottom: 12px;">
+            <h2 style="color: var(--game-success); text-align: center; font-size: 1.6rem; font-weight: 900; margin-bottom: 10px;">
                 ĐÁP ÁN ĐÚNG: <span id="host-correct-answer">A</span>
             </h2>
 
             <!-- Bar Chart Distribution -->
-            <div style="margin: 24px 0; display: flex; justify-content: space-around; align-items: flex-end; height: 200px; padding: 14px; background: rgba(0, 0, 0, 0.3); border-radius: var(--game-radius-md); border: 1px solid var(--glass-border);">
+            <div style="margin: 20px 0; display: flex; justify-content: space-around; align-items: flex-end; height: 180px; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: var(--game-radius-md); border: 1px solid var(--glass-border);">
                 <div style="display: flex; flex-direction: column; align-items: center; width: 20%; height: 100%; justify-content: flex-end;">
-                    <div id="stat-count-A" style="font-weight: 800; font-size: 1.1rem; color: var(--game-choice-a); margin-bottom: 6px;">0</div>
-                    <div id="stat-bar-A" style="width: 100%; max-width: 52px; background: var(--game-choice-a); border-radius: 6px 6px 0 0; min-height: 6px; transition: height 0.6s ease; height: 0%;"></div>
-                    <div style="font-weight: 800; font-size: 1rem; color: var(--game-choice-a); margin-top: 8px;">A</div>
+                    <div id="stat-count-A" style="font-weight: 800; font-size: 1rem; color: var(--game-choice-a); margin-bottom: 4px;">0</div>
+                    <div id="stat-bar-A" style="width: 100%; max-width: 48px; background: var(--game-choice-a); border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.6s ease; height: 0%;"></div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--game-choice-a); margin-top: 6px;">A</div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; width: 20%; height: 100%; justify-content: flex-end;">
-                    <div id="stat-count-B" style="font-weight: 800; font-size: 1.1rem; color: var(--game-choice-b); margin-bottom: 6px;">0</div>
-                    <div id="stat-bar-B" style="width: 100%; max-width: 52px; background: var(--game-choice-b); border-radius: 6px 6px 0 0; min-height: 6px; transition: height 0.6s ease; height: 0%;"></div>
-                    <div style="font-weight: 800; font-size: 1rem; color: var(--game-choice-b); margin-top: 8px;">B</div>
+                    <div id="stat-count-B" style="font-weight: 800; font-size: 1rem; color: var(--game-choice-b); margin-bottom: 4px;">0</div>
+                    <div id="stat-bar-B" style="width: 100%; max-width: 48px; background: var(--game-choice-b); border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.6s ease; height: 0%;"></div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--game-choice-b); margin-top: 6px;">B</div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; width: 20%; height: 100%; justify-content: flex-end;">
-                    <div id="stat-count-C" style="font-weight: 800; font-size: 1.1rem; color: var(--game-choice-c); margin-bottom: 6px;">0</div>
-                    <div id="stat-bar-C" style="width: 100%; max-width: 52px; background: var(--game-choice-c); border-radius: 6px 6px 0 0; min-height: 6px; transition: height 0.6s ease; height: 0%;"></div>
-                    <div style="font-weight: 800; font-size: 1rem; color: var(--game-choice-c); margin-top: 8px;">C</div>
+                    <div id="stat-count-C" style="font-weight: 800; font-size: 1rem; color: var(--game-choice-c); margin-bottom: 4px;">0</div>
+                    <div id="stat-bar-C" style="width: 100%; max-width: 48px; background: var(--game-choice-c); border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.6s ease; height: 0%;"></div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--game-choice-c); margin-top: 6px;">C</div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; width: 20%; height: 100%; justify-content: flex-end;">
-                    <div id="stat-count-D" style="font-weight: 800; font-size: 1.1rem; color: var(--game-choice-d); margin-bottom: 6px;">0</div>
-                    <div id="stat-bar-D" style="width: 100%; max-width: 52px; background: var(--game-choice-d); border-radius: 6px 6px 0 0; min-height: 6px; transition: height 0.6s ease; height: 0%;"></div>
-                    <div style="font-weight: 800; font-size: 1rem; color: var(--game-choice-d); margin-top: 8px;">D</div>
+                    <div id="stat-count-D" style="font-weight: 800; font-size: 1rem; color: var(--game-choice-d); margin-bottom: 4px;">0</div>
+                    <div id="stat-bar-D" style="width: 100%; max-width: 48px; background: var(--game-choice-d); border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.6s ease; height: 0%;"></div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--game-choice-d); margin-top: 6px;">D</div>
                 </div>
             </div>
 
-            <div style="background: var(--game-bg-elevated); padding: 20px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-top: 20px;">
-                <div style="color: var(--game-text-muted); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">GIẢI THÍCH:</div>
-                <div id="host-explanation-text" style="font-size: 1.05rem; color: var(--game-text-primary); line-height: 1.6;">...</div>
+            <div style="background: var(--game-bg-elevated); padding: 16px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-top: 16px;">
+                <div style="color: var(--game-text-muted); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">GIẢI THÍCH:</div>
+                <div id="host-explanation-text" style="font-size: 0.95rem; color: var(--game-text-primary); line-height: 1.55;">...</div>
             </div>
         </div>
 
@@ -203,50 +207,50 @@
 
         <!-- 6. Host Final Podium Screen -->
         <div id="host-podium-card" class="card result-card" style="display: none; text-align: center;">
-            <h1 style="text-transform: uppercase; letter-spacing: 2px; color: var(--game-gold); font-size: 2.2rem; margin-bottom: 8px;">
+            <h1 style="text-transform: uppercase; letter-spacing: 2px; color: var(--game-gold); font-size: 1.8rem; margin-bottom: 6px;">
                 VINH DANH NHÀ VÔ ĐỊCH
             </h1>
-            <p style="color: var(--game-text-secondary); font-size: 1.1rem; margin-bottom: 36px;">Kết quả thi đấu chung cuộc</p>
+            <p style="color: var(--game-text-secondary); font-size: 1rem; margin-bottom: 28px;">Kết quả thi đấu chung cuộc</p>
 
-            <div class="podium-container" style="min-height: 320px;">
+            <div class="podium-container">
                 <!-- 2nd Place -->
-                <div class="podium-place podium-2" style="width: 150px;">
-                    <img id="host-podium-2-avatar" class="podium-avatar" src="/images/B.jpg" style="width: 76px; height: 76px; border-color: var(--game-silver);" alt="2nd">
-                    <div id="host-podium-2-name" class="podium-name" style="font-size: 1.15rem;">Player 2</div>
-                    <div id="host-podium-2-score" class="podium-score" style="font-size: 1.05rem;">0 pts</div>
-                    <div class="podium-block" style="height: 140px; font-size: 2.4rem;">2</div>
+                <div class="podium-place podium-2">
+                    <img id="host-podium-2-avatar" class="podium-avatar" src="/images/B.jpg" style="border-color: var(--game-silver);" alt="2nd">
+                    <div id="host-podium-2-name" class="podium-name">Player 2</div>
+                    <div id="host-podium-2-score" class="podium-score">0 pts</div>
+                    <div class="podium-block">2</div>
                 </div>
 
                 <!-- 1st Place -->
-                <div class="podium-place podium-1" style="width: 170px;">
-                    <img id="host-podium-1-avatar" class="podium-avatar" src="/images/A.jpg" style="width: 90px; height: 90px; border-color: var(--game-gold);" alt="1st">
-                    <div id="host-podium-1-name" class="podium-name" style="font-size: 1.3rem;">Player 1</div>
-                    <div id="host-podium-1-score" class="podium-score" style="font-size: 1.15rem;">0 pts</div>
-                    <div class="podium-block" style="height: 190px; font-size: 2.8rem;">1</div>
+                <div class="podium-place podium-1">
+                    <img id="host-podium-1-avatar" class="podium-avatar" src="/images/A.jpg" style="border-color: var(--game-gold);" alt="1st">
+                    <div id="host-podium-1-name" class="podium-name">Player 1</div>
+                    <div id="host-podium-1-score" class="podium-score">0 pts</div>
+                    <div class="podium-block">1</div>
                 </div>
 
                 <!-- 3rd Place -->
-                <div class="podium-place podium-3" style="width: 150px;">
-                    <img id="host-podium-3-avatar" class="podium-avatar" src="/images/C.jpg" style="width: 76px; height: 76px; border-color: var(--game-bronze);" alt="3rd">
-                    <div id="host-podium-3-name" class="podium-name" style="font-size: 1.15rem;">Player 3</div>
-                    <div id="host-podium-3-score" class="podium-score" style="font-size: 1.05rem;">0 pts</div>
-                    <div class="podium-block" style="height: 100px; font-size: 2.2rem;">3</div>
+                <div class="podium-place podium-3">
+                    <img id="host-podium-3-avatar" class="podium-avatar" src="/images/C.jpg" style="border-color: var(--game-bronze);" alt="3rd">
+                    <div id="host-podium-3-name" class="podium-name">Player 3</div>
+                    <div id="host-podium-3-score" class="podium-score">0 pts</div>
+                    <div class="podium-block">3</div>
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: center; gap: 14px; margin-top: 40px; flex-wrap: wrap;">
-                <a href="/host" class="btn btn-primary btn-lg" style="font-size: 1.05rem; padding: 14px 32px;">Tạo Trận Đấu Mới</a>
-                <a href="/leaderboard" class="btn btn-secondary btn-lg" style="font-size: 1.05rem; padding: 14px 32px;">Bảng Vàng Danh Dự</a>
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 32px; flex-wrap: wrap;">
+                <a href="/host" class="btn btn-primary">Tạo Trận Đấu Mới</a>
+                <a href="/leaderboard" class="btn btn-secondary">Bảng Vàng</a>
             </div>
         </div>
     </main>
 
     <!-- Fullscreen Countdown Overlay -->
     <div id="host-countdown-overlay" class="countdown-overlay" style="display: none;">
-        <div style="color: var(--game-text-secondary); font-size: 1.6rem; font-weight: 800; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px;">
+        <div style="color: var(--game-text-secondary); font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">
             TRẬN ĐẤU SẼ BẮT ĐẦU TRONG
         </div>
-        <div id="host-countdown-num" class="countdown-num" style="font-size: 8rem;">3</div>
+        <div id="host-countdown-num" class="countdown-num" style="font-size: 6rem;">3</div>
     </div>
 
     <footer class="app-footer">
