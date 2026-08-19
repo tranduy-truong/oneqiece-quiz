@@ -83,12 +83,26 @@ router.get('/stats', requireAdminAuth, async (req, res) => {
     }
 });
 
+// ==========================================
+// 1. QUẢN LÝ CÂU HỎI (QUESTIONS CRUD)
+// ==========================================
+
 /**
  * GET /api/admin/questions
+ * Lấy toàn bộ danh sách câu hỏi kèm thông tin Bộ đề (Quiz) và Chủ đề (Topic)
  */
 router.get('/questions', requireAdminAuth, async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM questions ORDER BY id DESC');
+        const [rows] = await pool.query(`
+            SELECT q.*, 
+                   z.title as quiz_title, 
+                   t.name as topic_name,
+                   t.icon as topic_icon
+            FROM questions q
+            LEFT JOIN quizzes z ON q.quiz_id = z.id
+            LEFT JOIN topics t ON q.topic_id = t.id
+            ORDER BY q.id DESC
+        `);
         res.json({ success: true, total: rows.length, data: rows });
     } catch (error) {
         console.error('Admin: Lỗi lấy danh sách câu hỏi:', error);
@@ -98,12 +112,12 @@ router.get('/questions', requireAdminAuth, async (req, res) => {
 
 /**
  * POST /api/admin/questions
+ * Thêm câu hỏi mới (chọn Bộ đề & Chủ đề)
  */
 router.post('/questions', requireAdminAuth, async (req, res) => {
     try {
         const {
             quiz_id,
-            topic_id,
             question_text,
             option_a,
             option_b,
@@ -133,7 +147,13 @@ router.post('/questions', requireAdminAuth, async (req, res) => {
         const cleanCategory = category ? String(category).trim() : 'Chung';
         const cleanDifficulty = difficulty ? parseInt(difficulty, 10) || 1 : 1;
         const qId = quiz_id ? parseInt(quiz_id, 10) : 1;
-        const tId = topic_id ? parseInt(topic_id, 10) : 1;
+
+        // Tự động tìm topic_id theo quiz_id
+        let tId = 1;
+        const [qRows] = await pool.query('SELECT topic_id FROM quizzes WHERE id = ?', [qId]);
+        if (qRows.length > 0) {
+            tId = qRows[0].topic_id;
+        }
 
         const [result] = await pool.query(
             `INSERT INTO questions 
@@ -167,6 +187,7 @@ router.post('/questions', requireAdminAuth, async (req, res) => {
 
 /**
  * PUT /api/admin/questions/:id
+ * Chỉnh sửa câu hỏi & chuyển bộ đề
  */
 router.put('/questions/:id', requireAdminAuth, async (req, res) => {
     try {
@@ -176,6 +197,7 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
         }
 
         const {
+            quiz_id,
             question_text,
             option_a,
             option_b,
@@ -198,12 +220,19 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
 
         const cleanCategory = category ? String(category).trim() : 'Chung';
         const cleanDifficulty = difficulty ? parseInt(difficulty, 10) || 1 : 1;
+        const qId = quiz_id ? parseInt(quiz_id, 10) : 1;
+
+        let tId = 1;
+        const [qRows] = await pool.query('SELECT topic_id FROM quizzes WHERE id = ?', [qId]);
+        if (qRows.length > 0) tId = qRows[0].topic_id;
 
         const [result] = await pool.query(
             `UPDATE questions 
-            SET question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ?, category = ?, difficulty = ?
+            SET quiz_id = ?, topic_id = ?, question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ?, category = ?, difficulty = ?
             WHERE id = ?`,
             [
+                qId,
+                tId,
                 question_text.trim(),
                 option_a.trim(),
                 option_b.trim(),
@@ -230,17 +259,20 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
 
 /**
  * POST /api/admin/questions/bulk
+ * Nhập hàng loạt câu hỏi vào bộ đề đã chọn
  */
 router.post('/questions/bulk', requireAdminAuth, async (req, res) => {
     try {
-        const { questions, quiz_id, topic_id } = req.body;
+        const { questions, quiz_id } = req.body;
 
         if (!Array.isArray(questions) || questions.length === 0) {
             return res.status(400).json({ success: false, error: 'Danh sách câu hỏi không hợp lệ hoặc đang trống.' });
         }
 
         const qId = quiz_id ? parseInt(quiz_id, 10) : 1;
-        const tId = topic_id ? parseInt(topic_id, 10) : 1;
+        let tId = 1;
+        const [qRows] = await pool.query('SELECT topic_id FROM quizzes WHERE id = ?', [qId]);
+        if (qRows.length > 0) tId = qRows[0].topic_id;
 
         let insertedCount = 0;
         for (const q of questions) {
@@ -272,7 +304,7 @@ router.post('/questions/bulk', requireAdminAuth, async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: `Đã thêm thành công ${insertedCount} câu hỏi mới!`,
+            message: `Đã thêm thành công ${insertedCount} câu hỏi mới vào bộ đề!`,
             inserted_count: insertedCount
         });
     } catch (error) {
@@ -298,9 +330,238 @@ router.delete('/questions/:id', requireAdminAuth, async (req, res) => {
     }
 });
 
+// ==========================================
+// 2. QUẢN LÝ BỘ ĐỀ (QUIZZES CRUD)
+// ==========================================
+
+/**
+ * GET /api/admin/quizzes
+ * Lấy danh sách tất cả các bộ đề (bao gồm cả DRAFT)
+ */
+router.get('/quizzes', requireAdminAuth, async (req, res) => {
+    try {
+        const [quizzes] = await pool.query(`
+            SELECT q.*, t.name as topic_name, t.icon as topic_icon,
+                   (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) as question_count
+            FROM quizzes q
+            LEFT JOIN topics t ON q.topic_id = t.id
+            ORDER BY q.id ASC
+        `);
+        res.json({ success: true, data: quizzes });
+    } catch (err) {
+        console.error('Admin: Lỗi lấy danh sách quizzes:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi lấy danh sách đề thi.' });
+    }
+});
+
+/**
+ * POST /api/admin/quizzes
+ * Tạo một bộ đề thi mới
+ */
+router.post('/quizzes', requireAdminAuth, async (req, res) => {
+    try {
+        const { topic_id, title, slug, description, time_per_question, total_questions, is_random, status } = req.body;
+
+        if (!title) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập tên bộ đề thi.' });
+        }
+
+        const cleanTopicId = parseInt(topic_id, 10) || 1;
+        const cleanTitle = String(title).trim();
+        const cleanSlug = slug ? String(slug).trim() : cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const cleanTime = parseInt(time_per_question, 10) || 15;
+        const cleanTotal = parseInt(total_questions, 10) || 20;
+        const cleanStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'].includes(status) ? status : 'PUBLISHED';
+        const cleanRandom = is_random !== false;
+
+        const [result] = await pool.query(
+            `INSERT INTO quizzes (topic_id, title, slug, description, time_per_question, total_questions, is_random, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [cleanTopicId, cleanTitle, cleanSlug, description || '', cleanTime, cleanTotal, cleanRandom, cleanStatus]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Tạo bộ đề mới thành công!',
+            data: { id: result.insertId, title: cleanTitle }
+        });
+    } catch (err) {
+        console.error('Admin: Lỗi tạo quiz:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi tạo bộ đề mới.' });
+    }
+});
+
+/**
+ * PUT /api/admin/quizzes/:id
+ * Chỉnh sửa bộ đề thi
+ */
+router.put('/quizzes/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id, 10);
+        const { topic_id, title, slug, description, time_per_question, total_questions, is_random, status } = req.body;
+
+        if (!title) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập tên bộ đề thi.' });
+        }
+
+        const cleanTopicId = parseInt(topic_id, 10) || 1;
+        const cleanTitle = String(title).trim();
+        const cleanSlug = slug ? String(slug).trim() : cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const cleanTime = parseInt(time_per_question, 10) || 15;
+        const cleanTotal = parseInt(total_questions, 10) || 20;
+        const cleanStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'].includes(status) ? status : 'PUBLISHED';
+        const cleanRandom = is_random !== false;
+
+        const [result] = await pool.query(
+            `UPDATE quizzes 
+             SET topic_id = ?, title = ?, slug = ?, description = ?, time_per_question = ?, total_questions = ?, is_random = ?, status = ?
+             WHERE id = ?`,
+            [cleanTopicId, cleanTitle, cleanSlug, description || '', cleanTime, cleanTotal, cleanRandom, cleanStatus, quizId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy bộ đề để cập nhật.' });
+        }
+
+        res.json({ success: true, message: 'Cập nhật bộ đề thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi cập nhật quiz:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi cập nhật bộ đề.' });
+    }
+});
+
+/**
+ * DELETE /api/admin/quizzes/:id
+ * Xóa bộ đề thi
+ */
+router.delete('/quizzes/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id, 10);
+        // Chuyển các câu hỏi thuộc bộ đề này sang bộ đề mặc định 1
+        await pool.query('UPDATE questions SET quiz_id = 1 WHERE quiz_id = ?', [quizId]);
+
+        const [result] = await pool.query('DELETE FROM quizzes WHERE id = ?', [quizId]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy bộ đề để xóa.' });
+        }
+        res.json({ success: true, message: 'Đã xóa bộ đề thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi xóa quiz:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi xóa bộ đề.' });
+    }
+});
+
+// ==========================================
+// 3. QUẢN LÝ CHỦ ĐỀ (TOPICS CRUD)
+// ==========================================
+
+/**
+ * GET /api/admin/topics
+ */
+router.get('/topics', requireAdminAuth, async (req, res) => {
+    try {
+        const [topics] = await pool.query(`
+            SELECT t.*, COUNT(q.id) as total_quizzes 
+            FROM topics t 
+            LEFT JOIN quizzes q ON t.id = q.topic_id 
+            GROUP BY t.id 
+            ORDER BY t.id ASC
+        `);
+        res.json({ success: true, data: topics });
+    } catch (err) {
+        console.error('Admin: Lỗi lấy topics:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi lấy danh sách chủ đề.' });
+    }
+});
+
+/**
+ * POST /api/admin/topics
+ */
+router.post('/topics', requireAdminAuth, async (req, res) => {
+    try {
+        const { name, slug, description, icon } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập tên chủ đề.' });
+        }
+        const cleanName = String(name).trim();
+        const cleanSlug = slug ? String(slug).trim() : cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+        const [result] = await pool.query(
+            'INSERT INTO topics (name, slug, description, icon) VALUES (?, ?, ?, ?)',
+            [cleanName, cleanSlug, description || '', icon || '⚓']
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Tạo chủ đề mới thành công!',
+            data: { id: result.insertId, name: cleanName }
+        });
+    } catch (err) {
+        console.error('Admin: Lỗi tạo topic:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi tạo chủ đề mới.' });
+    }
+});
+
+/**
+ * PUT /api/admin/topics/:id
+ */
+router.put('/topics/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const topicId = parseInt(req.params.id, 10);
+        const { name, slug, description, icon } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập tên chủ đề.' });
+        }
+
+        const cleanName = String(name).trim();
+        const cleanSlug = slug ? String(slug).trim() : cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+        const [result] = await pool.query(
+            'UPDATE topics SET name = ?, slug = ?, description = ?, icon = ? WHERE id = ?',
+            [cleanName, cleanSlug, description || '', icon || '⚓', topicId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy chủ đề để cập nhật.' });
+        }
+
+        res.json({ success: true, message: 'Cập nhật chủ đề thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi cập nhật topic:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi cập nhật chủ đề.' });
+    }
+});
+
+/**
+ * DELETE /api/admin/topics/:id
+ */
+router.delete('/topics/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const topicId = parseInt(req.params.id, 10);
+        if (topicId === 1) {
+            return res.status(400).json({ success: false, error: 'Không thể xóa chủ đề mặc định #1.' });
+        }
+
+        await pool.query('UPDATE quizzes SET topic_id = 1 WHERE topic_id = ?', [topicId]);
+        const [result] = await pool.query('DELETE FROM topics WHERE id = ?', [topicId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy chủ đề để xóa.' });
+        }
+
+        res.json({ success: true, message: 'Đã xóa chủ đề thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi xóa topic:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi xóa chủ đề.' });
+    }
+});
+
+// ==========================================
+// 4. LỊCH SỬ THI ĐẤU (GAME HISTORY)
+// ==========================================
+
 /**
  * GET /api/admin/games
- * Lịch sử các trận đấu
  */
 router.get('/games', requireAdminAuth, async (req, res) => {
     try {
@@ -322,7 +583,6 @@ router.get('/games', requireAdminAuth, async (req, res) => {
 
 /**
  * GET /api/admin/games/:id
- * Chi tiết một trận đấu
  */
 router.get('/games/:id', requireAdminAuth, async (req, res) => {
     try {

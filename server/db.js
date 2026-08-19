@@ -101,7 +101,7 @@ const defaultQuestions = [
     }
 ];
 
-// Hỗ trợ cả tên biến có tiền tố DB_ và không có tiền tố để tránh nhầm lẫn
+// Hỗ trợ cấu hình DB
 const dbHost = process.env.DB_HOST || process.env.HOST || 'localhost';
 const defaultPort = dbHost.includes('tidbcloud.com') ? 4000 : 3306;
 const dbPort = parseInt(process.env.DB_PORT || process.env.PORT_DB, 10) || defaultPort;
@@ -109,14 +109,12 @@ const dbUser = process.env.DB_USER || process.env.DB_USERNAME || process.env.USE
 const dbPassword = process.env.DB_PASSWORD || process.env.PASSWORD || '';
 const dbName = process.env.DB_NAME || process.env.DATABASE || 'quiz_db';
 
-// Cấu hình SSL cho Cloud MySQL (như TiDB Cloud, Aiven, Clever Cloud)
 const isCloudDB = Boolean(
     process.env.DB_SSL === 'true' || 
     (dbHost && dbHost.includes('tidbcloud.com')) ||
     (dbHost && dbHost.includes('aivencloud.com'))
 );
 
-// Tạo connection pool tới MySQL
 const pool = mysql.createPool({
     host: dbHost,
     port: dbPort,
@@ -130,10 +128,10 @@ const pool = mysql.createPool({
     ssl: isCloudDB ? { rejectUnauthorized: false } : undefined
 });
 
-// Tự động khởi tạo và migrate đầy đủ các bảng phục vụ Realtime Quiz Platform
+// Tự động khởi tạo & migrate các bảng đầy đủ
 async function ensureTablesExist(connection) {
     try {
-        // 1. Topics
+        // 1. Topics Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`topics\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -145,7 +143,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 2. Quizzes
+        // 2. Quizzes Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`quizzes\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -162,7 +160,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 3. Questions
+        // 3. Questions Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`questions\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -182,7 +180,15 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 4. Players
+        // Auto-migrate missing columns on existing questions table
+        try {
+            await connection.query('ALTER TABLE `questions` ADD COLUMN `quiz_id` INT NULL AFTER `id`');
+        } catch (e) {}
+        try {
+            await connection.query('ALTER TABLE `questions` ADD COLUMN `topic_id` INT NULL AFTER `quiz_id`');
+        } catch (e) {}
+
+        // 4. Players Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`players\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -194,7 +200,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 5. Rooms
+        // 5. Rooms Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`rooms\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -208,7 +214,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 6. Game Sessions
+        // 6. Game Sessions Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`game_sessions\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -221,7 +227,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 7. Game Session Questions (Snapshot)
+        // 7. Game Session Questions (Immutable Snapshot)
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`game_session_questions\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -240,7 +246,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 8. Game Player Answers
+        // 8. Game Player Answers Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`game_player_answers\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -255,7 +261,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // 9. Game Player Results
+        // 9. Game Player Results Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS \`game_player_results\` (
                 \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -270,7 +276,7 @@ async function ensureTablesExist(connection) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        // Nạp Default Topics và Quizzes nếu chưa có
+        // Nạp Default Topics nếu chưa có
         await connection.query(`
             INSERT INTO \`topics\` (\`id\`, \`name\`, \`slug\`, \`description\`, \`icon\`)
             VALUES 
@@ -279,20 +285,21 @@ async function ensureTablesExist(connection) {
             ON DUPLICATE KEY UPDATE \`name\` = VALUES(\`name\`);
         `);
 
+        // Nạp Default Quizzes nếu chưa có
         await connection.query(`
-            INSERT INTO \`quizzes\` (\`id\`, \`topic_id\`, \`title\`, \`slug\`, \`description\`, \`time_per_question\", \`total_questions\`, \`is_random\`, \`status\`)
+            INSERT INTO \`quizzes\` (\`id\`, \`topic_id\`, \`title\`, \`slug\`, \`description\`, \`time_per_question\`, \`total_questions\`, \`is_random\`, \`status\`)
             VALUES 
             (1, 1, 'Đại Thử Thách One Piece - Chống Larper', 'one-piece-grand-test', 'Thử thách kiến thức One Piece từ cơ bản đến cực khó (20 câu hỏi).', 15, 20, TRUE, 'PUBLISHED'),
             (2, 2, 'Kiến Thức Lập Trình Cơ Bản', 'lap-trinh-co-ban', 'Các câu hỏi thú vị về JavaScript, Web và Công nghệ.', 15, 20, TRUE, 'PUBLISHED')
             ON DUPLICATE KEY UPDATE \`title\` = VALUES(\`title\`);
         `);
 
-        // Gán topic_id = 1, quiz_id = 1 cho các câu hỏi hiện tại nếu chưa có
+        // Gán topic_id = 1, quiz_id = 1 cho tất cả các câu hỏi hiện có mà chưa có quiz_id
         await connection.query(`
-            UPDATE \`questions\` SET \`topic_id\` = 1, \`quiz_id\` = 1 WHERE \`topic_id\` IS NULL OR \`quiz_id\` IS NULL;
+            UPDATE \`questions\` SET \`topic_id\` = 1, \`quiz_id\` = 1 WHERE \`quiz_id\` IS NULL OR \`quiz_id\` = 0;
         `);
 
-        // Kiểm tra nếu questions trống thì nạp 12 câu mẫu
+        // Kiểm tra nếu bảng questions trống thì nạp 12 câu mẫu
         const [rows] = await connection.query('SELECT COUNT(*) as count FROM `questions`');
         if (rows[0].count === 0) {
             console.log('🌱 Database đang trống, tiến hành nạp tự động 12 câu hỏi One Piece...');
@@ -307,6 +314,7 @@ async function ensureTablesExist(connection) {
             }
             console.log('🎉 Đã nạp thành công 12 câu hỏi vào database!');
         }
+        console.log('✅ Hoàn tất khởi tạo & đồng bộ database!');
     } catch (err) {
         console.error('Lỗi khi tự động khởi tạo bảng/seed dữ liệu:', err.message);
     }
@@ -322,8 +330,7 @@ async function testConnection() {
         connection.release();
         return true;
     } catch (error) {
-        console.error('❌ KHÔNG THỂ KẾT NỐI DATABASE:');
-        console.error('   Chi tiết lỗi:', error.message);
+        console.error('❌ KHÔNG THỂ KẾT NỐI DATABASE:', error.message);
         return false;
     }
 }

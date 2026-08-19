@@ -19,7 +19,7 @@
         </div>
     </header>
 
-    <main class="container" style="max-width: 1100px;">
+    <main class="container" style="max-width: 1120px;">
         <!-- Alert Notification -->
         <div id="admin-alert" class="alert"></div>
 
@@ -40,7 +40,9 @@
                 </button>
             </div>
 
-            <!-- Tab 1: Stats Dashboard -->
+            <!-- ==========================================
+                 TAB 1: THỐNG KÊ TỔNG QUAN
+                 ========================================== -->
             <div id="tab-content-stats">
                 <div class="stats-grid" style="margin-bottom: 20px;">
                     <div class="stat-box">
@@ -70,7 +72,9 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Questions Management -->
+            <!-- ==========================================
+                 TAB 2: QUẢN LÝ CÂU HỎI
+                 ========================================== -->
             <div id="tab-content-questions" style="display: none;">
                 <div class="admin-toolbar">
                     <div>
@@ -80,12 +84,16 @@
                         <p style="color: var(--text-muted); font-size: 0.85rem;">Quản lý toàn bộ câu hỏi trong hệ thống</p>
                     </div>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <!-- Filter by Quiz -->
+                        <select id="filter-quiz" class="form-control" style="width: auto; min-width: 180px;" onchange="handleSearch()">
+                            <option value="">-- Tất cả bộ đề --</option>
+                        </select>
                         <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm câu hỏi..." oninput="handleSearch()">
                         <button class="btn btn-secondary" onclick="openBulkModal()" id="btn-bulk-import">
-                            Nhập Hàng Loạt
+                            📥 Nhập Hàng Loạt
                         </button>
                         <button class="btn btn-primary" onclick="openAddModal()" id="btn-add-question">
-                            Thêm Câu Hỏi Mới
+                            ➕ Thêm Câu Hỏi Mới
                         </button>
                     </div>
                 </div>
@@ -95,10 +103,10 @@
                         <thead>
                             <tr>
                                 <th style="width: 50px;">ID</th>
-                                <th>Nội dung câu hỏi</th>
-                                <th style="width: 140px;">Chủ đề</th>
-                                <th style="width: 80px; text-align: center;">Đáp án</th>
-                                <th style="width: 140px; text-align: center;">Thao tác</th>
+                                <th>Nội Dung Câu Hỏi</th>
+                                <th style="width: 180px;">Bộ Đề & Chủ Đề</th>
+                                <th style="width: 80px; text-align: center;">Đáp Án</th>
+                                <th style="width: 140px; text-align: center;">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody id="questions-table-body">
@@ -112,14 +120,60 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Topics & Quizzes -->
+            <!-- ==========================================
+                 TAB 3: CHỦ ĐỀ & BỘ ĐỀ
+                 ========================================== -->
             <div id="tab-content-quizzes" style="display: none;">
+                <!-- 3.1 QUẢN LÝ BỘ ĐỀ (QUIZZES) -->
+                <div class="admin-toolbar" style="margin-top: 10px;">
+                    <div>
+                        <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
+                            📚 Danh Sách Bộ Đề Thi (Quizzes)
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Tạo, chỉnh sửa thời gian và cấu hình câu hỏi cho từng bộ đề</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="openAddQuizModal()">
+                            ➕ Thêm Bộ Đề Mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="margin-bottom: 36px;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ID</th>
+                                <th>Tên Bộ Đề</th>
+                                <th>Chủ Đề</th>
+                                <th style="text-align: center;">Số Câu Trong Đề</th>
+                                <th style="text-align: center;">Thời Gian/Câu</th>
+                                <th style="text-align: center;">Trạng Thái</th>
+                                <th style="width: 140px; text-align: center;">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quizzes-table-body">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    Đang tải danh sách bộ đề...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 3.2 QUẢN LÝ CHỦ ĐỀ (TOPICS) -->
                 <div class="admin-toolbar">
                     <div>
                         <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
-                            Danh Sách Bộ Đề Thi
+                            ⚓ Danh Sách Chủ Đề (Topics)
                         </h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">Cấu hình thời gian, số câu hỏi và trạng thái hiển thị</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Nhóm phân loại các bộ đề thi</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="openAddTopicModal()">
+                            ➕ Thêm Chủ Đề Mới
+                        </button>
                     </div>
                 </div>
 
@@ -128,17 +182,16 @@
                         <thead>
                             <tr>
                                 <th style="width: 50px;">ID</th>
-                                <th>Tên Bộ Đề</th>
                                 <th>Chủ Đề</th>
-                                <th style="text-align: center;">Thời Gian/Câu</th>
-                                <th style="text-align: center;">Số Câu</th>
-                                <th style="text-align: center;">Trạng Thái</th>
+                                <th>Mô Tả</th>
+                                <th style="text-align: center;">Số Bộ Đề</th>
+                                <th style="width: 140px; text-align: center;">Thao Tác</th>
                             </tr>
                         </thead>
-                        <tbody id="quizzes-table-body">
+                        <tbody id="topics-table-body">
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
-                                    Đang tải danh sách bộ đề...
+                                <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    Đang tải danh sách chủ đề...
                                 </td>
                             </tr>
                         </tbody>
@@ -146,12 +199,14 @@
                 </div>
             </div>
 
-            <!-- Tab 4: Game History -->
+            <!-- ==========================================
+                 TAB 4: LỊCH SỬ TRẬN ĐẤU
+                 ========================================== -->
             <div id="tab-content-games" style="display: none;">
                 <div class="admin-toolbar">
                     <div>
                         <h2 style="font-size: 1.25rem; color: var(--color-skyblue); margin-bottom: 4px; font-weight: 700;">
-                            Lịch Sử Các Trận Đấu
+                            🎮 Lịch Sử Các Trận Đấu
                         </h2>
                         <p style="color: var(--text-muted); font-size: 0.85rem;">Xem kết quả chi tiết từng trận đấu đã diễn ra</p>
                     </div>
@@ -182,7 +237,9 @@
         </div>
     </main>
 
-    <!-- Modal Thêm / Sửa Câu Hỏi -->
+    <!-- ==========================================
+         MODAL 1: THÊM / SỬA CÂU HỎI
+         ========================================== -->
     <div id="question-modal" class="modal-backdrop">
         <div class="modal-card">
             <div class="modal-header">
@@ -192,6 +249,13 @@
 
             <form id="question-form" onsubmit="handleSaveQuestion(event)">
                 <input type="hidden" id="form-question-id">
+
+                <div class="form-group">
+                    <label class="form-label" for="form-quiz-id">Thuộc Bộ Đề (Quiz) <span style="color: var(--color-wrong);">*</span></label>
+                    <select id="form-quiz-id" class="form-control" required>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
 
                 <div class="form-group">
                     <label class="form-label" for="form-question-text">Nội dung câu hỏi <span style="color: var(--color-wrong);">*</span></label>
@@ -231,8 +295,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="form-category">Chủ đề (Category)</label>
-                        <input type="text" id="form-category" class="form-control" placeholder="VD: Trái Ác Quỷ, Lore, Haki...">
+                        <label class="form-label" for="form-category">Thể loại (Category)</label>
+                        <input type="text" id="form-category" class="form-control" placeholder="VD: Trái Ác Quỷ, Lore, Nhân vật...">
                     </div>
                 </div>
 
@@ -261,7 +325,9 @@
         </div>
     </div>
 
-    <!-- Modal Nhập Hàng Loạt Câu Hỏi -->
+    <!-- ==========================================
+         MODAL 2: NHẬP HÀNG LOẠT CÂU HỎI
+         ========================================== -->
     <div id="bulk-modal" class="modal-backdrop">
         <div class="modal-card" style="max-width: 750px;">
             <div class="modal-header">
@@ -269,13 +335,19 @@
                 <button class="btn-close" onclick="closeBulkModal()">&times;</button>
             </div>
 
-            <div style="margin-bottom: 16px; font-size: 0.9rem; color: var(--text-muted);">
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label class="form-label" for="bulk-quiz-id">Nhập vào Bộ Đề nào:</label>
+                <select id="bulk-quiz-id" class="form-control">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+
+            <div style="margin-bottom: 12px; font-size: 0.9rem; color: var(--text-muted);">
                 Dán danh sách câu hỏi dạng <strong>JSON</strong> hoặc <strong>Văn bản thường</strong>:
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="bulk-input">Dán nội dung vào đây:</label>
-                <textarea id="bulk-input" class="form-control" style="min-height: 220px; font-family: monospace; font-size: 0.85rem;" placeholder="Ví dụ mẫu:
+                <textarea id="bulk-input" class="form-control" style="min-height: 200px; font-family: monospace; font-size: 0.85rem;" placeholder="Ví dụ mẫu:
 
 Câu 1: Luffy ăn trái ác quỷ gì?
 A. Gomu Gomu no Mi
@@ -305,6 +377,105 @@ D. Franky
                     Tiến Hành Nhập Dữ Liệu
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 3: THÊM / SỬA BỘ ĐỀ (QUIZ)
+         ========================================== -->
+    <div id="quiz-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="quiz-modal-title" class="modal-title">Thêm Bộ Đề Mới</h3>
+                <button class="btn-close" onclick="closeQuizModal()">&times;</button>
+            </div>
+
+            <form id="quiz-form" onsubmit="handleSaveQuiz(event)">
+                <input type="hidden" id="form-quiz-edit-id">
+
+                <div class="form-group">
+                    <label class="form-label" for="form-quiz-title">Tên Bộ Đề <span style="color: var(--color-wrong);">*</span></label>
+                    <input type="text" id="form-quiz-title" class="form-control" placeholder="VD: Thử Thách Wano Quốc..." required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="form-quiz-topic">Thuộc Chủ Đề (Topic)</label>
+                        <select id="form-quiz-topic" class="form-control" required>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="form-quiz-status">Trạng Thái</label>
+                        <select id="form-quiz-status" class="form-control">
+                            <option value="PUBLISHED">🟢 Công Khai (PUBLISHED)</option>
+                            <option value="DRAFT">🟡 Bản Nháp (DRAFT)</option>
+                            <option value="ARCHIVED">🔴 Lưu Trữ (ARCHIVED)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="form-quiz-time">Thời gian mỗi câu (giây)</label>
+                        <input type="number" id="form-quiz-time" class="form-control" value="15" min="5" max="120" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="form-quiz-total">Số câu hỏi mỗi trận đấu</label>
+                        <input type="number" id="form-quiz-total" class="form-control" value="20" min="5" max="200" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-quiz-desc">Mô tả bộ đề thi</label>
+                    <textarea id="form-quiz-desc" class="form-control" placeholder="Nhập mô tả tóm tắt về bộ đề..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeQuizModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-quiz">Lưu Bộ Đề</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 4: THÊM / SỬA CHỦ ĐỀ (TOPIC)
+         ========================================== -->
+    <div id="topic-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="topic-modal-title" class="modal-title">Thêm Chủ Đề Mới</h3>
+                <button class="btn-close" onclick="closeTopicModal()">&times;</button>
+            </div>
+
+            <form id="topic-form" onsubmit="handleSaveTopic(event)">
+                <input type="hidden" id="form-topic-edit-id">
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label class="form-label" for="form-topic-name">Tên Chủ Đề <span style="color: var(--color-wrong);">*</span></label>
+                        <input type="text" id="form-topic-name" class="form-control" placeholder="VD: Dragon Ball Universe..." required>
+                    </div>
+
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label" for="form-topic-icon">Icon Emoji</label>
+                        <input type="text" id="form-topic-icon" class="form-control" value="⚓" placeholder="VD: ⚓, 💻, 🐉">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-topic-desc">Mô tả chủ đề</label>
+                    <textarea id="form-topic-desc" class="form-control" placeholder="Nhập mô tả chủ đề..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeTopicModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-topic">Lưu Chủ Đề</button>
+                </div>
+            </form>
         </div>
     </div>
 
