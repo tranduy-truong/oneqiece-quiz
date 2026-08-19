@@ -368,7 +368,7 @@ function injectMusicPlayerDom() {
                             <button id="cat-btn-Lo-fi" class="music-cat-btn" onclick="filterMusicByCategory('Lo-fi')">Lo-fi</button>
                             <button id="cat-btn-Chill" class="music-cat-btn" onclick="filterMusicByCategory('Chill')">Chill</button>
                         </div>
-                        <input type="text" id="music-search-input" class="search-input" placeholder="Tìm bài hát..." oninput="handleMusicSearch()" style="min-width: 200px;">
+                        <input type="text" id="music-search-input" class="form-control" placeholder="Tìm bài hát..." oninput="handleMusicSearch()" style="width: auto; min-width: 220px; font-size: 0.85rem; padding: 6px 12px;">
                     </div>
 
                     <div id="music-library-list" class="music-grid-container">

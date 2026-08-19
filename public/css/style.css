@@ -984,6 +984,148 @@ body {
 }
 
 /* ==========================================
+   MUSIC LIBRARY MODAL & LIQUID GLASS CARDS
+   ========================================== */
+
+.music-categories-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.music-cat-btn {
+    padding: 6px 14px;
+    border-radius: var(--game-radius-pill);
+    background: var(--game-bg-elevated);
+    border: 1px solid var(--glass-border);
+    color: var(--game-text-secondary);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--game-ease-fast);
+    font-family: inherit;
+}
+
+.music-cat-btn:hover {
+    color: var(--game-primary);
+    border-color: var(--game-primary);
+}
+
+.music-cat-btn.active {
+    background: var(--game-primary) !important;
+    color: var(--game-text-dark) !important;
+    border-color: var(--game-primary) !important;
+    box-shadow: 0 0 10px var(--game-primary-glow);
+}
+
+.music-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 6px 4px 12px;
+}
+
+.music-card-item {
+    background: var(--game-bg-elevated);
+    border: 1.5px solid var(--glass-border);
+    border-radius: var(--game-radius-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all var(--game-ease-smooth);
+    box-shadow: var(--glass-shadow);
+}
+
+.music-card-item:hover {
+    border-color: var(--game-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.4), 0 0 14px var(--game-primary-glow);
+}
+
+.music-card-item.active-track {
+    border-color: var(--game-primary) !important;
+    background: rgba(56, 189, 248, 0.14) !important;
+    box-shadow: 0 0 16px var(--game-primary-glow);
+}
+
+.music-card-thumb-wrapper {
+    position: relative;
+    width: 100%;
+    height: 125px;
+    overflow: hidden;
+    background: var(--game-bg-root);
+}
+
+.music-card-thumb {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 125px !important;
+    object-fit: cover !important;
+    display: block !important;
+    transition: transform var(--game-ease-smooth);
+}
+
+.music-card-item:hover .music-card-thumb {
+    transform: scale(1.06);
+}
+
+.music-card-play-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--game-primary);
+    color: var(--game-text-dark);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    transition: transform var(--game-ease-fast);
+}
+
+.music-card-play-btn:hover {
+    transform: scale(1.15);
+}
+
+.music-card-info {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.music-card-category {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--game-primary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.music-card-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--game-text-primary);
+    line-height: 1.35;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ==========================================
    ADMIN CATEGORIZED SYSTEM (CATEGORIES & HUBS)
    ========================================== */
 
