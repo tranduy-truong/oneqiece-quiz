@@ -284,13 +284,19 @@
                 <!-- 2.1 Quản lý Câu Hỏi -->
                 <div id="subcontent-questions">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                             <select id="filter-quiz" class="form-control" style="width: auto; min-width: 170px;" onchange="handleSearch()">
                                 <option value="">-- Tất cả bộ đề --</option>
                             </select>
                             <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm câu hỏi..." oninput="handleSearch()" style="width: 200px;">
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <button id="btn-bulk-delete" class="btn btn-secondary btn-sm" style="display: none; background: #ef4444; color: #ffffff; border-color: #ef4444;" onclick="handleBulkDeleteQuestions()">
+                                🗑️ Xóa đã chọn (<span id="selected-q-count">0</span>)
+                            </button>
+                            <button id="btn-delete-quiz-all" class="btn btn-secondary btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="handleDeleteAllQuizQuestions()">
+                                ⚠️ Xóa tất cả trong bộ đề
+                            </button>
                             <button class="btn btn-secondary btn-sm" onclick="openBulkModal()">Nhập Hàng Loạt</button>
                             <button class="btn btn-primary btn-sm" onclick="openAddModal()">Thêm Câu Hỏi Mới</button>
                         </div>
@@ -300,15 +306,18 @@
                         <table class="admin-table">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px; text-align: center;">
+                                        <input type="checkbox" id="th-select-all" onchange="toggleSelectAllQuestions(this.checked)" title="Chọn tất cả">
+                                    </th>
                                     <th style="width: 50px;">ID</th>
                                     <th>Nội Dung Câu Hỏi</th>
-                                    <th style="width: 170px;">Bộ Đề & Chủ Đề</th>
+                                    <th style="width: 190px;">Bộ Đề & Arc / Chapter</th>
                                     <th style="width: 70px; text-align: center;">Đáp Án</th>
                                     <th style="width: 130px; text-align: center;">Thao Tác</th>
                                 </tr>
                             </thead>
                             <tbody id="questions-table-body">
-                                <tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Đang tải câu hỏi...</td></tr>
+                                <tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Đang tải câu hỏi...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -534,6 +543,16 @@
                             <option value="5">Level 5</option>
                             <option value="6">Level 6</option>
                         </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="form-arc">Arc (Cốt truyện / Sự kiện)</label>
+                        <input type="text" id="form-arc" class="form-control" placeholder="VD: Wano Kuni, Egghead, Marineford...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="form-chapter">Chapter (Chương / Tập)</label>
+                        <input type="text" id="form-chapter" class="form-control" placeholder="VD: Chapter 1044, Chapter 1000...">
                     </div>
                 </div>
                 <div class="form-group">

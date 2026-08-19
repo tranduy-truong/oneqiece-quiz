@@ -81,7 +81,9 @@ router.post('/start', async (req, res) => {
             option_c: q.option_c,
             option_d: q.option_d,
             category: q.category || 'Chung',
-            difficulty: q.difficulty || 1
+            difficulty: q.difficulty || 1,
+            arc: q.arc || 'Chung',
+            chapter: q.chapter || 'Chung'
         }));
 
         res.json({
@@ -134,7 +136,9 @@ router.post('/check', async (req, res) => {
             correct_answer: q.correct_answer,
             explanation: q.explanation || 'Không có giải thích bổ sung.',
             category: q.category,
-            difficulty: q.difficulty
+            difficulty: q.difficulty,
+            arc: q.arc || 'Chung',
+            chapter: q.chapter || 'Chung'
         });
     } catch (err) {
         console.error('Lỗi check solo answer:', err);

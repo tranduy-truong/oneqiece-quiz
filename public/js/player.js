@@ -182,7 +182,16 @@ function submitPlayerAnswer(choice) {
 
     socket.emit('SUBMIT_ANSWER', {
         room_code: currentRoomCode,
+        selected_answer: choice,
         answer: choice
+    }, (res) => {
+        if (res && res.success) {
+            myLastAnswerResult = res;
+            if (res.totalScore !== undefined) {
+                myTotalScore = res.totalScore;
+                document.getElementById('arena-score').innerText = myTotalScore;
+            }
+        }
     });
 }
 
@@ -273,6 +282,7 @@ socket.on('QUESTION_STARTED', (data) => {
     countdownOverlay.style.display = 'none';
     currentQuestionData = data;
     hasAnsweredCurrentQuestion = false;
+    myLastAnswerResult = null;
 
     if (window.SoundFX) window.SoundFX.playClick();
 
@@ -304,13 +314,16 @@ socket.on('QUESTION_ENDED', (data) => {
     const gifEl = document.getElementById('result-q-gif');
     const expEl = document.getElementById('result-q-explanation');
 
-    // Tìm xem mình đứng thứ mấy
-    const myRankItem = (data.leaderboard || []).find(p => p.username === inputUsername.value.trim());
+    const myUsername = inputUsername.value.trim().toLowerCase();
+    const myRankItem = (data.leaderboard || []).find(p => p.username.toLowerCase() === myUsername);
 
-    if (myRankItem && myRankItem.isCorrectLast) {
+    const isCorrect = (myLastAnswerResult && myLastAnswerResult.isCorrect) || (myRankItem && myRankItem.isCorrectLast);
+    const scoreAwarded = (myLastAnswerResult && myLastAnswerResult.scoreAwarded) ? myLastAnswerResult.scoreAwarded : (myRankItem ? myRankItem.scoreAwardedLast : 0);
+
+    if (isCorrect) {
         statusEl.innerText = 'CHÍNH XÁC!';
         statusEl.style.color = 'var(--color-correct)';
-        pointsEl.innerText = `+${myRankItem.scoreAwardedLast.toLocaleString()} điểm`;
+        pointsEl.innerText = `+${scoreAwarded.toLocaleString()} điểm`;
         gifEl.src = GIF_CORRECT;
         if (window.SoundFX) window.SoundFX.playCorrect();
     } else {

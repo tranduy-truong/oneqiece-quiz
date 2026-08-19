@@ -468,12 +468,16 @@ async function loadQuestions() {
 
 function renderQuestionsTable(questions) {
     if (questions.length === 0) {
-        questionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Chưa có câu hỏi nào.</td></tr>';
+        questionsTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Chưa có câu hỏi nào.</td></tr>';
+        updateSelectedQuestionsCount();
         return;
     }
 
     questionsTableBody.innerHTML = questions.map(q => `
         <tr>
+            <td style="text-align: center;">
+                <input type="checkbox" class="q-checkbox" value="${q.id}" onchange="updateSelectedQuestionsCount()">
+            </td>
             <td style="font-weight: 700; color: var(--game-primary);">#${q.id}</td>
             <td>
                 <div style="font-weight: 600; color: var(--game-text-primary); margin-bottom: 4px;">
@@ -488,6 +492,9 @@ function renderQuestionsTable(questions) {
             </td>
             <td>
                 <strong style="color: var(--game-primary); font-size: 0.88rem;">${escapeHtml(q.quiz_title || 'One Piece Grand Test')}</strong>
+                <div style="font-size: 0.78rem; color: var(--game-text-secondary); margin-top: 2px;">
+                    Arc: <strong>${escapeHtml(q.arc || 'Chung')}</strong> • <strong>${escapeHtml(q.chapter || 'Chung')}</strong>
+                </div>
             </td>
             <td style="text-align: center; font-weight: 800; color: #10b981;">${q.correct_answer}</td>
             <td style="text-align: center;">
@@ -498,6 +505,95 @@ function renderQuestionsTable(questions) {
             </td>
         </tr>
     `).join('');
+
+    updateSelectedQuestionsCount();
+}
+
+function toggleSelectAllQuestions(checked) {
+    document.querySelectorAll('.q-checkbox').forEach(cb => {
+        cb.checked = checked;
+    });
+    updateSelectedQuestionsCount();
+}
+
+function updateSelectedQuestionsCount() {
+    const checkedBoxes = document.querySelectorAll('.q-checkbox:checked');
+    const count = checkedBoxes.length;
+    const btnBulk = document.getElementById('btn-bulk-delete');
+    const spanCount = document.getElementById('selected-q-count');
+    const thSelectAll = document.getElementById('th-select-all');
+
+    if (spanCount) spanCount.innerText = count;
+    if (btnBulk) {
+        btnBulk.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+
+    const allBoxes = document.querySelectorAll('.q-checkbox');
+    if (thSelectAll && allBoxes.length > 0) {
+        thSelectAll.checked = (count === allBoxes.length);
+    }
+}
+
+async function handleBulkDeleteQuestions() {
+    const checkedBoxes = document.querySelectorAll('.q-checkbox:checked');
+    const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value, 10));
+
+    if (ids.length === 0) {
+        alert('Vui lòng chọn ít nhất 1 câu hỏi để xóa.');
+        return;
+    }
+
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${ids.length} câu hỏi đã chọn? Thao tác này không thể hoàn tác!`)) return;
+
+    try {
+        const res = await fetch('/api/admin/questions/bulk-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ question_ids: ids })
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            showAlert(result.message || `Đã xóa thành công ${ids.length} câu hỏi!`, 'success');
+            loadQuestions();
+            loadAdminQuizzes();
+        } else {
+            alert(result.error || 'Lỗi khi xóa hàng loạt câu hỏi.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
+    }
+}
+
+async function handleDeleteAllQuizQuestions() {
+    const quizFilterId = filterQuizSelect ? filterQuizSelect.value : '';
+    const selectedQuizName = filterQuizSelect && filterQuizSelect.options[filterQuizSelect.selectedIndex] ? filterQuizSelect.options[filterQuizSelect.selectedIndex].text : '';
+
+    if (!quizFilterId) {
+        alert('Vui lòng chọn một bộ đề cụ thể trong dropdown lọc bộ đề trước khi thực hiện xóa toàn bộ câu hỏi của bộ đề đó.');
+        return;
+    }
+
+    if (!confirm(`CẢNH BÁO NGUY HIỂM: Bạn có chắc chắn muốn XÓA TẤT CẢ câu hỏi trong bộ đề "${selectedQuizName}" không?`)) return;
+
+    try {
+        const res = await fetch(`/api/admin/quizzes/${quizFilterId}/questions`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            showAlert(result.message || 'Đã xóa toàn bộ câu hỏi trong bộ đề thành công!', 'success');
+            loadQuestions();
+            loadAdminQuizzes();
+        } else {
+            alert(result.error || 'Lỗi khi xóa câu hỏi bộ đề.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
+    }
 }
 
 function handleSearch() {
@@ -514,7 +610,9 @@ function handleSearch() {
             q.option_a.toLowerCase().includes(term) ||
             q.option_b.toLowerCase().includes(term) ||
             q.option_c.toLowerCase().includes(term) ||
-            q.option_d.toLowerCase().includes(term)
+            q.option_d.toLowerCase().includes(term) ||
+            (q.arc && q.arc.toLowerCase().includes(term)) ||
+            (q.chapter && q.chapter.toLowerCase().includes(term))
         );
     }
     renderQuestionsTable(filtered);
@@ -524,6 +622,8 @@ function openAddModal() {
     modalTitle.innerText = 'Thêm Câu Hỏi Mới';
     document.getElementById('question-form').reset();
     document.getElementById('form-question-id').value = '';
+    if (document.getElementById('form-arc')) document.getElementById('form-arc').value = '';
+    if (document.getElementById('form-chapter')) document.getElementById('form-chapter').value = '';
     populateQuizDropdowns();
     questionModal.classList.add('open');
 }
@@ -544,6 +644,8 @@ function openEditModal(id) {
     document.getElementById('form-opt-d').value = q.option_d;
     document.getElementById('form-correct-answer').value = q.correct_answer;
     document.getElementById('form-difficulty').value = q.difficulty || '1';
+    if (document.getElementById('form-arc')) document.getElementById('form-arc').value = q.arc || '';
+    if (document.getElementById('form-chapter')) document.getElementById('form-chapter').value = q.chapter || '';
     document.getElementById('form-explanation').value = q.explanation || '';
 
     questionModal.classList.add('open');
@@ -567,6 +669,8 @@ async function handleSaveQuestion(e) {
         option_d: document.getElementById('form-opt-d').value.trim(),
         correct_answer: document.getElementById('form-correct-answer').value,
         difficulty: parseInt(document.getElementById('form-difficulty').value, 10) || 1,
+        arc: (document.getElementById('form-arc') ? document.getElementById('form-arc').value.trim() : '') || 'Chung',
+        chapter: (document.getElementById('form-chapter') ? document.getElementById('form-chapter').value.trim() : '') || 'Chung',
         explanation: document.getElementById('form-explanation').value.trim()
     };
 
@@ -649,8 +753,10 @@ async function handleProcessBulk() {
                 option_b: q.option_b || (q.options ? q.options.B : '') || '',
                 option_c: q.option_c || (q.options ? q.options.C : '') || '',
                 option_d: q.option_d || (q.options ? q.options.D : '') || '',
-                correct_answer: q.correct_answer || q.answer || 'A',
+                correct_answer: (q.correct_answer || q.answer || 'A').toUpperCase().trim(),
                 difficulty: parseInt(q.difficulty, 10) || 1,
+                arc: q.arc || 'Chung',
+                chapter: q.chapter || 'Chung',
                 explanation: q.explanation || ''
             })).filter(q => q.question_text && q.option_a && q.option_b && q.option_c && q.option_d);
         }
@@ -693,7 +799,7 @@ function parsePlainTextQuestions(text) {
     for (const block of blocks) {
         if (!block.trim()) continue;
         const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        let qText = '', optA = '', optB = '', optC = '', optD = '', correctAns = '', exp = '';
+        let qText = '', optA = '', optB = '', optC = '', optD = '', correctAns = '', exp = '', arc = 'Chung', chap = 'Chung';
         for (const line of lines) {
             if (/^(Câu\s*\d*[:.]?|Q\s*\d*[:.]?)/i.test(line)) qText = line.replace(/^(Câu\s*\d*[:.]?|Q\s*\d*[:.]?)\s*/i, '').trim();
             else if (/^[A][:.)]\s*/i.test(line)) optA = line.replace(/^[A][:.)]\s*/i, '').trim();
@@ -703,11 +809,13 @@ function parsePlainTextQuestions(text) {
             else if (/^(Đáp án|Answer|Key)[:.]?\s*/i.test(line)) {
                 const match = line.match(/[A-D]/i);
                 if (match) correctAns = match[0].toUpperCase();
-            } else if (/^(Giải thích|Explanation)[:.]?\s*/i.test(line)) exp = line.replace(/^(Giải thích|Explanation)[:.]?\s*/i, '').trim();
+            } else if (/^(Arc|Cốt truyện)[:.]?\s*/i.test(line)) arc = line.replace(/^(Arc|Cốt truyện)[:.]?\s*/i, '').trim();
+            else if (/^(Chapter|Chương|Tập)[:.]?\s*/i.test(line)) chap = line.replace(/^(Chapter|Chương|Tập)[:.]?\s*/i, '').trim();
+            else if (/^(Giải thích|Explanation)[:.]?\s*/i.test(line)) exp = line.replace(/^(Giải thích|Explanation)[:.]?\s*/i, '').trim();
             else if (!qText) qText = line;
         }
         if (qText && optA && optB && optC && optD && correctAns) {
-            list.push({ question_text: qText, option_a: optA, option_b: optB, option_c: optC, option_d: optD, correct_answer: correctAns, difficulty: 1, explanation: exp });
+            list.push({ question_text: qText, option_a: optA, option_b: optB, option_c: optC, option_d: optD, correct_answer: correctAns, difficulty: 1, arc, chapter: chap, explanation: exp });
         }
     }
     return list;

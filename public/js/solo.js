@@ -37,8 +37,8 @@ const questionProgress = document.getElementById('question-progress');
 const scoreDisplay = document.getElementById('score-display');
 const streakDisplay = document.getElementById('streak-display');
 const progressBar = document.getElementById('progress-bar');
-const badgeCategory = document.getElementById('badge-category');
-const badgeDifficulty = document.getElementById('badge-difficulty');
+const badgeArc = document.getElementById('badge-arc') || document.getElementById('badge-category');
+const badgeChapter = document.getElementById('badge-chapter') || document.getElementById('badge-difficulty');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const questionNavigator = document.getElementById('question-navigator');
@@ -225,8 +225,8 @@ function renderCurrentQuestion() {
     const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
     progressBar.style.width = `${progressPercent}%`;
 
-    badgeCategory.innerText = q.category || 'Chung';
-    badgeDifficulty.innerText = `Level ${q.difficulty || 1}`;
+    if (badgeArc) badgeArc.innerText = q.arc ? `Arc: ${q.arc}` : (q.category ? `Chủ đề: ${q.category}` : 'Arc: Chung');
+    if (badgeChapter) badgeChapter.innerText = q.chapter ? (q.chapter.toLowerCase().includes('chapter') ? q.chapter : `Chapter: ${q.chapter}`) : `Level ${q.difficulty || 1}`;
 
     questionText.innerText = q.question_text;
 
@@ -365,8 +365,9 @@ async function handleSelectOption(q, selectedKey, clickedElement) {
             scoreDisplay.innerText = score;
             streakDisplay.innerText = streak;
 
-            explanationText.innerText = data.explanation || 'Không có giải thích bổ sung cho câu hỏi này.';
-            explanationNote.innerText = `Chủ đề: ${data.category || 'Chung'} | Độ khó: Level ${data.difficulty || 1}`;
+            const arcLabel = data.arc || data.category || 'Chung';
+            const chapLabel = data.chapter || `Level ${data.difficulty || 1}`;
+            explanationNote.innerText = `Arc: ${arcLabel} | Chapter: ${chapLabel}`;
             explanationBox.style.display = 'block';
 
             updateNavigatorState();

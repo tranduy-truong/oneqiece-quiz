@@ -175,6 +175,8 @@ async function ensureTablesExist(connection) {
                 \`explanation\` TEXT NULL,
                 \`category\` VARCHAR(100) DEFAULT 'Chung',
                 \`difficulty\` INT DEFAULT 1,
+                \`arc\` VARCHAR(100) DEFAULT 'Chung',
+                \`chapter\` VARCHAR(100) DEFAULT 'Chung',
                 \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -186,6 +188,12 @@ async function ensureTablesExist(connection) {
         } catch (e) {}
         try {
             await connection.query('ALTER TABLE `questions` ADD COLUMN `topic_id` INT NULL AFTER `quiz_id`');
+        } catch (e) {}
+        try {
+            await connection.query('ALTER TABLE `questions` ADD COLUMN `arc` VARCHAR(100) DEFAULT "Chung"');
+        } catch (e) {}
+        try {
+            await connection.query('ALTER TABLE `questions` ADD COLUMN `chapter` VARCHAR(100) DEFAULT "Chung"');
         } catch (e) {}
 
         // 4. Players Table

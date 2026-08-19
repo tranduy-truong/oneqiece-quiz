@@ -112,7 +112,7 @@ router.get('/questions', requireAdminAuth, async (req, res) => {
 
 /**
  * POST /api/admin/questions
- * Thêm câu hỏi mới (chọn Bộ đề & Chủ đề)
+ * Thêm câu hỏi mới (chọn Bộ đề, Chủ đề, Arc, Chapter)
  */
 router.post('/questions', requireAdminAuth, async (req, res) => {
     try {
@@ -126,7 +126,9 @@ router.post('/questions', requireAdminAuth, async (req, res) => {
             correct_answer,
             explanation,
             category,
-            difficulty
+            difficulty,
+            arc,
+            chapter
         } = req.body;
 
         if (!question_text || !option_a || !option_b || !option_c || !option_d || !correct_answer) {
@@ -146,6 +148,8 @@ router.post('/questions', requireAdminAuth, async (req, res) => {
 
         const cleanCategory = category ? String(category).trim() : 'Chung';
         const cleanDifficulty = difficulty ? parseInt(difficulty, 10) || 1 : 1;
+        const cleanArc = arc ? String(arc).trim() : 'Chung';
+        const cleanChapter = chapter ? String(chapter).trim() : 'Chung';
         const qId = quiz_id ? parseInt(quiz_id, 10) : 1;
 
         // Tự động tìm topic_id theo quiz_id
@@ -157,8 +161,8 @@ router.post('/questions', requireAdminAuth, async (req, res) => {
 
         const [result] = await pool.query(
             `INSERT INTO questions 
-            (quiz_id, topic_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (quiz_id, topic_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty, arc, chapter) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 qId,
                 tId,
@@ -170,7 +174,9 @@ router.post('/questions', requireAdminAuth, async (req, res) => {
                 validAnswer,
                 explanation ? explanation.trim() : '',
                 cleanCategory,
-                cleanDifficulty
+                cleanDifficulty,
+                cleanArc,
+                cleanChapter
             ]
         );
 
@@ -187,7 +193,7 @@ router.post('/questions', requireAdminAuth, async (req, res) => {
 
 /**
  * PUT /api/admin/questions/:id
- * Chỉnh sửa câu hỏi & chuyển bộ đề
+ * Chỉnh sửa câu hỏi & chuyển bộ đề, Arc, Chapter
  */
 router.put('/questions/:id', requireAdminAuth, async (req, res) => {
     try {
@@ -206,7 +212,9 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
             correct_answer,
             explanation,
             category,
-            difficulty
+            difficulty,
+            arc,
+            chapter
         } = req.body;
 
         if (!question_text || !option_a || !option_b || !option_c || !option_d || !correct_answer) {
@@ -220,6 +228,8 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
 
         const cleanCategory = category ? String(category).trim() : 'Chung';
         const cleanDifficulty = difficulty ? parseInt(difficulty, 10) || 1 : 1;
+        const cleanArc = arc ? String(arc).trim() : 'Chung';
+        const cleanChapter = chapter ? String(chapter).trim() : 'Chung';
         const qId = quiz_id ? parseInt(quiz_id, 10) : 1;
 
         let tId = 1;
@@ -228,7 +238,7 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
 
         const [result] = await pool.query(
             `UPDATE questions 
-            SET quiz_id = ?, topic_id = ?, question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ?, category = ?, difficulty = ?
+            SET quiz_id = ?, topic_id = ?, question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ?, category = ?, difficulty = ?, arc = ?, chapter = ?
             WHERE id = ?`,
             [
                 qId,
@@ -242,6 +252,8 @@ router.put('/questions/:id', requireAdminAuth, async (req, res) => {
                 explanation ? explanation.trim() : '',
                 cleanCategory,
                 cleanDifficulty,
+                cleanArc,
+                cleanChapter,
                 questionId
             ]
         );
@@ -281,8 +293,8 @@ router.post('/questions/bulk', requireAdminAuth, async (req, res) => {
                 if (['A', 'B', 'C', 'D'].includes(validAnswer)) {
                     await pool.query(
                         `INSERT INTO questions 
-                        (quiz_id, topic_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        (quiz_id, topic_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty, arc, chapter) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                         [
                             qId,
                             tId,
@@ -294,7 +306,9 @@ router.post('/questions/bulk', requireAdminAuth, async (req, res) => {
                             validAnswer,
                             q.explanation ? String(q.explanation).trim() : '',
                             q.category ? String(q.category).trim() : 'Chung',
-                            q.difficulty ? parseInt(q.difficulty, 10) || 1 : 1
+                            q.difficulty ? parseInt(q.difficulty, 10) || 1 : 1,
+                            q.arc ? String(q.arc).trim() : 'Chung',
+                            q.chapter ? String(q.chapter).trim() : 'Chung'
                         ]
                     );
                     insertedCount++;
@@ -310,6 +324,47 @@ router.post('/questions/bulk', requireAdminAuth, async (req, res) => {
     } catch (error) {
         console.error('Admin: Lỗi thêm hàng loạt câu hỏi:', error);
         res.status(500).json({ success: false, error: 'Lỗi máy chủ khi thêm hàng loạt câu hỏi.' });
+    }
+});
+
+/**
+ * POST /api/admin/questions/bulk-delete
+ * Xóa hàng loạt câu hỏi đã chọn
+ */
+router.post('/questions/bulk-delete', requireAdminAuth, async (req, res) => {
+    try {
+        const { question_ids } = req.body;
+        if (!Array.isArray(question_ids) || question_ids.length === 0) {
+            return res.status(400).json({ success: false, error: 'Chưa chọn câu hỏi nào để xóa.' });
+        }
+        const [result] = await pool.query('DELETE FROM questions WHERE id IN (?)', [question_ids]);
+        res.json({
+            success: true,
+            message: `Đã xóa thành công ${result.affectedRows} câu hỏi!`,
+            deleted_count: result.affectedRows
+        });
+    } catch (error) {
+        console.error('Admin: Lỗi xóa hàng loạt câu hỏi:', error);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi xóa hàng loạt câu hỏi.' });
+    }
+});
+
+/**
+ * DELETE /api/admin/quizzes/:id/questions
+ * Xóa toàn bộ câu hỏi trong bộ đề
+ */
+router.delete('/quizzes/:id/questions', requireAdminAuth, async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id, 10);
+        const [result] = await pool.query('DELETE FROM questions WHERE quiz_id = ?', [quizId]);
+        res.json({
+            success: true,
+            message: `Đã xóa sạch ${result.affectedRows} câu hỏi trong bộ đề!`,
+            deleted_count: result.affectedRows
+        });
+    } catch (error) {
+        console.error('Admin: Lỗi xóa sạch câu hỏi trong bộ đề:', error);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi xóa câu hỏi bộ đề.' });
     }
 });
 

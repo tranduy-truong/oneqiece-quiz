@@ -298,6 +298,8 @@ class GameManager {
             },
             category: q.category || 'Chung',
             difficulty: q.difficulty || 1,
+            arc: q.arc || 'Chung',
+            chapter: q.chapter || 'Chung',
             timeLimit: room.timePerQuestion,
             startTime: room.questionStartTime
         };
@@ -437,7 +439,7 @@ class GameManager {
             correctAnswer: currentQ.correct_answer,
             explanation: currentQ.explanation || 'Không có giải thích bổ sung.',
             stats,
-            leaderboard: this.getLeaderboard(roomCode).slice(0, 5) // Top 5
+            leaderboard: this.getLeaderboard(roomCode)
         });
 
         // Sau 4 giây chuyển sang màn hình Leaderboard

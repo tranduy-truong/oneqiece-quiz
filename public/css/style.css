@@ -1258,6 +1258,217 @@ body {
 
 .app-footer { text-align: center; padding: 24px 16px; color: var(--game-text-muted); font-size: 0.82rem; border-top: 1px solid var(--glass-border); margin-top: 36px; }
 
+/* ==========================================
+   FULLSCREEN COUNTDOWN OVERLAY
+   ========================================== */
+
+.countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    background: rgba(10, 15, 29, 0.90);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: all;
+}
+
+.countdown-num {
+    font-size: 8.5rem;
+    font-weight: 900;
+    color: var(--game-primary);
+    text-shadow: 0 0 40px var(--game-primary-glow), 0 0 80px rgba(56, 189, 248, 0.4);
+    line-height: 1;
+    animation: countdownPop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+    font-family: inherit;
+}
+
+@keyframes countdownPop {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+}
+
+/* ==========================================
+   LEADERBOARD & PODIUM STYLES
+   ========================================== */
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin-top: 10px;
+}
+
+.leaderboard-table tr {
+    background: var(--game-bg-elevated);
+    border-radius: var(--game-radius-md);
+    transition: transform var(--game-ease-fast), box-shadow var(--game-ease-fast);
+}
+
+.leaderboard-table tr:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow);
+}
+
+.leaderboard-table td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.leaderboard-table td:first-child {
+    border-left: 1px solid var(--glass-border);
+    border-top-left-radius: var(--game-radius-md);
+    border-bottom-left-radius: var(--game-radius-md);
+}
+
+.leaderboard-table td:last-child {
+    border-right: 1px solid var(--glass-border);
+    border-top-right-radius: var(--game-radius-md);
+    border-bottom-right-radius: var(--game-radius-md);
+}
+
+.rank-cell {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--game-primary);
+    width: 60px;
+    text-align: center;
+}
+
+.player-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.player-score-cell {
+    text-align: right;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--game-gold);
+    white-space: nowrap;
+}
+
+.rank-change {
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: var(--game-radius-pill);
+    margin-left: 6px;
+}
+
+.rank-change.rank-up {
+    color: var(--game-success);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.rank-change.rank-down {
+    color: var(--game-danger);
+    background: rgba(239, 68, 68, 0.15);
+}
+
+/* PODIUM VICTORY */
+.podium-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 14px;
+    margin: 30px auto 20px;
+    max-width: 520px;
+}
+
+.podium-place {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.podium-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--glass-border);
+    margin-bottom: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.podium-1 .podium-avatar {
+    width: 82px;
+    height: 82px;
+    border-color: var(--game-gold);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+.podium-name {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--game-text-primary);
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.podium-score {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--game-gold);
+    margin-bottom: 8px;
+}
+
+.podium-block {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 900;
+    border-top-left-radius: var(--game-radius-md);
+    border-top-right-radius: var(--game-radius-md);
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.podium-1 .podium-block {
+    height: 140px;
+    background: linear-gradient(180deg, #f59e0b, #d97706);
+    color: #ffffff;
+}
+
+.podium-2 .podium-block {
+    height: 105px;
+    background: linear-gradient(180deg, #94a3b8, #64748b);
+    color: #ffffff;
+}
+
+.podium-3 .podium-block {
+    height: 80px;
+    background: linear-gradient(180deg, #b45309, #78350f);
+    color: #ffffff;
+}
+
 /* ==========================================================================
    RESPONSIVE OPTIMIZATION (MOBILE & TABLET)
    ========================================================================== */

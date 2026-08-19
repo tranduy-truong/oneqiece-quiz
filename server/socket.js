@@ -78,7 +78,8 @@ function setupSocketIO(io) {
         // 4. Player nộp câu trả lời
         socket.on('SUBMIT_ANSWER', async (data, callback) => {
             try {
-                const { room_code, selected_answer } = data;
+                const room_code = data.room_code || '';
+                const selected_answer = data.selected_answer || data.answer || data.choice || '';
                 const result = await gameManager.submitAnswer(
                     room_code.toUpperCase().trim(),
                     socket.id,
