@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ==========================================
 
 function switchCategory(catName) {
-    document.querySelectorAll('.admin-category-card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.admin-nav-item').forEach(c => c.classList.remove('active'));
     const targetCard = document.getElementById(`cat-card-${catName}`);
     if (targetCard) targetCard.classList.add('active');
 
