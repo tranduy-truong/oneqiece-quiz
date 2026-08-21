@@ -56,7 +56,7 @@
         <section class="hero-grid">
             <div class="hero-content">
                 <div class="hero-live-badge">
-                    <span>⚡ MÙA GIẢI GRAND LINE 2026</span>
+                    <span>MÙA GIẢI GRAND LINE 2026</span>
                 </div>
                 <h1 id="hero-main-title" class="hero-title-main">
                     HÃY CHỨNG MINH BẠN <br>
@@ -68,13 +68,13 @@
 
                 <div class="hero-cta-group">
                     <a href="/solo" class="btn btn-primary btn-lg">
-                        ⚔️ Bắt Đầu Chơi Solo
+                        Bắt Đầu Chơi Solo
                     </a>
                     <a href="/host" class="btn btn-secondary btn-lg">
-                        👥 Tạo Phòng Host
+                        Tạo Phòng Host
                     </a>
                     <a href="/join" class="btn btn-accent btn-lg">
-                        🎯 Vào Phòng Đấu
+                        Vào Phòng Đấu
                     </a>
                 </div>
             </div>
@@ -193,7 +193,7 @@
                                 <div style="font-size: 0.8rem; color: var(--game-text-muted); font-weight: 700;">
                                     ⏱️ ${q.time_per_question || 15}s • ${q.total_questions || 20} câu
                                 </div>
-                                <a href="/solo" class="btn btn-primary btn-sm">Chơi Ngay</a>
+                                <a href="/solo?quiz_id=${q.id}" class="btn btn-primary btn-sm">Chơi Ngay</a>
                             </div>
                         </div>
                     `).join('');

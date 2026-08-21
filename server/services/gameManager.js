@@ -208,7 +208,7 @@ class GameManager {
         let questionRows = room.questionList;
         if (!questionRows || questionRows.length === 0) {
             try {
-                let query = 'SELECT * FROM questions WHERE quiz_id = ? OR topic_id = (SELECT topic_id FROM quizzes WHERE id = ?)';
+                let query = 'SELECT * FROM questions WHERE quiz_id = ?';
                 if (room.isRandom) {
                     query += ' ORDER BY RAND()';
                 } else {
@@ -216,7 +216,17 @@ class GameManager {
                 }
                 query += ` LIMIT ${room.totalQuestions}`;
 
-                const [rows] = await pool.query(query, [room.quizId, room.quizId]);
+                let [rows] = await pool.query(query, [room.quizId]);
+
+                if (!rows || rows.length === 0) {
+                    let fallbackQuery = 'SELECT * FROM questions WHERE topic_id = (SELECT topic_id FROM quizzes WHERE id = ?) AND (quiz_id IS NULL OR quiz_id = ?)';
+                    if (room.isRandom) fallbackQuery += ' ORDER BY RAND()';
+                    else fallbackQuery += ' ORDER BY id ASC';
+                    fallbackQuery += ` LIMIT ${room.totalQuestions}`;
+                    const [fbRows] = await pool.query(fallbackQuery, [room.quizId, room.quizId]);
+                    rows = fbRows;
+                }
+
                 questionRows = rows;
             } catch (dbErr) {
                 console.error('Lỗi truy vấn câu hỏi DB:', dbErr.message);

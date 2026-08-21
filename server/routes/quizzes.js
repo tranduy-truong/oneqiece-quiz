@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
     try {
         const [quizzes] = await pool.query(`
             SELECT q.*, t.name as topic_name, t.icon as topic_icon,
-                   (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id OR topic_id = q.topic_id) as total_available_questions
+                   (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) as total_available_questions
             FROM quizzes q
             LEFT JOIN topics t ON q.topic_id = t.id
             WHERE q.status = 'PUBLISHED'
@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
         const quizId = parseInt(req.params.id, 10);
         const [quizzes] = await pool.query(`
             SELECT q.*, t.name as topic_name, t.icon as topic_icon,
-                   (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id OR topic_id = q.topic_id) as total_available_questions
+                   (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) as total_available_questions
             FROM quizzes q
             LEFT JOIN topics t ON q.topic_id = t.id
             WHERE q.id = ? AND q.status = 'PUBLISHED'
@@ -66,7 +66,7 @@ router.get('/:id/questions', async (req, res) => {
         let query = `
             SELECT id, question_text, option_a, option_b, option_c, option_d, category, difficulty 
             FROM questions 
-            WHERE quiz_id = ? OR topic_id = ?
+            WHERE quiz_id = ?
         `;
         if (quiz.is_random) {
             query += ' ORDER BY RAND()';
@@ -75,7 +75,20 @@ router.get('/:id/questions', async (req, res) => {
         }
         query += ` LIMIT ${quiz.total_questions || 20}`;
 
-        const [questions] = await pool.query(query, [quizId, quiz.topic_id]);
+        let [questions] = await pool.query(query, [quizId]);
+
+        if (!questions || questions.length === 0) {
+            let fallbackQuery = `
+                SELECT id, question_text, option_a, option_b, option_c, option_d, category, difficulty 
+                FROM questions 
+                WHERE topic_id = ? AND (quiz_id IS NULL OR quiz_id = ?)
+            `;
+            if (quiz.is_random) fallbackQuery += ' ORDER BY RAND()';
+            else fallbackQuery += ' ORDER BY id ASC';
+            fallbackQuery += ` LIMIT ${quiz.total_questions || 20}`;
+            const [fbQuestions] = await pool.query(fallbackQuery, [quiz.topic_id, quizId]);
+            questions = fbQuestions;
+        }
 
         res.json({
             success: true,

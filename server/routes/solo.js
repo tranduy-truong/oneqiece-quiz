@@ -20,8 +20,8 @@ router.post('/start', async (req, res) => {
         }
         const quiz = quizzes[0];
 
-        // 2. Lấy danh sách câu hỏi
-        let query = 'SELECT * FROM questions WHERE quiz_id = ? OR topic_id = ?';
+        // 2. Lấy danh sách câu hỏi (Ưu tiên chính xác theo quiz_id để không bị lẫn câu hỏi giữa các đề)
+        let query = 'SELECT * FROM questions WHERE quiz_id = ?';
         if (quiz.is_random) {
             query += ' ORDER BY RAND()';
         } else {
@@ -29,7 +29,18 @@ router.post('/start', async (req, res) => {
         }
         query += ` LIMIT ${quiz.total_questions || 20}`;
 
-        const [questions] = await pool.query(query, [quizId, quiz.topic_id]);
+        let [questions] = await pool.query(query, [quizId]);
+
+        // Nếu đề thi chưa có câu hỏi trực tiếp gắn quiz_id, fallback theo topic_id mà không bị trùng đề khác
+        if (questions.length === 0) {
+            let fallbackQuery = 'SELECT * FROM questions WHERE topic_id = ? AND (quiz_id IS NULL OR quiz_id = ?)';
+            if (quiz.is_random) fallbackQuery += ' ORDER BY RAND()';
+            else fallbackQuery += ' ORDER BY id ASC';
+            fallbackQuery += ` LIMIT ${quiz.total_questions || 20}`;
+            const [fbQuestions] = await pool.query(fallbackQuery, [quiz.topic_id, quizId]);
+            questions = fbQuestions;
+        }
+
         if (questions.length === 0) {
             return res.status(400).json({ success: false, error: 'Chưa có câu hỏi nào trong bộ đề này.' });
         }

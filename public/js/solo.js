@@ -37,8 +37,8 @@ const questionProgress = document.getElementById('question-progress');
 const scoreDisplay = document.getElementById('score-display');
 const streakDisplay = document.getElementById('streak-display');
 const progressBar = document.getElementById('progress-bar');
-const badgeArc = document.getElementById('badge-arc') || document.getElementById('badge-category');
-const badgeChapter = document.getElementById('badge-chapter') || document.getElementById('badge-difficulty');
+const badgeCategory = document.getElementById('badge-category') || document.getElementById('badge-arc');
+const badgeDifficulty = document.getElementById('badge-difficulty') || document.getElementById('badge-chapter');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const questionNavigator = document.getElementById('question-navigator');
@@ -53,11 +53,15 @@ const btnPrev = document.getElementById('btn-prev');
 const btnNext = document.getElementById('btn-next');
 const btnFinish = document.getElementById('btn-finish');
 
+function getOptionIcon(key) {
+    return OPTION_IMAGES[key] || `/images/${key}.jpg`;
+}
+
 // Tải danh sách bộ đề & media assets khi load trang
 document.addEventListener('DOMContentLoaded', async () => {
     // Khôi phục nickname đã lưu nếu có
     const savedName = localStorage.getItem('player_username');
-    if (savedName) playerUsername.value = savedName;
+    if (savedName && playerUsername) playerUsername.value = savedName;
 
     await Promise.all([
         loadSiteMediaSettings(),
@@ -102,6 +106,13 @@ async function loadQuizOptions() {
                     ${q.topic_icon || '⚓'} ${q.title} (${q.total_questions || 20} câu)
                 </option>
             `).join('');
+
+            // Tự động chọn đề thi nếu có truyền ?quiz_id= trên URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetQuizId = urlParams.get('quiz_id');
+            if (targetQuizId) {
+                selectQuiz.value = targetQuizId;
+            }
         } else {
             selectQuiz.innerHTML = '<option value="1">One Piece Grand Test (Mặc định)</option>';
         }
@@ -212,75 +223,82 @@ function updateNavigatorState() {
 }
 
 function renderCurrentQuestion() {
-    if (questions.length === 0) return;
+    if (!questions || questions.length === 0) return;
 
     const q = questions[currentIndex];
+    if (!q) return;
     const qKey = q.order || q.id;
     const record = answeredRecords[qKey];
 
-    questionProgress.innerText = `Câu ${currentIndex + 1} / ${questions.length}`;
-    scoreDisplay.innerText = score;
-    streakDisplay.innerText = streak;
+    if (questionProgress) questionProgress.innerText = `Câu ${currentIndex + 1} / ${questions.length}`;
+    if (scoreDisplay) scoreDisplay.innerText = score;
+    if (streakDisplay) streakDisplay.innerText = streak;
 
     const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
-    progressBar.style.width = `${progressPercent}%`;
+    if (progressBar) progressBar.style.width = `${progressPercent}%`;
 
     if (badgeCategory) badgeCategory.innerText = `Chủ đề: ${q.category || 'Chung'}`;
     if (badgeDifficulty) badgeDifficulty.innerText = `Độ khó: Level ${q.difficulty || 1}`;
 
-    questionText.innerText = q.question_text;
+    if (questionText) questionText.innerText = q.question_text || '';
 
-    optionsContainer.innerHTML = '';
-    const options = [
-        { key: 'A', text: q.option_a },
-        { key: 'B', text: q.option_b },
-        { key: 'C', text: q.option_c },
-        { key: 'D', text: q.option_d }
-    ];
+    if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        const options = [
+            { key: 'A', text: q.option_a || '' },
+            { key: 'B', text: q.option_b || '' },
+            { key: 'C', text: q.option_c || '' },
+            { key: 'D', text: q.option_d || '' }
+        ];
 
-    options.forEach(opt => {
-        const optEl = document.createElement('div');
-        optEl.className = 'arena-opt-btn';
-        optEl.dataset.key = opt.key;
-        optEl.dataset.choice = opt.key;
+        options.forEach(opt => {
+            const optEl = document.createElement('div');
+            optEl.className = 'arena-opt-btn';
+            optEl.dataset.key = opt.key;
+            optEl.dataset.choice = opt.key;
 
-        if (record) {
-            optEl.classList.add('disabled');
-            if (opt.key === record.user_answer) {
-                optEl.classList.add(record.is_correct ? 'correct' : 'wrong');
+            if (record) {
+                optEl.classList.add('disabled');
+                if (opt.key === record.user_answer) {
+                    optEl.classList.add(record.is_correct ? 'correct' : 'wrong');
+                }
+                if (!record.is_correct && opt.key === record.correct_answer) {
+                    optEl.classList.add('correct');
+                }
+            } else {
+                optEl.onclick = () => handleSelectOption(q, opt.key, optEl);
             }
-            if (!record.is_correct && opt.key === record.correct_answer) {
-                optEl.classList.add('correct');
-            }
-        } else {
-            optEl.onclick = () => handleSelectOption(q, opt.key, optEl);
-        }
 
-        optEl.innerHTML = `
-            <div class="option-key">
-                <img src="${getOptionIcon(opt.key)}" class="option-key-img" alt="${opt.key}" onerror="this.src='/images/${opt.key}.jpg'">
-            </div>
-            <div class="option-text">${escapeHtml(opt.text)}</div>
-        `;
-        optionsContainer.appendChild(optEl);
-    });
-
-    if (record) {
-        const arcText = record.arc || q.arc || 'Chung';
-        const chapText = record.chapter || q.chapter || 'Chung';
-        explanationStatus.className = `explanation-status ${record.is_correct ? 'correct' : 'wrong'}`;
-        explanationStatus.innerText = record.is_correct ? 'CHÍNH XÁC!' : `CHƯA CHÍNH XÁC! (Đáp án đúng: ${record.correct_answer})`;
-        explanationGif.src = record.is_correct ? GIF_CORRECT : GIF_WRONG;
-        explanationBox.className = `explanation-card ${record.is_correct ? 'correct-card' : 'wrong-card'}`;
-        explanationText.innerText = record.explanation || 'Không có giải thích bổ sung cho câu hỏi này.';
-        explanationNote.innerText = `Arc: ${arcText} | Chapter: ${chapText}`;
-        explanationBox.style.display = 'block';
-    } else {
-        explanationBox.style.display = 'none';
+            optEl.innerHTML = `
+                <div class="option-key">
+                    <img src="${getOptionIcon(opt.key)}" class="option-key-img" alt="${opt.key}" onerror="this.src='/images/${opt.key}.jpg'">
+                </div>
+                <div class="option-text">${escapeHtml(opt.text)}</div>
+            `;
+            optionsContainer.appendChild(optEl);
+        });
     }
 
-    btnPrev.disabled = currentIndex === 0;
-    btnNext.disabled = currentIndex === questions.length - 1;
+    if (explanationBox) {
+        if (record) {
+            const arcText = record.arc || q.arc || 'Chung';
+            const chapText = record.chapter || q.chapter || 'Chung';
+            if (explanationStatus) {
+                explanationStatus.className = `explanation-status ${record.is_correct ? 'correct' : 'wrong'}`;
+                explanationStatus.innerText = record.is_correct ? 'CHÍNH XÁC!' : `CHƯA CHÍNH XÁC! (Đáp án đúng: ${record.correct_answer})`;
+            }
+            if (explanationGif) explanationGif.src = record.is_correct ? GIF_CORRECT : GIF_WRONG;
+            explanationBox.className = `explanation-card ${record.is_correct ? 'correct-card' : 'wrong-card'}`;
+            if (explanationText) explanationText.innerText = record.explanation || 'Không có giải thích bổ sung cho câu hỏi này.';
+            if (explanationNote) explanationNote.innerText = `Arc: ${arcText} | Chapter: ${chapText}`;
+            explanationBox.style.display = 'block';
+        } else {
+            explanationBox.style.display = 'none';
+        }
+    }
+
+    if (btnPrev) btnPrev.disabled = currentIndex === 0;
+    if (btnNext) btnNext.disabled = currentIndex === questions.length - 1;
 
     updateNavigatorState();
 }
