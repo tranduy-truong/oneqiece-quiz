@@ -51,50 +51,36 @@
         <!-- Alert Notification -->
         <div id="admin-alert" class="alert"></div>
 
-        <!-- 5 BIG CATEGORY HUBS (GOM DANH MỤC LỚN) -->
-        <div class="admin-category-grid">
-            <div class="admin-category-card active" onclick="switchCategory('settings')" id="cat-card-settings">
-                <span style="font-size: 1.5rem;">🎨</span>
-                <div>
-                    <strong style="font-size: 0.95rem; display: block; color: var(--game-text-primary);">Giao Diện & Banner</strong>
-                    <span style="font-size: 0.78rem; color: var(--game-text-muted);">Tùy biến trang chủ</span>
-                </div>
-            </div>
+        <div class="admin-studio-layout">
+            <!-- Studio Left Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-title">QUẢN TRỊ STUDIO</div>
+                <nav>
+                    <div class="admin-nav-item active" onclick="switchCategory('settings')" id="cat-card-settings">
+                        <span class="admin-nav-icon">🎨</span>
+                        <span>Giao Diện & Banner</span>
+                    </div>
+                    <div class="admin-nav-item" onclick="switchCategory('quiz-engine')" id="cat-card-quiz-engine">
+                        <span class="admin-nav-icon">📚</span>
+                        <span>Đề Thi & Câu Hỏi</span>
+                    </div>
+                    <div class="admin-nav-item" onclick="switchCategory('music')" id="cat-card-music">
+                        <span class="admin-nav-icon">🎵</span>
+                        <span>Kho Nhạc Nền</span>
+                    </div>
+                    <div class="admin-nav-item" onclick="switchCategory('avatars')" id="cat-card-avatars">
+                        <span class="admin-nav-icon">🖼️</span>
+                        <span>Avatar Chiến Binh</span>
+                    </div>
+                    <div class="admin-nav-item" onclick="switchCategory('analytics')" id="cat-card-analytics">
+                        <span class="admin-nav-icon">📊</span>
+                        <span>Thống Kê & Đấu</span>
+                    </div>
+                </nav>
+            </aside>
 
-            <div class="admin-category-card" onclick="switchCategory('quiz-engine')" id="cat-card-quiz-engine">
-                <span style="font-size: 1.5rem;">📚</span>
-                <div>
-                    <strong style="font-size: 0.95rem; display: block; color: var(--game-text-primary);">Đề Thi & Câu Hỏi</strong>
-                    <span style="font-size: 0.78rem; color: var(--game-text-muted);">Quản lý câu hỏi, bộ đề</span>
-                </div>
-            </div>
-
-            <div class="admin-category-card" onclick="switchCategory('music')" id="cat-card-music">
-                <span style="font-size: 1.5rem;">🎵</span>
-                <div>
-                    <strong style="font-size: 0.95rem; display: block; color: var(--game-text-primary);">Kho Nhạc Nền</strong>
-                    <span style="font-size: 0.78rem; color: var(--game-text-muted);">YouTube Soundtracks</span>
-                </div>
-            </div>
-
-            <div class="admin-category-card" onclick="switchCategory('avatars')" id="cat-card-avatars">
-                <span style="font-size: 1.5rem;">🖼️</span>
-                <div>
-                    <strong style="font-size: 0.95rem; display: block; color: var(--game-text-primary);">Avatar Chiến Binh</strong>
-                    <span style="font-size: 0.78rem; color: var(--game-text-muted);">Thêm / Xóa mọi avatar</span>
-                </div>
-            </div>
-
-            <div class="admin-category-card" onclick="switchCategory('analytics')" id="cat-card-analytics">
-                <span style="font-size: 1.5rem;">📊</span>
-                <div>
-                    <strong style="font-size: 0.95rem; display: block; color: var(--game-text-primary);">Thống Kê & Đấu</strong>
-                    <span style="font-size: 0.78rem; color: var(--game-text-muted);">Lịch sử & Chỉ số</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
+            <!-- Studio Main Workspace Area -->
+            <div class="admin-workspace">
             <!-- ==========================================
                  DANH MỤC 1: GIAO DIỆN & BANNER TRANG CHỦ
                  ========================================== -->

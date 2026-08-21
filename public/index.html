@@ -11,11 +11,11 @@
 </head>
 <body>
 
-    <!-- Fullscreen Site Background Layers -->
+    <!-- Fullscreen Background Layers with Atmospheric Vignette -->
     <img id="site-bg-img" class="fullscreen-site-bg" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop" alt="Background">
     <div class="fullscreen-site-overlay"></div>
 
-    <!-- Floating Liquid Glass Navbar -->
+    <!-- Slim Floating Tactical Header -->
     <div class="game-navbar-wrapper">
         <header class="game-navbar">
             <div class="nav-inner">
@@ -52,54 +52,92 @@
     </div>
 
     <main class="container container-wide">
-        <!-- Minimalist Hero Viewport (Full Screen Canvas) -->
-        <section class="hero-minimal">
-            <h1 id="hero-main-title" class="hero-title-main">
-                HÃY CHỨNG MINH BẠN <br>
-                <span class="hero-title-gradient">KHÔNG PHẢI LÀ LARPER!</span>
-            </h1>
-            <p id="hero-main-subtitle" class="hero-subtitle">
-                Đấu trường trắc nghiệm One Piece & Công Nghệ trực tuyến. Thử thách kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!
-            </p>
+        <!-- Asymmetrical 7:5 Cinematic Hero -->
+        <section class="hero-grid">
+            <div class="hero-content">
+                <div class="hero-live-badge">
+                    <span>⚡ MÙA GIẢI GRAND LINE 2026</span>
+                </div>
+                <h1 id="hero-main-title" class="hero-title-main">
+                    HÃY CHỨNG MINH BẠN <br>
+                    <span class="hero-title-gradient">KHÔNG PHẢI LÀ LARPER!</span>
+                </h1>
+                <p id="hero-main-subtitle" class="hero-subtitle">
+                    Đấu trường trắc nghiệm One Piece & Công Nghệ thời gian thực. Thử thách kiến thức thực chiến, tốc độ phản xạ và vươn lên đỉnh bảng vàng danh dự!
+                </p>
 
-            <div class="hero-cta-group">
-                <a href="/solo" class="btn btn-primary btn-lg">
-                    Bắt Đầu Chơi Ngay
-                </a>
-                <a href="/join" class="btn btn-secondary btn-lg">
-                    Vào Phòng Thi Đấu
-                </a>
-                <a href="/host" class="btn btn-accent btn-lg">
-                    Tạo Phòng Host
-                </a>
+                <div class="hero-cta-group">
+                    <a href="/solo" class="btn btn-primary btn-lg">
+                        ⚔️ Bắt Đầu Chơi Solo
+                    </a>
+                    <a href="/host" class="btn btn-secondary btn-lg">
+                        👥 Tạo Phòng Host
+                    </a>
+                    <a href="/join" class="btn btn-accent btn-lg">
+                        🎯 Vào Phòng Đấu
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-live-card">
+                    <div class="hero-live-header">
+                        <span class="hero-live-tag">LIVE ARENA</span>
+                        <div class="live-status-pill">
+                            <div class="live-status-dot"></div>
+                            <span>Đang Thi Đấu</span>
+                        </div>
+                    </div>
+                    <div class="hero-live-title">One Piece Grand Arena</div>
+                    <p style="font-size: 0.85rem; color: var(--game-text-secondary); margin-bottom: 14px;">
+                        Tham gia ngay đấu trường trắc nghiệm trực tiếp cùng hàng trăm thuyền viên khắp thế giới.
+                    </p>
+
+                    <div class="hero-live-stats">
+                        <div>
+                            <div class="hero-live-stat-val">100%</div>
+                            <div class="hero-live-stat-lbl">Realtime</div>
+                        </div>
+                        <div>
+                            <div class="hero-live-stat-val">250+</div>
+                            <div class="hero-live-stat-lbl">Câu Hỏi</div>
+                        </div>
+                        <div>
+                            <div class="hero-live-stat-val">15s</div>
+                            <div class="hero-live-stat-lbl">Tốc Độ</div>
+                        </div>
+                    </div>
+
+                    <a href="/join" class="btn btn-primary" style="width: 100%;">
+                        Tham Gia Trực Tiếp Ngay
+                    </a>
+                </div>
             </div>
         </section>
 
-        <!-- Quick PIN Code Entry Bar -->
-        <section class="card" style="margin-top: 10px; padding: 18px 22px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-                <div>
-                    <div style="font-weight: 800; font-size: 1.05rem; color: var(--game-text-primary);">VÀO NHANH PHÒNG THI ĐẤU</div>
-                    <div style="font-size: 0.82rem; color: var(--game-text-muted);">Nhập mã PIN 6 ký tự được cấp từ Host để tham gia ngay</div>
-                </div>
+        <!-- Arcade Quick PIN Join Bar -->
+        <section class="arcade-pin-box">
+            <div>
+                <div style="font-weight: 900; font-size: 1.05rem; color: var(--game-text-primary); letter-spacing: 0.5px;">VÀO NHANH PHÒNG THI ĐẤU</div>
+                <div style="font-size: 0.82rem; color: var(--game-text-muted);">Nhập mã PIN 6 ký tự được cấp từ Host để tham chiến ngay lập tức</div>
+            </div>
 
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="quick-pin-input" class="form-control" placeholder="MÃ PIN: 8F3K2A" maxlength="6" style="max-width: 170px; text-transform: uppercase; font-weight: 800; text-align: center; font-size: 1.05rem; letter-spacing: 2px;">
-                    <button class="btn btn-primary" onclick="handleQuickJoin()">Vào Phòng</button>
-                </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="quick-pin-input" class="arcade-pin-input" placeholder="MÃ: 8F3K2A" maxlength="6">
+                <button class="btn btn-primary" onclick="handleQuickJoin()">Vào Phòng</button>
             </div>
         </section>
 
-        <!-- Game Catalog (Explore Quizzes) -->
-        <section style="margin-top: 32px;">
+        <!-- Game Discovery (Bento Quiz Catalog) -->
+        <section style="margin-top: 36px;">
             <div class="card-header-game" style="border: none; padding-bottom: 0;">
-                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--game-text-primary);">
+                <h2 style="font-size: 1.3rem; font-weight: 900; color: var(--game-text-primary); letter-spacing: 0.5px;">
                     CÁC BỘ ĐỀ THI NỔI BẬT
                 </h2>
                 <a href="/solo" class="btn btn-secondary btn-sm">Xem Tất Cả</a>
             </div>
 
-            <div id="home-quiz-catalog" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+            <div id="home-quiz-catalog" class="bento-quiz-grid">
                 <div class="card" style="text-align: center; padding: 30px; grid-column: 1/-1;">
                     <div style="color: var(--game-text-muted);">Đang tải danh sách bộ đề thi...</div>
                 </div>
@@ -142,17 +180,17 @@
                 const result = await res.json();
                 if (res.ok && result.success && result.data.length > 0) {
                     container.innerHTML = result.data.map(q => `
-                        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="quiz-card">
                             <div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--game-primary);">${q.topic_icon || '⚓'} ${q.topic_name || 'Chung'}</span>
-                                    <span style="font-size: 0.72rem; font-weight: 700; color: #10b981;">ĐANG MỞ</span>
+                                    <span class="quiz-card-topic">${q.topic_icon || '⚓'} ${q.topic_name || 'Chung'}</span>
+                                    <span style="font-size: 0.72rem; font-weight: 800; color: #10b981; background: rgba(16,185,129,0.12); padding: 2px 6px; border-radius: var(--radius-xs);">ĐANG MỞ</span>
                                 </div>
-                                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--game-text-primary); margin-bottom: 8px;">${escapeHtml(q.title)}</h3>
-                                <p style="color: var(--game-text-secondary); font-size: 0.85rem; margin-bottom: 16px;">${escapeHtml(q.description || 'Thử thách kiến thức trắc nghiệm đỉnh cao.')}</p>
+                                <h3 class="quiz-card-title">${escapeHtml(q.title)}</h3>
+                                <p class="quiz-card-desc">${escapeHtml(q.description || 'Thử thách kiến thức trắc nghiệm đỉnh cao.')}</p>
                             </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 12px;">
-                                <div style="font-size: 0.8rem; color: var(--game-text-muted);">
+                            <div class="quiz-card-footer">
+                                <div style="font-size: 0.8rem; color: var(--game-text-muted); font-weight: 700;">
                                     ⏱️ ${q.time_per_question || 15}s • ${q.total_questions || 20} câu
                                 </div>
                                 <a href="/solo" class="btn btn-primary btn-sm">Chơi Ngay</a>
