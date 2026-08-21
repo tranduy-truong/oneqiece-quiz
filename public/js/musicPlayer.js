@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
     injectMusicPlayerDom();
     loadMusicLibraryData();
     setupAutoMinimizeEvents();
-    setupSeamlessNavigation();
 
     // Lắng nghe tương tác đầu tiên để Autoplay hợp lệ theo chính sách trình duyệt
     const handleFirstInteraction = () => {
@@ -549,98 +548,7 @@ function injectMusicPlayerDom() {
     }
 }
 
-// ==========================================
-// 7. SEAMLESS SPA NAVIGATION (CHUYỂN TRANG KHÔNG TẮT NHẠC)
-// ==========================================
 
-function setupSeamlessNavigation() {
-    document.addEventListener('click', async (e) => {
-        const link = e.target.closest('a');
-        if (!link) return;
-
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:') || link.target === '_blank' || link.hasAttribute('download')) {
-            return;
-        }
-
-        // Chỉ xử lý các đường dẫn cùng origin
-        try {
-            const url = new URL(href, window.location.origin);
-            if (url.origin !== window.location.origin) return;
-
-            // Bỏ qua các API route hoặc file tĩnh
-            if (url.pathname.startsWith('/api') || url.pathname.startsWith('/uploads') || url.pathname.includes('.')) {
-                return;
-            }
-
-            e.preventDefault();
-            if (url.pathname === window.location.pathname) return;
-
-            await navigateToPage(url.pathname);
-        } catch (err) {
-            // Fallback
-        }
-    });
-
-    window.addEventListener('popstate', async () => {
-        await navigateToPage(window.location.pathname, false);
-    });
-}
-
-async function navigateToPage(targetPath, pushState = true) {
-    try {
-        const res = await fetch(targetPath);
-        if (!res.ok) {
-            window.location.href = targetPath;
-            return;
-        }
-
-        const html = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        if (pushState) {
-            window.history.pushState({}, '', targetPath);
-        }
-
-        // Cập nhật tiêu đề trang
-        document.title = doc.title || document.title;
-
-        // Cập nhật thẻ <main>
-        const newMain = doc.querySelector('main');
-        const curMain = document.querySelector('main');
-        if (newMain && curMain) {
-            curMain.innerHTML = newMain.innerHTML;
-            curMain.className = newMain.className;
-        }
-
-        // Cập nhật navbar active links
-        document.querySelectorAll('.nav-item-link').forEach(navLink => {
-            const navHref = navLink.getAttribute('href');
-            if (navHref === targetPath || (targetPath === '/' && navHref === '/')) {
-                navLink.classList.add('active');
-            } else {
-                navLink.classList.remove('active');
-            }
-        });
-
-        // Tải và chạy script của trang mới nếu cần
-        const newScripts = doc.querySelectorAll('script');
-        newScripts.forEach(s => {
-            const src = s.getAttribute('src');
-            if (src && !src.includes('musicPlayer.js') && !src.includes('iframe_api')) {
-                const scriptEl = document.createElement('script');
-                scriptEl.src = `${src}?_t=${Date.now()}`;
-                document.body.appendChild(scriptEl);
-            }
-        });
-
-        window.scrollTo(0, 0);
-    } catch (err) {
-        console.warn('Lỗi chuyển trang seamless, fallback sang reload:', err);
-        window.location.href = targetPath;
-    }
-}
 
 // ==========================================
 // 8. ĐIỀU KHIỂN ÂM THANH HIỆU ỨNG (SFX)
