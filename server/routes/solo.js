@@ -65,9 +65,9 @@ router.post('/start', async (req, res) => {
             const q = questions[i];
             await pool.query(
                 `INSERT INTO game_session_questions 
-                (game_session_id, question_order, original_question_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [gameSessionId, i + 1, q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.explanation, q.category, q.difficulty]
+                (game_session_id, question_order, original_question_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, category, difficulty, arc, chapter)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [gameSessionId, i + 1, q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.explanation, q.category, q.difficulty, q.arc || 'Chung', q.chapter || 'Chung']
             );
         }
 

@@ -376,31 +376,75 @@
                  DANH MỤC 3: KHO NHẠC NỀN YOUTUBE
                  ========================================== -->
             <div id="section-music" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <strong style="color: var(--game-text-primary); font-size: 1.1rem;">Kho Nhạc Nền YouTube</strong>
-                        <div style="color: var(--game-text-muted); font-size: 0.82rem;">Thêm link YouTube để người chơi nghe khi thi đấu</div>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="openAddMusicModal()">Thêm Bài Hát Mới</button>
+                <!-- Sub-tabs for Music -->
+                <div class="admin-sub-tabs">
+                    <button class="admin-sub-tab-btn active" onclick="switchMusicSubTab('tracks')" id="musictab-btn-tracks">
+                        Bài Hát YouTube (<span id="music-tracks-count">0</span>)
+                    </button>
+                    <button class="admin-sub-tab-btn" onclick="switchMusicSubTab('categories')" id="musictab-btn-categories">
+                        Thể Loại Nhạc (<span id="music-cats-count">0</span>)
+                    </button>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;">ID</th>
-                                <th style="width: 90px;">Ảnh</th>
-                                <th>Tiêu Đề Bài Hát</th>
-                                <th>Thể Loại</th>
-                                <th>YouTube Link</th>
-                                <th style="text-align: center;">Trạng Thái</th>
-                                <th style="width: 130px; text-align: center;">Thao Tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="music-table-body">
-                            <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Đang tải danh sách bài hát...</td></tr>
-                        </tbody>
-                    </table>
+                <!-- 3.1 Quản lý Bài Hát -->
+                <div id="subcontent-music-tracks">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <strong style="color: var(--game-text-primary); font-size: 1.1rem;">Kho Nhạc Nền YouTube</strong>
+                            <div style="color: var(--game-text-muted); font-size: 0.82rem;">Thêm link YouTube để người chơi nghe khi thi đấu</div>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="openAddMusicModal()">Thêm Bài Hát Mới</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">ID</th>
+                                    <th style="width: 90px;">Ảnh</th>
+                                    <th>Tiêu Đề Bài Hát</th>
+                                    <th>Thể Loại</th>
+                                    <th>YouTube Link</th>
+                                    <th style="text-align: center;">Trạng Thái</th>
+                                    <th style="width: 130px; text-align: center;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="music-table-body">
+                                <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Đang tải danh sách bài hát...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3.2 Quản lý Thể Loại Nhạc -->
+                <div id="subcontent-music-categories" style="display: none;">
+                    <div style="background: var(--game-bg-elevated); padding: 18px; border-radius: var(--game-radius-md); border: 1px solid var(--glass-border); margin-bottom: 20px;">
+                        <form id="music-cat-form" onsubmit="handleAddMusicCategory(event)" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                                <label class="form-label" for="input-new-music-cat">Tên Thể Loại Mới:</label>
+                                <input type="text" id="input-new-music-cat" class="form-control" placeholder="VD: Boss Fight, OST, Lofi Anime, Acoustic..." required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="height: 42px;">
+                                Thêm Thể Loại
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">ID</th>
+                                    <th>Tên Thể Loại</th>
+                                    <th style="text-align: center; width: 140px;">Số Bài Hát</th>
+                                    <th style="width: 140px; text-align: center;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="music-categories-table-body">
+                                <tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Đang tải thể loại nhạc...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

@@ -1036,5 +1036,102 @@ router.delete('/music/:id', requireAdminAuth, async (req, res) => {
     }
 });
 
+// ==========================================
+// 7. QUẢN LÝ THỂ LOẠI NHẠC (MUSIC CATEGORIES CRUD)
+// ==========================================
+
+/**
+ * GET /api/admin/music/categories
+ */
+router.get('/music-categories', requireAdminAuth, async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT c.id, c.name, 
+                   COUNT(m.id) as track_count
+            FROM music_categories c
+            LEFT JOIN music_tracks m ON c.name = m.category
+            GROUP BY c.id, c.name
+            ORDER BY c.id ASC
+        `);
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error('Admin: Lỗi lấy danh sách thể loại nhạc:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi lấy thể loại nhạc.' });
+    }
+});
+
+/**
+ * POST /api/admin/music/categories
+ */
+router.post('/music-categories', requireAdminAuth, async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập tên thể loại nhạc.' });
+        }
+        const cleanName = name.trim();
+        const [resIns] = await pool.query('INSERT INTO music_categories (name) VALUES (?)', [cleanName]);
+        res.status(201).json({
+            success: true,
+            message: 'Thêm thể loại nhạc mới thành công!',
+            data: { id: resIns.insertId, name: cleanName }
+        });
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ success: false, error: 'Thể loại nhạc này đã tồn tại.' });
+        }
+        console.error('Admin: Lỗi thêm thể loại nhạc:', err);
+        res.status(500).json({ success: false, error: 'Lỗi khi thêm thể loại nhạc.' });
+    }
+});
+
+/**
+ * PUT /api/admin/music/categories/:id
+ */
+router.put('/music-categories/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'Vui lòng nhập tên thể loại nhạc.' });
+        }
+        const cleanName = name.trim();
+        const [oldRows] = await pool.query('SELECT name FROM music_categories WHERE id = ?', [id]);
+        if (oldRows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy thể loại nhạc.' });
+        }
+        const oldName = oldRows[0].name;
+        await pool.query('UPDATE music_categories SET name = ? WHERE id = ?', [cleanName, id]);
+        await pool.query('UPDATE music_tracks SET category = ? WHERE category = ?', [cleanName, oldName]);
+        res.json({ success: true, message: 'Cập nhật thể loại nhạc thành công!' });
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ success: false, error: 'Tên thể loại nhạc mới đã tồn tại.' });
+        }
+        console.error('Admin: Lỗi cập nhật thể loại nhạc:', err);
+        res.status(500).json({ success: false, error: 'Lỗi khi cập nhật thể loại nhạc.' });
+    }
+});
+
+/**
+ * DELETE /api/admin/music/categories/:id
+ */
+router.delete('/music-categories/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const [oldRows] = await pool.query('SELECT name FROM music_categories WHERE id = ?', [id]);
+        if (oldRows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Không tìm thấy thể loại nhạc.' });
+        }
+        const oldName = oldRows[0].name;
+        await pool.query('UPDATE music_tracks SET category = "Chung" WHERE category = ?', [oldName]);
+        await pool.query('DELETE FROM music_categories WHERE id = ?', [id]);
+        res.json({ success: true, message: 'Đã xóa thể loại nhạc thành công!' });
+    } catch (err) {
+        console.error('Admin: Lỗi xóa thể loại nhạc:', err);
+        res.status(500).json({ success: false, error: 'Lỗi khi xóa thể loại nhạc.' });
+    }
+});
+
 module.exports = router;
 

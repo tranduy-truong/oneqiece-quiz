@@ -42,10 +42,12 @@ router.get('/', async (req, res) => {
 router.get('/categories', async (req, res) => {
     try {
         const [rows] = await pool.query(`
-            SELECT category, COUNT(*) as track_count 
-            FROM music_tracks 
-            WHERE status = "PUBLISHED" 
-            GROUP BY category
+            SELECT c.id, c.name as category, 
+                   COUNT(m.id) as track_count 
+            FROM music_categories c
+            LEFT JOIN music_tracks m ON c.name = m.category AND m.status = "PUBLISHED"
+            GROUP BY c.id, c.name
+            ORDER BY c.id ASC
         `);
         res.json({
             success: true,

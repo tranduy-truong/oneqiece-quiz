@@ -1088,22 +1088,189 @@ async function handleDeleteTopic(id) {
 }
 
 // ==========================================
-// 6. QUẢN LÝ KHO NHẠC NỀN YOUTUBE
+// 6. QUẢN LÝ KHO NHẠC NỀN YOUTUBE & THỂ LOẠI NHẠC
 // ==========================================
+
+let allMusicCategories = [];
+
+function switchMusicSubTab(subTab) {
+    document.querySelectorAll('#section-music .admin-sub-tab-btn').forEach(btn => btn.classList.remove('active'));
+    const targetBtn = document.getElementById(`musictab-btn-${subTab}`);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    const tracksEl = document.getElementById('subcontent-music-tracks');
+    const catsEl = document.getElementById('subcontent-music-categories');
+
+    if (tracksEl) tracksEl.style.display = (subTab === 'tracks') ? 'block' : 'none';
+    if (catsEl) catsEl.style.display = (subTab === 'categories') ? 'block' : 'none';
+
+    if (subTab === 'tracks') loadAdminMusic();
+    else if (subTab === 'categories') loadAdminMusicCategories();
+}
 
 async function loadAdminMusic() {
     const tbody = document.getElementById('music-table-body');
     try {
-        const res = await fetch('/api/admin/music', {
+        const [resTracks, resCats] = await Promise.all([
+            fetch('/api/admin/music', { headers: { 'Authorization': `Bearer ${authToken}` } }),
+            fetch('/api/admin/music-categories', { headers: { 'Authorization': `Bearer ${authToken}` } })
+        ]);
+
+        const dataTracks = await resTracks.json();
+        const dataCats = await resCats.json();
+
+        if (resCats.ok && dataCats.success) {
+            allMusicCategories = dataCats.data;
+            const catCountSpan = document.getElementById('music-cats-count');
+            if (catCountSpan) catCountSpan.innerText = allMusicCategories.length;
+            populateMusicCategoryDropdown();
+        }
+
+        if (resTracks.ok && dataTracks.success) {
+            allMusic = dataTracks.data;
+            const trackCountSpan = document.getElementById('music-tracks-count');
+            if (trackCountSpan) trackCountSpan.innerText = allMusic.length;
+            renderMusicTable(allMusic);
+        }
+    } catch (err) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--game-danger); padding: 20px;">Lỗi kết nối máy chủ.</td></tr>';
+    }
+}
+
+async function loadAdminMusicCategories() {
+    const tbody = document.getElementById('music-categories-table-body');
+    try {
+        const res = await fetch('/api/admin/music-categories', {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         const result = await res.json();
         if (res.ok && result.success) {
-            allMusic = result.data;
-            renderMusicTable(allMusic);
+            allMusicCategories = result.data;
+            const catCountSpan = document.getElementById('music-cats-count');
+            if (catCountSpan) catCountSpan.innerText = allMusicCategories.length;
+            renderMusicCategoriesTable(allMusicCategories);
+            populateMusicCategoryDropdown();
+        } else {
+            if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--game-danger); padding: 20px;">${result.error || 'Lỗi tải thể loại nhạc.'}</td></tr>`;
         }
     } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--game-danger); padding: 20px;">Lỗi kết nối máy chủ.</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--game-danger); padding: 20px;">Lỗi kết nối máy chủ.</td></tr>';
+    }
+}
+
+function renderMusicCategoriesTable(cats) {
+    const tbody = document.getElementById('music-categories-table-body');
+    if (!tbody) return;
+
+    if (cats.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--game-text-muted);">Chưa có thể loại nhạc nào. Hãy thêm thể loại mới bên trên!</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = cats.map(c => `
+        <tr>
+            <td style="font-weight: 700; color: var(--game-primary);">#${c.id}</td>
+            <td><strong style="color: var(--game-text-primary); font-size: 0.95rem;">${escapeHtml(c.name)}</strong></td>
+            <td style="text-align: center; font-weight: 800; color: var(--game-primary);">${c.track_count || 0} bài</td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                    <button class="btn btn-secondary btn-sm" onclick="handleEditMusicCategory(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">Sửa Tên</button>
+                    <button class="btn btn-danger btn-sm" onclick="handleDeleteMusicCategory(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">Xóa</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function populateMusicCategoryDropdown() {
+    const selectEl = document.getElementById('form-music-category');
+    if (!selectEl) return;
+
+    if (allMusicCategories.length === 0) {
+        selectEl.innerHTML = `
+            <option value="Epic">Epic</option>
+            <option value="Anime / One Piece">Anime / One Piece</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Lo-fi">Lo-fi</option>
+            <option value="Chill">Chill</option>
+        `;
+        return;
+    }
+
+    selectEl.innerHTML = allMusicCategories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+}
+
+async function handleAddMusicCategory(e) {
+    e.preventDefault();
+    const input = document.getElementById('input-new-music-cat');
+    const name = input.value.trim();
+    if (!name) return;
+
+    try {
+        const res = await fetch('/api/admin/music-categories', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ name })
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            showAlert(`Thêm thể loại "${name}" thành công!`, 'success');
+            input.value = '';
+            loadAdminMusicCategories();
+        } else {
+            alert(result.error || 'Lỗi khi thêm thể loại nhạc.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
+    }
+}
+
+async function handleEditMusicCategory(id, currentName) {
+    const newName = prompt('Nhập tên mới cho thể loại nhạc:', currentName);
+    if (!newName || !newName.trim() || newName.trim() === currentName) return;
+
+    try {
+        const res = await fetch(`/api/admin/music-categories/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ name: newName.trim() })
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            showAlert('Cập nhật tên thể loại nhạc thành công!', 'success');
+            loadAdminMusicCategories();
+        } else {
+            alert(result.error || 'Lỗi khi cập nhật thể loại nhạc.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
+    }
+}
+
+async function handleDeleteMusicCategory(id, name) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa thể loại nhạc "${name}"? Các bài hát thuộc thể loại này sẽ được chuyển về "Chung".`)) return;
+
+    try {
+        const res = await fetch(`/api/admin/music-categories/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            showAlert('Đã xóa thể loại nhạc thành công!', 'success');
+            loadAdminMusicCategories();
+            loadAdminMusic();
+        } else {
+            alert(result.error || 'Lỗi khi xóa thể loại nhạc.');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ.');
     }
 }
 
@@ -1138,6 +1305,7 @@ function openAddMusicModal() {
     document.getElementById('music-modal-title').innerText = 'Thêm Bài Hát Mới';
     document.getElementById('music-form').reset();
     document.getElementById('form-music-edit-id').value = '';
+    populateMusicCategoryDropdown();
     document.getElementById('music-modal').classList.add('open');
 }
 
@@ -1145,10 +1313,11 @@ function openEditMusicModal(id) {
     const track = allMusic.find(m => m.id === id);
     if (!track) return;
     document.getElementById('music-modal-title').innerText = `Chỉnh Sửa Bài Hát #${id}`;
+    populateMusicCategoryDropdown();
     document.getElementById('form-music-edit-id').value = track.id;
     document.getElementById('form-music-title').value = track.title;
     document.getElementById('form-music-url').value = track.youtube_url;
-    document.getElementById('form-music-category').value = track.category || 'Gaming';
+    document.getElementById('form-music-category').value = track.category || (allMusicCategories[0] ? allMusicCategories[0].name : 'Gaming');
     document.getElementById('form-music-status').value = track.status || 'PUBLISHED';
     document.getElementById('music-modal').classList.add('open');
 }

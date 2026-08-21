@@ -250,9 +250,18 @@ async function ensureTablesExist(connection) {
                 \`correct_answer\` ENUM('A', 'B', 'C', 'D') NOT NULL,
                 \`explanation\` TEXT,
                 \`category\` VARCHAR(100) DEFAULT 'Chung',
-                \`difficulty\` INT DEFAULT 1
+                \`difficulty\` INT DEFAULT 1,
+                \`arc\` VARCHAR(100) DEFAULT 'Chung',
+                \`chapter\` VARCHAR(100) DEFAULT 'Chung'
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
+
+        try {
+            await connection.query('ALTER TABLE `game_session_questions` ADD COLUMN `arc` VARCHAR(100) DEFAULT "Chung"');
+        } catch (e) {}
+        try {
+            await connection.query('ALTER TABLE `game_session_questions` ADD COLUMN `chapter` VARCHAR(100) DEFAULT "Chung"');
+        } catch (e) {}
 
         // 8. Game Player Answers Table
         await connection.query(`
@@ -298,6 +307,29 @@ async function ensureTablesExist(connection) {
                 \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
+
+        // 10.1 Music Categories Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`music_categories\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`name\` VARCHAR(100) NOT NULL UNIQUE,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // Seed Default Music Categories
+        const defaultCats = ['Epic', 'Anime / One Piece', 'Gaming', 'Lo-fi', 'Chill'];
+        for (const cat of defaultCats) {
+            try {
+                await connection.query('INSERT IGNORE INTO `music_categories` (`name`) VALUES (?)', [cat]);
+            } catch (e) {}
+        }
+        try {
+            await connection.query(`
+                INSERT IGNORE INTO \`music_categories\` (\`name\`)
+                SELECT DISTINCT category FROM \`music_tracks\` WHERE category IS NOT NULL AND category != ''
+            `);
+        } catch (e) {}
 
         // 11. Warrior Avatars Table
         await connection.query(`

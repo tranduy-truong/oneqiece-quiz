@@ -225,8 +225,8 @@ function renderCurrentQuestion() {
     const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
     progressBar.style.width = `${progressPercent}%`;
 
-    if (badgeArc) badgeArc.innerText = q.arc ? `Arc: ${q.arc}` : (q.category ? `Chủ đề: ${q.category}` : 'Arc: Chung');
-    if (badgeChapter) badgeChapter.innerText = q.chapter ? (q.chapter.toLowerCase().includes('chapter') ? q.chapter : `Chapter: ${q.chapter}`) : `Level ${q.difficulty || 1}`;
+    if (badgeCategory) badgeCategory.innerText = `Chủ đề: ${q.category || 'Chung'}`;
+    if (badgeDifficulty) badgeDifficulty.innerText = `Độ khó: Level ${q.difficulty || 1}`;
 
     questionText.innerText = q.question_text;
 
@@ -258,7 +258,7 @@ function renderCurrentQuestion() {
 
         optEl.innerHTML = `
             <div class="option-key">
-                <img src="${OPTION_IMAGES[opt.key]}" alt="${opt.key}" class="option-key-img">
+                <img src="${getOptionIcon(opt.key)}" class="option-key-img" alt="${opt.key}" onerror="this.src='/images/${opt.key}.jpg'">
             </div>
             <div class="option-text">${escapeHtml(opt.text)}</div>
         `;
@@ -266,19 +266,14 @@ function renderCurrentQuestion() {
     });
 
     if (record) {
-        if (record.is_correct) {
-            explanationBox.className = 'explanation-card correct-card';
-            explanationGif.src = GIF_CORRECT;
-            explanationStatus.className = 'explanation-status correct';
-            explanationStatus.innerText = 'CHÍNH XÁC!';
-        } else {
-            explanationBox.className = 'explanation-card wrong-card';
-            explanationGif.src = GIF_WRONG;
-            explanationStatus.className = 'explanation-status wrong';
-            explanationStatus.innerText = `CHƯA CHÍNH XÁC! (Đáp án đúng: ${record.correct_answer})`;
-        }
-        explanationText.innerText = record.explanation || 'Không có giải thích bổ sung.';
-        explanationNote.innerText = `Chủ đề: ${record.category || 'Chung'} | Độ khó: Level ${record.difficulty || 1}`;
+        const arcText = record.arc || q.arc || 'Chung';
+        const chapText = record.chapter || q.chapter || 'Chung';
+        explanationStatus.className = `explanation-status ${record.is_correct ? 'correct' : 'wrong'}`;
+        explanationStatus.innerText = record.is_correct ? 'CHÍNH XÁC!' : `CHƯA CHÍNH XÁC! (Đáp án đúng: ${record.correct_answer})`;
+        explanationGif.src = record.is_correct ? GIF_CORRECT : GIF_WRONG;
+        explanationBox.className = `explanation-card ${record.is_correct ? 'correct-card' : 'wrong-card'}`;
+        explanationText.innerText = record.explanation || 'Không có giải thích bổ sung cho câu hỏi này.';
+        explanationNote.innerText = `Arc: ${arcText} | Chapter: ${chapText}`;
         explanationBox.style.display = 'block';
     } else {
         explanationBox.style.display = 'none';
@@ -294,7 +289,7 @@ async function handleSelectOption(q, selectedKey, clickedElement) {
     const qKey = q.order || q.id;
     if (answeredRecords[qKey]) return;
 
-    const allOptions = document.querySelectorAll('.option-item');
+    const allOptions = document.querySelectorAll('.option-item, .arena-opt-btn');
     allOptions.forEach(el => el.classList.add('disabled'));
 
     try {
@@ -320,8 +315,10 @@ async function handleSelectOption(q, selectedKey, clickedElement) {
                 is_correct: isCorrect,
                 correct_answer: correctKey,
                 explanation: data.explanation,
-                category: data.category,
-                difficulty: data.difficulty
+                category: data.category || q.category,
+                difficulty: data.difficulty || q.difficulty,
+                arc: data.arc || q.arc || 'Chung',
+                chapter: data.chapter || q.chapter || 'Chung'
             };
 
             if (isCorrect) {
@@ -365,8 +362,9 @@ async function handleSelectOption(q, selectedKey, clickedElement) {
             scoreDisplay.innerText = score;
             streakDisplay.innerText = streak;
 
-            const arcLabel = data.arc || data.category || 'Chung';
-            const chapLabel = data.chapter || `Level ${data.difficulty || 1}`;
+            const arcLabel = data.arc || q.arc || 'Chung';
+            const chapLabel = data.chapter || q.chapter || 'Chung';
+            explanationText.innerText = data.explanation || 'Không có giải thích bổ sung cho câu hỏi này.';
             explanationNote.innerText = `Arc: ${arcLabel} | Chapter: ${chapLabel}`;
             explanationBox.style.display = 'block';
 

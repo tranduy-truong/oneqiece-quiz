@@ -1,18 +1,25 @@
 /**
- * YouTube Personal Background Music Controller
- * 100% YouTube IFrame API compliant - Liquid Glass Mini Player & Music Library
+ * One Piece Personal Music Engine & YouTube Controller
+ * Liquid Glass Mini Player, Seek Bar, Auto-Minimize, Dynamic Categories & Seamless Navigation
  */
 
 let ytPlayer = null;
 let isYtApiReady = false;
 let musicTracks = [];
+let musicCategories = [];
 let currentTrackIndex = 0;
 let isPlaying = false;
 let currentVolume = parseInt(localStorage.getItem('app_music_volume'), 10) || 50;
 let isMuted = localStorage.getItem('app_music_muted') === 'true';
 let hasUserInteracted = false;
+let isSeeking = false;
+let progressInterval = null;
+let autoMinimizeTimer = null;
 
-// Load YouTube IFrame Player API
+// ==========================================
+// 1. KHỞI TẠO YOUTUBE IFRAME API
+// ==========================================
+
 (function initYouTubeApi() {
     if (!window.YT) {
         const tag = document.createElement('script');
@@ -22,7 +29,6 @@ let hasUserInteracted = false;
     }
 })();
 
-// Callback khi YouTube IFrame API sẵn sàng
 window.onYouTubeIframeAPIReady = function () {
     isYtApiReady = true;
     initMusicSystem();
@@ -31,8 +37,10 @@ window.onYouTubeIframeAPIReady = function () {
 document.addEventListener('DOMContentLoaded', () => {
     injectMusicPlayerDom();
     loadMusicLibraryData();
+    setupAutoMinimizeEvents();
+    setupSeamlessNavigation();
 
-    // Lắng nghe tương tác đầu tiên của người dùng để kích hoạt Autoplay hợp lệ
+    // Lắng nghe tương tác đầu tiên để Autoplay hợp lệ theo chính sách trình duyệt
     const handleFirstInteraction = () => {
         if (!hasUserInteracted) {
             hasUserInteracted = true;
@@ -53,14 +61,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('touchstart', handleFirstInteraction, { once: true });
 });
 
+// ==========================================
+// 2. TẢI DỮ LIỆU BÀI HÁT & THỂ LOẠI
+// ==========================================
+
 async function loadMusicLibraryData() {
     try {
-        const res = await fetch('/api/music');
-        const data = await res.json();
-        if (res.ok && data.success && data.data.length > 0) {
-            musicTracks = data.data;
+        const [resTracks, resCats] = await Promise.all([
+            fetch('/api/music'),
+            fetch('/api/music/categories')
+        ]);
 
-            // Tìm bài hát đã lưu trong localStorage
+        const dataTracks = await resTracks.json();
+        const dataCats = await resCats.json();
+
+        if (resCats.ok && dataCats.success) {
+            musicCategories = dataCats.data;
+            renderCategoryFilterButtons(musicCategories);
+        }
+
+        if (resTracks.ok && dataTracks.success && dataTracks.data.length > 0) {
+            musicTracks = dataTracks.data;
+
             const savedTrackId = parseInt(localStorage.getItem('preferred_music_id'), 10);
             if (savedTrackId) {
                 const foundIndex = musicTracks.findIndex(t => t.id === savedTrackId);
@@ -77,6 +99,24 @@ async function loadMusicLibraryData() {
         console.warn('Không thể tải kho nhạc:', err);
     }
 }
+
+function renderCategoryFilterButtons(categories) {
+    const bar = document.querySelector('.music-categories-bar');
+    if (!bar) return;
+
+    let html = `<button id="cat-btn-All" class="music-cat-btn active" onclick="filterMusicByCategory('All')">Tất Cả</button>`;
+    categories.forEach(c => {
+        const catName = c.category || c.name;
+        if (catName) {
+            html += `<button id="cat-btn-${escapeHtml(catName)}" class="music-cat-btn" onclick="filterMusicByCategory('${escapeHtml(catName).replace(/'/g, "\\'")}')">${escapeHtml(catName)}</button>`;
+        }
+    });
+    bar.innerHTML = html;
+}
+
+// ==========================================
+// 3. ĐIỀU KHIỂN YOUTUBE PLAYER & TIẾN TRÌNH (SEEK)
+// ==========================================
 
 function initMusicSystem() {
     if (!isYtApiReady || musicTracks.length === 0 || ytPlayer) return;
@@ -110,12 +150,21 @@ function onPlayerReady(event) {
     if (isMuted) ytPlayer.mute();
     updateVolumeDisplay();
 
-    // Tự động phát ngay lập tức
+    // Khôi phục thời gian phát trước đó nếu có
+    const savedTime = parseFloat(localStorage.getItem('app_music_last_time'));
+    if (savedTime && savedTime > 2) {
+        try {
+            ytPlayer.seekTo(savedTime, true);
+        } catch (e) {}
+    }
+
     try {
         event.target.playVideo();
     } catch (e) {
         console.log('Chờ tương tác người dùng để phát nhạc');
     }
+
+    startProgressTracker();
 }
 
 function onPlayerStateChange(event) {
@@ -126,12 +175,12 @@ function onPlayerStateChange(event) {
         isPlaying = true;
         if (playBtn) playBtn.innerHTML = '⏸';
         if (visualizer) visualizer.classList.add('active');
+        startProgressTracker();
     } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
         isPlaying = false;
         if (playBtn) playBtn.innerHTML = '▶';
         if (visualizer) visualizer.classList.remove('active');
 
-        // Tự động chuyển bài tiếp theo khi hết bài
         if (event.data === YT.PlayerState.ENDED) {
             nextTrack();
         }
@@ -140,13 +189,63 @@ function onPlayerStateChange(event) {
 
 function onPlayerError(event) {
     console.warn('Lỗi phát YouTube track:', event.data);
-    // Nếu video bị chặn embed hoặc lỗi, thử bài tiếp theo
     setTimeout(() => {
         nextTrack();
     }, 1500);
 }
 
+function startProgressTracker() {
+    if (progressInterval) clearInterval(progressInterval);
+    progressInterval = setInterval(() => {
+        if (!ytPlayer || !isPlaying || isSeeking || typeof ytPlayer.getCurrentTime !== 'function') return;
+
+        const cur = ytPlayer.getCurrentTime() || 0;
+        const dur = ytPlayer.getDuration() || 0;
+
+        localStorage.setItem('app_music_last_time', Math.floor(cur));
+
+        const seekBar = document.getElementById('music-seek-bar');
+        const curTimeEl = document.getElementById('music-current-time');
+        const durTimeEl = document.getElementById('music-total-duration');
+
+        if (curTimeEl) curTimeEl.innerText = formatTime(cur);
+        if (durTimeEl && dur > 0) durTimeEl.innerText = formatTime(dur);
+
+        if (seekBar && dur > 0) {
+            seekBar.value = (cur / dur) * 100;
+        }
+    }, 500);
+}
+
+function handleSeekInput(val) {
+    isSeeking = true;
+    triggerActivityTimer();
+    if (!ytPlayer || typeof ytPlayer.getDuration !== 'function') return;
+    const dur = ytPlayer.getDuration() || 0;
+    const seekSeconds = (parseFloat(val) / 100) * dur;
+    const curTimeEl = document.getElementById('music-current-time');
+    if (curTimeEl) curTimeEl.innerText = formatTime(seekSeconds);
+}
+
+function handleSeekChange(val) {
+    if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+        const dur = ytPlayer.getDuration() || 0;
+        const seekSeconds = (parseFloat(val) / 100) * dur;
+        ytPlayer.seekTo(seekSeconds, true);
+    }
+    isSeeking = false;
+    triggerActivityTimer();
+}
+
+function formatTime(seconds) {
+    if (!seconds || isNaN(seconds) || seconds < 0) return '00:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
 function togglePlayMusic() {
+    triggerActivityTimer();
     if (!ytPlayer) {
         initMusicSystem();
         return;
@@ -165,6 +264,7 @@ function playTrack(index, forcePlay = true) {
     const track = musicTracks[currentTrackIndex];
 
     localStorage.setItem('preferred_music_id', track.id);
+    localStorage.removeItem('app_music_last_time');
     updateMiniPlayerDisplay();
 
     if (ytPlayer && ytPlayer.loadVideoById) {
@@ -173,6 +273,7 @@ function playTrack(index, forcePlay = true) {
             ytPlayer.playVideo();
         }
     }
+    triggerActivityTimer();
 }
 
 function nextTrack() {
@@ -196,6 +297,7 @@ function handleVolumeChange(val) {
     if (isMuted && currentVolume > 0) {
         toggleMuteMusic();
     }
+    triggerActivityTimer();
 }
 
 function toggleMuteMusic() {
@@ -206,6 +308,7 @@ function toggleMuteMusic() {
         else ytPlayer.unMute();
     }
     updateVolumeDisplay();
+    triggerActivityTimer();
 }
 
 function updateVolumeDisplay() {
@@ -225,12 +328,62 @@ function updateMiniPlayerDisplay() {
     if (categoryEl) categoryEl.innerText = `${track.category || 'Nhạc Nền'}`;
 }
 
+// ==========================================
+// 4. TỰ ĐỘNG THU NHỎ (AUTO-MINIMIZE ENGINE)
+// ==========================================
+
 function togglePlayerMinimize() {
     const playerBox = document.getElementById('liquid-music-player');
-    if (playerBox) {
-        playerBox.classList.toggle('minimized');
+    if (!playerBox) return;
+
+    const isCurrentlyMin = playerBox.classList.contains('minimized');
+    if (isCurrentlyMin) {
+        playerBox.classList.remove('minimized');
+        triggerActivityTimer();
+    } else {
+        playerBox.classList.add('minimized');
+        if (autoMinimizeTimer) clearTimeout(autoMinimizeTimer);
     }
 }
+
+function minimizePlayer() {
+    const playerBox = document.getElementById('liquid-music-player');
+    if (playerBox && !playerBox.classList.contains('minimized')) {
+        playerBox.classList.add('minimized');
+    }
+}
+
+function triggerActivityTimer() {
+    if (autoMinimizeTimer) clearTimeout(autoMinimizeTimer);
+    autoMinimizeTimer = setTimeout(() => {
+        minimizePlayer();
+    }, 4000); // Tự động thu nhỏ sau 4 giây không thao tác
+}
+
+function setupAutoMinimizeEvents() {
+    const playerBox = document.getElementById('liquid-music-player');
+    if (!playerBox) return;
+
+    playerBox.addEventListener('mouseenter', () => {
+        if (autoMinimizeTimer) clearTimeout(autoMinimizeTimer);
+    });
+
+    playerBox.addEventListener('mouseleave', () => {
+        if (!playerBox.classList.contains('minimized')) {
+            triggerActivityTimer();
+        }
+    });
+
+    playerBox.addEventListener('mousemove', () => {
+        if (!playerBox.classList.contains('minimized')) {
+            if (autoMinimizeTimer) clearTimeout(autoMinimizeTimer);
+        }
+    });
+}
+
+// ==========================================
+// 5. THƯ VIỆN NHẠC (MUSIC LIBRARY MODAL)
+// ==========================================
 
 function openMusicLibraryModal() {
     const modal = document.getElementById('music-library-modal');
@@ -271,11 +424,11 @@ function renderMusicLibraryCards(tracks) {
     if (!container) return;
 
     if (tracks.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--game-text-muted); padding: 30px;">Không tìm thấy bài hát nào.</div>';
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--game-text-muted); padding: 30px;">Không tìm thấy bài hát nào trong thể loại này.</div>';
         return;
     }
 
-    container.innerHTML = tracks.map((t, idx) => {
+    container.innerHTML = tracks.map((t) => {
         const isCurrent = (musicTracks[currentTrackIndex] && musicTracks[currentTrackIndex].id === t.id);
         const originalIndex = musicTracks.findIndex(item => item.id === t.id);
 
@@ -287,10 +440,10 @@ function renderMusicLibraryCards(tracks) {
                         ${isCurrent && isPlaying ? '⏸' : '▶'}
                     </button>
                 </div>
-                <div class="music-card-info">
-                    <div class="music-card-category">${t.category || 'Gaming'}</div>
-                    <div class="music-card-title">${escapeHtml(t.title)}</div>
-                    <button class="btn btn-secondary btn-sm" onclick="selectAsPersonalSoundtrack(${originalIndex})" style="margin-top: 8px; width: 100%;">
+                <div class="music-card-info" style="padding: 12px;">
+                    <div class="music-card-category" style="font-size: 0.72rem; color: var(--game-primary); font-weight: 800; text-transform: uppercase;">${t.category || 'Gaming'}</div>
+                    <div class="music-card-title" style="font-size: 0.88rem; font-weight: 700; margin: 4px 0 8px; color: var(--game-text-primary);">${escapeHtml(t.title)}</div>
+                    <button class="btn btn-secondary btn-sm" onclick="selectAsPersonalSoundtrack(${originalIndex})" style="width: 100%;">
                         ${isCurrent ? '✓ Đang Phát' : 'Chọn Làm Nhạc Nền'}
                     </button>
                 </div>
@@ -304,8 +457,12 @@ function selectAsPersonalSoundtrack(index) {
     closeMusicLibraryModal();
 }
 
+// ==========================================
+// 6. TẠO GIAO DIỆN PLAYER DOM VÀ SEEK BAR
+// ==========================================
+
 function injectMusicPlayerDom() {
-    // 1. Tạo container nhúng ẩn cho YouTube Player
+    // 1. YouTube Hidden Player Wrap
     if (!document.getElementById('yt-hidden-player-wrapper')) {
         const ytWrap = document.createElement('div');
         ytWrap.id = 'yt-hidden-player-wrapper';
@@ -314,10 +471,10 @@ function injectMusicPlayerDom() {
         document.body.appendChild(ytWrap);
     }
 
-    // 2. Floating Liquid Glass Mini Player
+    // 2. Floating Liquid Glass Mini Player (Khởi đầu ở trạng thái minimized để không che màn hình)
     if (!document.getElementById('liquid-music-player')) {
         const playerHtml = `
-            <div id="liquid-music-player" class="liquid-glass-player">
+            <div id="liquid-music-player" class="liquid-glass-player minimized">
                 <!-- Compact Toggle Icon -->
                 <button class="player-toggle-bubble" onclick="togglePlayerMinimize()" title="Mở/Thu gọn Trình phát nhạc">
                     🎵
@@ -334,6 +491,13 @@ function injectMusicPlayerDom() {
                             <div id="music-track-title" class="player-title-marquee">Đang tải nhạc...</div>
                         </div>
                         <button class="btn-player-action" onclick="togglePlayerMinimize()" title="Thu nhỏ">&times;</button>
+                    </div>
+
+                    <!-- Seek Bar & Track Duration -->
+                    <div class="player-progress-row">
+                        <span id="music-current-time" class="player-time">00:00</span>
+                        <input type="range" id="music-seek-bar" class="player-seek-slider" min="0" max="100" value="0" step="0.1" oninput="handleSeekInput(this.value)" onchange="handleSeekChange(this.value)" title="Tua nhạc">
+                        <span id="music-total-duration" class="player-time">00:00</span>
                     </div>
 
                     <!-- Action Controls -->
@@ -371,10 +535,6 @@ function injectMusicPlayerDom() {
                     <div style="margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: space-between; align-items: center;">
                         <div class="music-categories-bar">
                             <button id="cat-btn-All" class="music-cat-btn active" onclick="filterMusicByCategory('All')">Tất Cả</button>
-                            <button id="cat-btn-Epic" class="music-cat-btn" onclick="filterMusicByCategory('Epic')">Epic</button>
-                            <button id="cat-btn-Gaming" class="music-cat-btn" onclick="filterMusicByCategory('Gaming')">Gaming</button>
-                            <button id="cat-btn-Lo-fi" class="music-cat-btn" onclick="filterMusicByCategory('Lo-fi')">Lo-fi</button>
-                            <button id="cat-btn-Chill" class="music-cat-btn" onclick="filterMusicByCategory('Chill')">Chill</button>
                         </div>
                         <input type="text" id="music-search-input" class="form-control" placeholder="Tìm bài hát..." oninput="handleMusicSearch()" style="width: auto; min-width: 220px; font-size: 0.85rem; padding: 6px 12px;">
                     </div>
@@ -389,12 +549,110 @@ function injectMusicPlayerDom() {
     }
 }
 
+// ==========================================
+// 7. SEAMLESS SPA NAVIGATION (CHUYỂN TRANG KHÔNG TẮT NHẠC)
+// ==========================================
+
+function setupSeamlessNavigation() {
+    document.addEventListener('click', async (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:') || link.target === '_blank' || link.hasAttribute('download')) {
+            return;
+        }
+
+        // Chỉ xử lý các đường dẫn cùng origin
+        try {
+            const url = new URL(href, window.location.origin);
+            if (url.origin !== window.location.origin) return;
+
+            // Bỏ qua các API route hoặc file tĩnh
+            if (url.pathname.startsWith('/api') || url.pathname.startsWith('/uploads') || url.pathname.includes('.')) {
+                return;
+            }
+
+            e.preventDefault();
+            if (url.pathname === window.location.pathname) return;
+
+            await navigateToPage(url.pathname);
+        } catch (err) {
+            // Fallback
+        }
+    });
+
+    window.addEventListener('popstate', async () => {
+        await navigateToPage(window.location.pathname, false);
+    });
+}
+
+async function navigateToPage(targetPath, pushState = true) {
+    try {
+        const res = await fetch(targetPath);
+        if (!res.ok) {
+            window.location.href = targetPath;
+            return;
+        }
+
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        if (pushState) {
+            window.history.pushState({}, '', targetPath);
+        }
+
+        // Cập nhật tiêu đề trang
+        document.title = doc.title || document.title;
+
+        // Cập nhật thẻ <main>
+        const newMain = doc.querySelector('main');
+        const curMain = document.querySelector('main');
+        if (newMain && curMain) {
+            curMain.innerHTML = newMain.innerHTML;
+            curMain.className = newMain.className;
+        }
+
+        // Cập nhật navbar active links
+        document.querySelectorAll('.nav-item-link').forEach(navLink => {
+            const navHref = navLink.getAttribute('href');
+            if (navHref === targetPath || (targetPath === '/' && navHref === '/')) {
+                navLink.classList.add('active');
+            } else {
+                navLink.classList.remove('active');
+            }
+        });
+
+        // Tải và chạy script của trang mới nếu cần
+        const newScripts = doc.querySelectorAll('script');
+        newScripts.forEach(s => {
+            const src = s.getAttribute('src');
+            if (src && !src.includes('musicPlayer.js') && !src.includes('iframe_api')) {
+                const scriptEl = document.createElement('script');
+                scriptEl.src = `${src}?_t=${Date.now()}`;
+                document.body.appendChild(scriptEl);
+            }
+        });
+
+        window.scrollTo(0, 0);
+    } catch (err) {
+        console.warn('Lỗi chuyển trang seamless, fallback sang reload:', err);
+        window.location.href = targetPath;
+    }
+}
+
+// ==========================================
+// 8. ĐIỀU KHIỂN ÂM THANH HIỆU ỨNG (SFX)
+// ==========================================
+
 function handleSfxVolumeChange(val) {
     const vol = parseInt(val, 10) / 100;
     if (window.SoundFX) {
         window.SoundFX.setVolume(vol);
     }
     updateSfxDisplay();
+    triggerActivityTimer();
 }
 
 function toggleMuteSfx() {
@@ -402,6 +660,7 @@ function toggleMuteSfx() {
         window.SoundFX.toggleMute();
         updateSfxDisplay();
     }
+    triggerActivityTimer();
 }
 
 function updateSfxDisplay() {

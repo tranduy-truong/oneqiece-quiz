@@ -858,7 +858,7 @@ body {
 }
 
 /* ==========================================
-   FLOATING MUSIC PLAYER
+   FLOATING MUSIC PLAYER (SEEK BAR & AUTO-COLLAPSE)
    ========================================== */
 
 .liquid-glass-player {
@@ -869,6 +869,7 @@ body {
     display: flex;
     align-items: flex-end;
     gap: 8px;
+    transition: all var(--game-ease-smooth);
 }
 
 .player-toggle-bubble {
@@ -885,7 +886,12 @@ body {
     font-size: 1.2rem;
     cursor: pointer;
     position: relative;
-    transition: transform var(--game-ease-fast);
+    transition: transform var(--game-ease-fast), box-shadow var(--game-ease-fast);
+}
+
+.player-toggle-bubble:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 22px var(--game-primary-glow);
 }
 
 .player-inner-card {
@@ -895,25 +901,37 @@ body {
     border-radius: var(--game-radius-lg);
     box-shadow: var(--glass-shadow);
     padding: 14px 18px;
-    width: 300px;
+    width: 320px;
+    opacity: 1;
+    transform: scale(1);
+    transform-origin: bottom right;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+    visibility: visible;
 }
 
 .liquid-glass-player.minimized .player-inner-card {
-    display: none;
+    opacity: 0;
+    transform: scale(0.8) translate(20px, 20px);
+    pointer-events: none;
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+    bottom: 0;
 }
 
 .player-header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .player-category-pill {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--game-primary);
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .player-title-marquee {
@@ -923,7 +941,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 210px;
+    max-width: 220px;
 }
 
 .btn-player-action {
@@ -932,42 +950,92 @@ body {
     color: var(--game-text-muted);
     font-size: 1.2rem;
     cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+}
+
+.btn-player-action:hover {
+    color: var(--game-danger);
+}
+
+/* SEEK BAR & PROGRESS */
+.player-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.player-time {
+    font-size: 0.72rem;
+    color: var(--game-text-muted);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 34px;
+    text-align: center;
+}
+
+.player-seek-slider {
+    flex: 1;
+    accent-color: var(--game-primary);
+    height: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.player-seek-slider:hover {
+    filter: brightness(1.2);
 }
 
 .player-controls-row {
     display: flex;
     align-items: center;
     justify-content: space-around;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .btn-control {
     background: var(--game-bg-elevated);
     border: 1px solid var(--glass-border);
     color: var(--game-text-primary);
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     font-size: 0.85rem;
+    transition: all var(--game-ease-fast);
+}
+
+.btn-control:hover {
+    border-color: var(--game-primary);
+    color: var(--game-primary);
+    transform: scale(1.05);
 }
 
 .btn-control-play {
     background: var(--game-primary);
     color: var(--game-text-dark);
     border: none;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 1rem;
-    box-shadow: 0 0 12px var(--game-primary-glow);
+    font-size: 1.05rem;
+    box-shadow: 0 0 14px var(--game-primary-glow);
+    transition: all var(--game-ease-fast);
+}
+
+.btn-control-play:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px var(--game-primary-glow);
 }
 
 .player-volume-row {
@@ -981,6 +1049,7 @@ body {
     border: none;
     font-size: 0.95rem;
     cursor: pointer;
+    padding: 0 2px;
 }
 
 .player-vol-slider {
@@ -988,6 +1057,7 @@ body {
     accent-color: var(--game-primary);
     height: 4px;
     cursor: pointer;
+    outline: none;
 }
 
 /* ==========================================
