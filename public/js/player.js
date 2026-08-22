@@ -133,11 +133,14 @@ function handleJoinRoom() {
     localStorage.setItem('player_username', username);
     currentRoomCode = roomCode;
 
+    const authToken = localStorage.getItem('auth_token');
+
     socket.emit('JOIN_ROOM', {
         room_code: roomCode,
         username,
         session_token: currentSessionToken,
-        avatar: selectedAvatar
+        avatar: selectedAvatar,
+        auth_token: authToken
     }, (res) => {
         if (res.success) {
             document.getElementById('lobby-room-code').innerText = res.data.roomCode;
@@ -403,6 +406,11 @@ socket.on('GAME_FINISHED', (data) => {
     if (myResult) {
         document.getElementById('player-final-rank').innerText = myResult.rank;
         document.getElementById('player-final-score').innerText = myResult.totalScore.toLocaleString();
+    }
+
+    const guestBanner = document.getElementById('room-guest-upgrade-banner');
+    if (guestBanner) {
+        guestBanner.style.display = localStorage.getItem('auth_token') ? 'none' : 'block';
     }
 
     showScreen(podiumCard);

@@ -185,6 +185,27 @@
                 </div>
             </div>
 
+            <!-- Registered Player Ranked Reward Box -->
+            <div id="solo-ranked-reward-box" style="display: none; background: rgba(56, 189, 248, 0.08); border: 1.5px solid var(--game-primary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+                <div style="font-size: 0.8rem; font-weight: 800; color: var(--game-primary); text-transform: uppercase; margin-bottom: 8px;">CHIẾN TÍCH GRAND LINE ĐÃ ĐƯỢC LƯU</div>
+                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 0.95rem;">
+                    <div>Rating: <strong id="reward-rating-val" style="color: var(--game-gold);">1000</strong> (<span id="reward-rating-change" style="color: #10b981; font-weight: 800;">+25</span>)</div>
+                    <div>XP Nhận: <strong id="reward-xp-val" style="color: var(--game-primary);">+50 XP</strong></div>
+                    <div>Bậc Rank: <strong id="reward-rank-name" style="color: var(--game-gold);">Tân Binh Hải Tặc</strong></div>
+                </div>
+            </div>
+
+            <!-- Guest Player Upgrade Banner -->
+            <div id="solo-guest-upgrade-banner" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1.5px dashed var(--game-gold); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; text-align: center;">
+                <div style="font-size: 0.92rem; color: var(--game-text-primary); font-weight: 700; margin-bottom: 10px;">
+                    🛡️ Bạn đang chơi với tư cách Khách. Đăng nhập để lưu lại thành tích và leo Rank Grand Line!
+                </div>
+                <div style="display: flex; justify-content: center; gap: 10px;">
+                    <a href="/login" class="btn btn-primary btn-sm">Đăng Nhập</a>
+                    <a href="/register" class="btn btn-secondary btn-sm">Đăng Ký Tài Khoản</a>
+                </div>
+            </div>
+
             <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="restartSoloGame()">Làm Lại Bài</button>
                 <a href="/" class="btn btn-secondary">Về Trang Chủ</a>
@@ -200,5 +221,6 @@
     <script src="/js/soundFx.js"></script>
     <script src="/js/solo.js"></script>
     <script src="/js/musicPlayer.js"></script>
+    <script src="/js/authNav.js"></script>
 </body>
 </html>

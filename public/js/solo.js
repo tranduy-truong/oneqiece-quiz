@@ -137,15 +137,19 @@ async function startSoloGame() {
         localStorage.setItem('session_token', sessionToken);
     }
 
+    const authToken = localStorage.getItem('auth_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
     setupScreen.style.display = 'none';
     loadingState.style.display = 'flex';
-    quizScreen.style.display = 'none';
-    resultScreen.style.display = 'none';
 
     try {
         const response = await fetch('/api/solo/start', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
                 quiz_id: quizId,
                 username,
@@ -154,11 +158,13 @@ async function startSoloGame() {
             })
         });
 
-        const result = await response.json();
-        if (response.ok && result.success && result.questions.length > 0) {
-            questions = result.questions;
-            gameSessionId = result.game_session_id;
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            questions = data.questions || [];
+            gameSessionId = data.game_session_id;
             currentIndex = 0;
+            answeredRecords = {};
             score = 0;
             streak = 0;
             maxStreak = 0;
@@ -427,11 +433,16 @@ async function finishSoloQuiz() {
     });
 
     const sessionToken = localStorage.getItem('session_token');
+    const authToken = localStorage.getItem('auth_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    }
 
     try {
         const response = await fetch('/api/solo/submit', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
                 game_session_id: gameSessionId,
                 answers,
@@ -454,6 +465,31 @@ async function finishSoloQuiz() {
             document.getElementById('stat-accuracy').innerText = `${summary.accuracy_percentage}%`;
             document.getElementById('stat-correct').innerText = `${summary.correct_count} / ${summary.total_questions}`;
             document.getElementById('stat-max-streak').innerText = maxStreak;
+
+            const rewardBox = document.getElementById('solo-ranked-reward-box');
+            const guestBanner = document.getElementById('solo-guest-upgrade-banner');
+
+            if (result.isRegistered && result.rankedReward) {
+                if (guestBanner) guestBanner.style.display = 'none';
+                if (rewardBox) {
+                    const r = result.rankedReward;
+                    document.getElementById('reward-rating-val').innerText = r.ratingAfter;
+                    const changeEl = document.getElementById('reward-rating-change');
+                    if (r.ratingChange >= 0) {
+                        changeEl.innerText = `+${r.ratingChange}`;
+                        changeEl.style.color = '#10b981';
+                    } else {
+                        changeEl.innerText = `${r.ratingChange}`;
+                        changeEl.style.color = '#ef4444';
+                    }
+                    document.getElementById('reward-xp-val').innerText = `+${r.xpGained} XP`;
+                    document.getElementById('reward-rank-name').innerText = r.newRank ? r.newRank.rankDisplayName : 'Tân Binh Hải Tặc';
+                    rewardBox.style.display = 'block';
+                }
+            } else {
+                if (rewardBox) rewardBox.style.display = 'none';
+                if (guestBanner) guestBanner.style.display = 'block';
+            }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {

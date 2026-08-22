@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Hải Tặc — ONE PIECE QUIZ</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
+</head>
+<body>
+
+    <!-- Fullscreen Visual Atmosphere -->
+    <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop" id="site-bg-img" class="fullscreen-site-bg" alt="Site Background">
+    <div class="fullscreen-site-overlay"></div>
+
+    <!-- Floating Tactical Navbar -->
+    <div class="game-navbar-wrapper">
+        <header class="game-navbar">
+            <div class="nav-inner">
+                <a href="/" class="brand-link">
+                    <div class="brand-icon"><img src="https://p1.hiclipart.com/preview/8/1017/218/one-piece-logo-png-clipart.jpg" class="brand-icon-img" alt="Logo" onerror="this.src='/favicon.svg'"></div>
+                    <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
+                </a>
+
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
+                        <li><a href="/solo" class="nav-item-link">Chơi Solo</a></li>
+                        <li><a href="/join" class="nav-item-link">Vào Phòng</a></li>
+                        <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
+                        <li><a href="/profile" class="nav-item-link active">Hồ Sơ</a></li>
+                    </ul>
+                </nav>
+
+                <div class="nav-actions">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                        ☀️ <span class="theme-btn-text">Sáng</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <main class="container container-wide" style="margin-top: 10px;">
+        <!-- 1. Profile Hero Banner -->
+        <div class="profile-hero-card">
+            <div class="profile-hero-header">
+                <div class="profile-avatar-wrapper">
+                    <img id="prof-avatar" src="/images/A.jpg" class="profile-avatar-img" alt="Avatar">
+                    <div id="prof-rank-icon" class="profile-rank-badge-icon" title="Bậc Xếp Hạng">🥉</div>
+                </div>
+
+                <div class="profile-info-main">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <h1 id="prof-display-name" class="profile-display-name">Đang tải...</h1>
+                        <span id="prof-rank-tag" class="profile-rank-tag">BRONZE IV</span>
+                    </div>
+                    <div style="font-size: 0.88rem; color: var(--game-text-muted); margin-bottom: 8px;">
+                        <span id="prof-username">@username</span> • Gia nhập: <span id="prof-created-at">2026</span>
+                    </div>
+                    <p id="prof-bio" class="profile-bio-text">Chưa có tiểu sử hải tặc.</p>
+                </div>
+
+                <!-- Rating Box -->
+                <div class="profile-rating-box">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: var(--game-text-muted); text-transform: uppercase; letter-spacing: 0.8px;">ĐIỂM RATING</div>
+                    <div id="prof-rating-val" style="font-size: 2.2rem; font-weight: 900; color: var(--game-gold); letter-spacing: -0.5px; line-height: 1.1;">1000</div>
+                    <div id="prof-rank-desc" style="font-size: 0.8rem; font-weight: 700; color: var(--game-primary);">Tân Binh Hải Tặc</div>
+                </div>
+            </div>
+
+            <!-- Level & XP Progress Bar -->
+            <div class="profile-level-bar-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.82rem; font-weight: 800;">
+                    <span style="color: var(--game-text-primary);">CẤP ĐỘ <strong id="prof-level" style="color: var(--game-primary); font-size: 1rem;">1</strong></span>
+                    <span style="color: var(--game-text-secondary);"><span id="prof-current-xp">0</span> / <span id="prof-next-xp">100</span> XP</span>
+                </div>
+                <div class="progress-container" style="height: 10px; margin-bottom: 0;">
+                    <div id="prof-xp-bar" class="progress-bar" style="width: 0%; background: linear-gradient(90deg, var(--game-primary), var(--game-gold));"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Statistics Grid -->
+        <div class="profile-stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-val" id="stat-total-games">0</div>
+                <div class="stat-card-lbl">Trận Đã Thi Đấu</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-val" id="stat-wins" style="color: #10b981;">0</div>
+                <div class="stat-card-lbl">Chiến Thắng (Top 1)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-val" id="stat-winrate" style="color: var(--game-gold);">0%</div>
+                <div class="stat-card-lbl">Tỷ Lệ Thắng</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-val" id="stat-best-score" style="color: var(--game-primary);">0</div>
+                <div class="stat-card-lbl">Điểm Cao Nhất</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-val" id="stat-avg-acc">0%</div>
+                <div class="stat-card-lbl">Độ Chính Xác TB</div>
+            </div>
+        </div>
+
+        <!-- 3. Profile Content Tabs -->
+        <div class="card" style="margin-top: 20px;">
+            <div class="auth-tabs" style="margin-bottom: 20px;">
+                <button type="button" id="tab-btn-history" class="auth-tab active" onclick="switchProfileTab('history')">
+                    📜 Lịch Sử Trận Đấu
+                </button>
+                <button type="button" id="tab-btn-edit" class="auth-tab" onclick="switchProfileTab('edit')">
+                    ⚙️ Chỉnh Sửa Hồ Sơ
+                </button>
+                <button type="button" id="tab-btn-security" class="auth-tab" onclick="switchProfileTab('security')">
+                    🔒 Đổi Mật Khẩu
+                </button>
+            </div>
+
+            <div id="prof-alert" class="alert alert-danger" style="display: none;"></div>
+            <div id="prof-success" class="alert alert-success" style="display: none;"></div>
+
+            <!-- Tab 1: Match History -->
+            <div id="tab-content-history">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Thời Gian</th>
+                                <th>Bộ Đề Thi</th>
+                                <th>Chế Độ</th>
+                                <th>Điểm Số</th>
+                                <th>Độ Chính Xác</th>
+                                <th>Biến Động Rating</th>
+                                <th>XP Nhận</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--game-text-muted); padding: 24px;">Đang tải lịch sử trận đấu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 2: Edit Profile -->
+            <div id="tab-content-edit" style="display: none; max-width: 580px;">
+                <form id="form-edit-profile" onsubmit="handleSaveProfile(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="edit-display-name">Tên hiển thị (Display Name) *</label>
+                        <input type="text" id="edit-display-name" class="form-control" required maxlength="50">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit-bio">Tiểu sử / Slogan hải tặc:</label>
+                        <textarea id="edit-bio" class="form-control" rows="2" placeholder="Nhập câu nói yêu thích..." maxlength="200"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Chọn Avatar nhân vật:</label>
+                        <div id="profile-avatar-picker" class="avatar-selection-grid">
+                            <!-- Loaded via API -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btn-save-profile">
+                        Lưu Thay Đổi
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tab 3: Security & Password -->
+            <div id="tab-content-security" style="display: none; max-width: 480px;">
+                <form id="form-change-password" onsubmit="handleChangePassword(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="change-current-pass">Mật khẩu hiện tại *</label>
+                        <input type="password" id="change-current-pass" class="form-control" placeholder="Nhập mật khẩu hiện tại..." required autocomplete="current-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="change-new-pass">Mật khẩu mới (Tối thiểu 6 ký tự) *</label>
+                        <input type="password" id="change-new-pass" class="form-control" placeholder="Nhập mật khẩu mới..." required autocomplete="new-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="change-confirm-pass">Xác nhận mật khẩu mới *</label>
+                        <input type="password" id="change-confirm-pass" class="form-control" placeholder="Nhập lại mật khẩu mới..." required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btn-save-password">
+                        Cập Nhật Mật Khẩu
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
+    </footer>
+
+    <script src="/js/authNav.js"></script>
+    <script src="/js/profile.js"></script>
+</body>
+</html>

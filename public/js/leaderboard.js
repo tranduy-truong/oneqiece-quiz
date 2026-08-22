@@ -34,28 +34,41 @@ async function loadGlobalLeaderboard() {
                 else if (r.rank === 2) medal = '🥈 2';
                 else if (r.rank === 3) medal = '🥉 3';
 
+                const rankDisplay = r.rank_display || 'Tân Binh Hải Tặc';
+                const rankIcon = r.rank_icon || '🥉';
+                const rankColor = r.rank_color || '#cd7f32';
+                const displayName = r.display_name || r.username;
+
                 return `
                     <tr>
-                        <td style="text-align: center; font-weight: 800; color: var(--color-skyblue); font-size: 1.1rem;">
+                        <td style="text-align: center; font-weight: 900; color: var(--game-primary); font-size: 1.1rem;">
                             ${medal}
                         </td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="${r.avatar || '/images/A.jpg'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" onerror="this.src='/images/A.jpg'">
-                                <strong style="color: var(--text-main); font-size: 1rem;">${escapeHtml(r.username)}</strong>
+                                <img src="${r.avatar || '/images/A.jpg'}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid ${rankColor};" onerror="this.src='/images/A.jpg'">
+                                <div>
+                                    <div style="font-weight: 800; color: var(--game-text-primary); font-size: 0.95rem;">${escapeHtml(displayName)}</div>
+                                    <div style="font-size: 0.76rem; color: var(--game-text-muted);">@${escapeHtml(r.username)} • Lv.${r.level || 1}</div>
+                                </div>
                             </div>
                         </td>
-                        <td style="text-align: right; font-weight: 800; color: var(--color-skyblue); font-size: 1.05rem;">
-                            ${r.total_score.toLocaleString()} pts
+                        <td style="text-align: center;">
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.1); border: 1px solid ${rankColor}; color: ${rankColor}; font-weight: 800;">
+                                ${rankIcon} ${rankDisplay}
+                            </span>
                         </td>
-                        <td style="text-align: center; font-weight: 700; color: #34d399;">
-                            ${r.avg_accuracy}%
+                        <td style="text-align: right; font-weight: 900; color: var(--game-gold); font-size: 1.15rem;">
+                            ${(r.rating || 1000).toLocaleString()}
                         </td>
-                        <td style="text-align: center; font-weight: 800; color: #ffd700;">
-                            ${r.wins} 🏆
+                        <td style="text-align: right; font-weight: 800; color: var(--game-primary); font-size: 1rem;">
+                            ${(r.total_score || 0).toLocaleString()} pts
                         </td>
-                        <td style="text-align: center; color: var(--text-muted);">
-                            ${r.games_played}
+                        <td style="text-align: center; font-weight: 700; color: #10b981;">
+                            ${r.avg_accuracy || 0}%
+                        </td>
+                        <td style="text-align: center; font-weight: 800; color: var(--game-gold);">
+                            ${r.wins || 0} 🏆
                         </td>
                     </tr>
                 `;

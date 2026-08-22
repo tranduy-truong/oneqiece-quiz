@@ -15,6 +15,8 @@ const leaderboardRoutes = require('./routes/leaderboard');
 const musicRoutes = require('./routes/music');
 const avatarRoutes = require('./routes/avatars');
 const adminRoutes = require('./routes/admin');
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +41,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // Đăng ký API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/questions', questionRoutes);
@@ -69,6 +73,22 @@ app.get('/admin', (req, res) => {
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/login.html'));
+});
+
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/register.html'));
+});
+
+app.get('/verify-email', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/verify-email.html'));
+});
+
+app.get('/forgot-password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/forgot-password.html'));
+});
+
+app.get('/profile', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/profile.html'));
 });
 
 app.get('/solo', (req, res) => {

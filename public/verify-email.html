@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác Thực Email — ONE PIECE QUIZ</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
+</head>
+<body>
+
+    <!-- Floating Liquid Glass Navbar -->
+    <div class="game-navbar-wrapper">
+        <header class="game-navbar">
+            <div class="nav-inner">
+                <a href="/" class="brand-link">
+                    <div class="brand-icon"><img src="https://p1.hiclipart.com/preview/8/1017/218/one-piece-logo-png-clipart.jpg" class="brand-icon-img" alt="Logo" onerror="this.src='/favicon.svg'"></div>
+                    <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
+                </a>
+
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
+                        <li><a href="/solo" class="nav-item-link">Chơi Solo</a></li>
+                        <li><a href="/join" class="nav-item-link">Vào Phòng</a></li>
+                    </ul>
+                </nav>
+
+                <div class="nav-actions">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                        ☀️ <span class="theme-btn-text">Sáng</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <main class="container" style="max-width: 500px; margin: 40px auto;">
+        <div class="card auth-card" style="text-align: center; padding: 36px 24px;">
+            <!-- Loading state -->
+            <div id="verify-loading">
+                <div style="font-size: 2.5rem; margin-bottom: 12px; animation: livePulse 1.5s infinite;">⏳</div>
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--game-primary); margin-bottom: 8px;">Đang xác thực tài khoản...</h3>
+                <p style="color: var(--game-text-secondary); font-size: 0.9rem;">Hệ thống đang kiểm tra chữ ký token của bạn.</p>
+            </div>
+
+            <!-- Success state -->
+            <div id="verify-success" style="display: none;">
+                <div style="font-size: 3rem; margin-bottom: 14px;">🎉</div>
+                <h2 style="font-size: 1.4rem; font-weight: 900; color: #10b981; margin-bottom: 10px;">XÁC THỰC THÀNH CÔNG!</h2>
+                <p id="verify-success-msg" style="color: var(--game-text-secondary); line-height: 1.6; font-size: 0.92rem; margin-bottom: 24px;">
+                    Tài khoản của bạn đã được kích hoạt thành công. Đang tự động chuyển hướng đến trang đăng nhập trong <strong id="countdown-timer" style="color: var(--game-gold);">3</strong> giây...
+                </p>
+                <a href="/login" class="btn btn-primary btn-lg" style="width: 100%;">Đăng Nhập Ngay</a>
+            </div>
+
+            <!-- Error state -->
+            <div id="verify-error" style="display: none;">
+                <div style="font-size: 3rem; margin-bottom: 14px;">⚠️</div>
+                <h2 style="font-size: 1.4rem; font-weight: 900; color: #ef4444; margin-bottom: 10px;">XÁC THỰC THẤT BẠI</h2>
+                <p id="verify-error-msg" style="color: var(--game-text-secondary); line-height: 1.6; font-size: 0.92rem; margin-bottom: 24px;">
+                    Link xác thực không hợp lệ hoặc đã hết hạn (24 giờ).
+                </p>
+                
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="handleResendModal()" class="btn btn-secondary">Gửi Lại Link Xác Thực</button>
+                    <a href="/login" class="btn btn-primary">Về Trang Đăng Nhập</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
+    </footer>
+
+    <script src="/js/verifyEmail.js"></script>
+</body>
+</html>

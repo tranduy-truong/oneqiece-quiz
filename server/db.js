@@ -437,6 +437,90 @@ async function ensureTablesExist(connection) {
             }
             console.log('🎉 Đã nạp thành công 12 câu hỏi vào database!');
         }
+        // 13. Users Table (Registered Players)
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`users\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`username\` VARCHAR(50) NOT NULL UNIQUE,
+                \`display_name\` VARCHAR(100) NOT NULL,
+                \`email\` VARCHAR(255) NOT NULL UNIQUE,
+                \`password_hash\` VARCHAR(255) NULL,
+                \`avatar_url\` VARCHAR(500) DEFAULT '/images/A.jpg',
+                \`email_verified\` BOOLEAN DEFAULT FALSE,
+                \`xp\` INT DEFAULT 0,
+                \`level\` INT DEFAULT 1,
+                \`rating\` INT DEFAULT 1000,
+                \`rank_tier\` VARCHAR(50) DEFAULT 'BRONZE',
+                \`rank_division\` VARCHAR(10) DEFAULT 'IV',
+                \`bio\` VARCHAR(255) NULL,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 14. Auth Accounts Table (Google OAuth & Providers)
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`auth_accounts\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`user_id\` INT NOT NULL,
+                \`provider\` VARCHAR(50) NOT NULL,
+                \`provider_account_id\` VARCHAR(255) NOT NULL,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY \`uk_provider_account\` (\`provider\`, \`provider_account_id\`),
+                KEY \`idx_auth_user\` (\`user_id\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 15. Email Verification Tokens Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`email_verification_tokens\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`user_id\` INT NOT NULL,
+                \`token_hash\` VARCHAR(255) NOT NULL UNIQUE,
+                \`expires_at\` TIMESTAMP NOT NULL,
+                \`used_at\` TIMESTAMP NULL,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                KEY \`idx_email_token_user\` (\`user_id\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 16. Password Reset Tokens Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`password_reset_tokens\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`user_id\` INT NOT NULL,
+                \`token_hash\` VARCHAR(255) NOT NULL UNIQUE,
+                \`expires_at\` TIMESTAMP NOT NULL,
+                \`used_at\` TIMESTAMP NULL,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                KEY \`idx_reset_token_user\` (\`user_id\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // 17. Quiz Results Table (Match History & Rank Changes)
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS \`quiz_results\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`user_id\` INT NULL,
+                \`player_id\` INT NULL,
+                \`game_session_id\` INT NULL,
+                \`quiz_id\` INT NOT NULL,
+                \`mode\` VARCHAR(50) DEFAULT 'CASUAL_MULTIPLAYER',
+                \`score\` INT DEFAULT 0,
+                \`correct_answers\` INT DEFAULT 0,
+                \`total_questions\` INT DEFAULT 0,
+                \`accuracy\` FLOAT DEFAULT 0,
+                \`rating_before\` INT DEFAULT 1000,
+                \`rating_change\` INT DEFAULT 0,
+                \`rating_after\` INT DEFAULT 1000,
+                \`xp_gained\` INT DEFAULT 0,
+                \`final_rank\` INT DEFAULT 1,
+                \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                KEY \`idx_result_user\` (\`user_id\`),
+                KEY \`idx_result_session\` (\`game_session_id\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
         console.log('✅ Hoàn tất khởi tạo & đồng bộ database!');
     } catch (err) {
         console.error('Lỗi khi tự động khởi tạo bảng/seed dữ liệu:', err.message);

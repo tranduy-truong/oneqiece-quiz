@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký Tài Khoản — ONE PIECE QUIZ</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+    <!-- Floating Liquid Glass Navbar -->
+    <div class="game-navbar-wrapper">
+        <header class="game-navbar">
+            <div class="nav-inner">
+                <a href="/" class="brand-link">
+                    <div class="brand-icon"><img src="https://p1.hiclipart.com/preview/8/1017/218/one-piece-logo-png-clipart.jpg" class="brand-icon-img" alt="Logo" onerror="this.src='/favicon.svg'"></div>
+                    <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
+                </a>
+
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
+                        <li><a href="/solo" class="nav-item-link">Chơi Solo</a></li>
+                        <li><a href="/join" class="nav-item-link">Vào Phòng</a></li>
+                        <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
+                    </ul>
+                </nav>
+
+                <div class="nav-actions">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+                        ☀️ <span class="theme-btn-text">Sáng</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <main class="container" style="max-width: 500px; margin: 30px auto;">
+        <div class="card auth-card">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.45rem; font-weight: 900; color: var(--game-text-primary); margin-bottom: 6px;">GIA NHẬP BĂNG HẢI TẶC</h2>
+                <p style="font-size: 0.85rem; color: var(--game-text-secondary);">Tạo tài khoản để bắt đầu hành trình leo Rank Grand Line</p>
+            </div>
+
+            <!-- Google Sign Up Button -->
+            <div style="margin-bottom: 18px;">
+                <button type="button" class="btn-google-auth" onclick="handleGoogleSignInClick()">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span>Đăng ký nhanh bằng Google</span>
+                </button>
+            </div>
+
+            <div class="auth-divider">
+                <span>HOẶC ĐIỀN THÔNG TIN</span>
+            </div>
+
+            <div id="register-alert" class="alert alert-danger" style="display: none;"></div>
+            <div id="register-success" class="alert alert-success" style="display: none;"></div>
+
+            <form id="register-form" onsubmit="handleRegister(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="reg-display-name">Tên hiển thị (Display Name) *</label>
+                        <input type="text" id="reg-display-name" class="form-control" placeholder="VD: Monkey D. Luffy" required maxlength="50">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-username">Tên đăng nhập (@username) *</label>
+                        <input type="text" id="reg-username" class="form-control" placeholder="VD: luffy_2026" required maxlength="30" autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="reg-email">Địa chỉ Email xác thực *</label>
+                    <input type="email" id="reg-email" class="form-control" placeholder="VD: luffy@strawhat.com" required autocomplete="email">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="reg-password">Mật khẩu (Tối thiểu 6 ký tự) *</label>
+                        <input type="password" id="reg-password" class="form-control" placeholder="Nhập mật khẩu..." required autocomplete="new-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-confirm-password">Xác nhận mật khẩu *</label>
+                        <input type="password" id="reg-confirm-password" class="form-control" placeholder="Nhập lại mật khẩu..." required autocomplete="new-password">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" id="btn-reg-submit" style="width: 100%; margin-top: 10px; margin-bottom: 16px;">
+                    Tạo Tài Khoản Ngay
+                </button>
+
+                <div style="text-align: center; font-size: 0.88rem; color: var(--game-text-secondary);">
+                    Đã có tài khoản? <a href="/login" style="color: var(--game-primary); font-weight: 800; text-decoration: none;">Đăng nhập ngay</a>
+                </div>
+            </form>
+
+            <!-- Success Box (Check Email) -->
+            <div id="register-done-box" style="display: none; text-align: center; padding: 20px 0;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">📬</div>
+                <h3 style="color: #10b981; font-weight: 900; margin-bottom: 10px;">ĐĂNG KÝ THÀNH CÔNG!</h3>
+                <p style="color: var(--game-text-secondary); line-height: 1.6; font-size: 0.95rem; margin-bottom: 20px;">
+                    Hệ thống đã gửi một email xác thực đến hộp thư của bạn.<br>
+                    Vui lòng mở email và bấm vào liên kết xác thực để kích hoạt tài khoản.
+                </p>
+                <div id="dev-verify-link-container" style="display: none; margin-bottom: 18px; padding: 12px; background: rgba(56,189,248,0.1); border: 1px dashed var(--game-primary); border-radius: var(--radius-sm); word-break: break-all; font-size: 0.82rem;">
+                    <strong>[Dev Link Xác Thực]:</strong> <a id="dev-verify-link" href="#" style="color: var(--game-gold);"></a>
+                </div>
+                <a href="/login" class="btn btn-primary">Đến Trang Đăng Nhập</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>
+    </footer>
+
+    <script src="/js/register.js"></script>
+</body>
+</html>

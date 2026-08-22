@@ -1,17 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
+const { optionalUserAuth } = require('../middleware/userAuth');
+const { calculateSoloReward, getLevelInfo } = require('../services/rankService');
 
 /**
  * POST /api/solo/start
  * Bắt đầu phiên thi đấu Solo hoặc Luyện tập
  */
-router.post('/start', async (req, res) => {
+router.post('/start', optionalUserAuth, async (req, res) => {
     try {
         const { quiz_id, username, mode, session_token } = req.body;
         const quizId = parseInt(quiz_id, 10) || 1;
         const gameMode = mode === 'PRACTICE' ? 'PRACTICE' : 'SOLO';
-        const cleanUsername = String(username || 'Chiến Binh Solo').trim();
+        const cleanUsername = String((req.user && req.user.display_name) || username || 'Chiến Binh Solo').trim();
 
         // 1. Lấy thông tin quiz
         const [quizzes] = await pool.query('SELECT * FROM quizzes WHERE id = ?', [quizId]);
@@ -159,9 +161,9 @@ router.post('/check', async (req, res) => {
 
 /**
  * POST /api/solo/submit
- * Nộp toàn bộ bài Solo -> Tính điểm, xếp hạng Larper và lưu kết quả
+ * Nộp toàn bộ bài Solo -> Tính điểm, xếp hạng Larper, cộng XP/Rating (cho registered user) và lưu kết quả
  */
-router.post('/submit', async (req, res) => {
+router.post('/submit', optionalUserAuth, async (req, res) => {
     try {
         const { game_session_id, answers, session_token } = req.body;
         if (!game_session_id || !answers) {
@@ -177,6 +179,10 @@ router.post('/submit', async (req, res) => {
         if (questions.length === 0) {
             return res.status(404).json({ success: false, error: 'Phiên thi đấu không tồn tại.' });
         }
+
+        // Lấy thông tin game_session
+        const [sessionRows] = await pool.query('SELECT * FROM game_sessions WHERE id = ?', [game_session_id]);
+        const quizId = (sessionRows.length > 0 && sessionRows[0].quiz_id) || 1;
 
         let score = 0;
         let correctCount = 0;
@@ -234,13 +240,14 @@ router.post('/submit', async (req, res) => {
             rankMessage = 'Bạn cần xem lại toàn bộ từ đầu để xóa bỏ danh xưng Larper!';
         }
 
-        // Lưu kết quả vào DB
+        // Cập nhật session kết thúc
         await pool.query('UPDATE game_sessions SET finished_at = CURRENT_TIMESTAMP WHERE id = ?', [game_session_id]);
 
+        let playerId = null;
         if (session_token) {
             const [pRows] = await pool.query('SELECT id FROM players WHERE session_token = ?', [session_token]);
             if (pRows.length > 0) {
-                const playerId = pRows[0].id;
+                playerId = pRows[0].id;
                 await pool.query(
                     `INSERT INTO game_player_results 
                     (game_session_id, player_id, total_score, correct_count, wrong_count, accuracy, final_rank)
@@ -250,8 +257,55 @@ router.post('/submit', async (req, res) => {
             }
         }
 
+        // Xử lý Rank & XP nếu người chơi đã ĐĂNG NHẬP
+        let rankedReward = null;
+        let isRegistered = false;
+
+        if (req.user) {
+            isRegistered = true;
+            const currentUser = req.user;
+            const reward = calculateSoloReward(accuracy, score, totalQuestions, currentUser.rating);
+            const newTotalXP = (currentUser.xp || 0) + reward.xpGained;
+            const newLevelInfo = getLevelInfo(newTotalXP);
+
+            // Cập nhật user rating & xp
+            await pool.query(
+                `UPDATE users 
+                 SET rating = ?, xp = ?, level = ?, rank_tier = ?, rank_division = ?
+                 WHERE id = ?`,
+                [reward.ratingAfter, newTotalXP, newLevelInfo.level, reward.newRank.tier, reward.newRank.division, currentUser.id]
+            );
+
+            // Lưu vào quiz_results
+            await pool.query(
+                `INSERT INTO quiz_results 
+                 (user_id, player_id, game_session_id, quiz_id, mode, score, correct_answers, total_questions, accuracy, rating_before, rating_change, rating_after, xp_gained, final_rank)
+                 VALUES (?, ?, ?, ?, 'SOLO', ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+                [currentUser.id, playerId, game_session_id, quizId, score, correctCount, totalQuestions, accuracy, reward.ratingBefore, reward.ratingChange, reward.ratingAfter, reward.xpGained]
+            );
+
+            rankedReward = {
+                ratingBefore: reward.ratingBefore,
+                ratingChange: reward.ratingChange,
+                ratingAfter: reward.ratingAfter,
+                xpGained: reward.xpGained,
+                newRank: reward.newRank,
+                newLevel: newLevelInfo.level
+            };
+        } else {
+            // Guest -> lưu quiz_results với user_id = null
+            await pool.query(
+                `INSERT INTO quiz_results 
+                 (user_id, player_id, game_session_id, quiz_id, mode, score, correct_answers, total_questions, accuracy, rating_before, rating_change, rating_after, xp_gained, final_rank)
+                 VALUES (NULL, ?, ?, ?, 'SOLO', ?, ?, ?, ?, 1000, 0, 1000, 0, 1)`,
+                [playerId, game_session_id, quizId, score, correctCount, totalQuestions, accuracy]
+            );
+        }
+
         res.json({
             success: true,
+            isRegistered,
+            rankedReward,
             summary: {
                 total_questions: totalQuestions,
                 correct_count: correctCount,
@@ -265,8 +319,8 @@ router.post('/submit', async (req, res) => {
             details: results
         });
     } catch (err) {
-        console.error('Lỗi submit solo:', err);
-        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi tổng kết điểm.' });
+        console.error('Lỗi nộp bài solo:', err);
+        res.status(500).json({ success: false, error: 'Lỗi máy chủ khi tổng kết bài thi.' });
     }
 });
 

@@ -1,13 +1,56 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
+const { getRankInfo, getLevelInfo } = require('../services/rankService');
 
 /**
  * GET /api/leaderboard/global
- * Bảng xếp hạng người chơi toàn cầu
+ * Bảng xếp hạng người chơi toàn cầu (Ưu tiên Registered Ranked Users)
  */
 router.get('/global', async (req, res) => {
     try {
+        // 1. Lấy danh sách Registered Ranked Users
+        const [userRows] = await pool.query(`
+            SELECT u.id, u.username, u.display_name, u.avatar_url, u.rating, u.xp, u.level, u.rank_tier, u.rank_division,
+                   (SELECT COUNT(*) FROM quiz_results WHERE user_id = u.id) as games_played,
+                   (SELECT COUNT(*) FROM quiz_results WHERE user_id = u.id AND final_rank = 1) as total_wins,
+                   (SELECT COALESCE(AVG(accuracy), 0) FROM quiz_results WHERE user_id = u.id) as avg_accuracy,
+                   (SELECT COALESCE(SUM(score), 0) FROM quiz_results WHERE user_id = u.id) as total_accumulated_score
+            FROM users u
+            WHERE u.email_verified = TRUE
+            ORDER BY u.rating DESC, u.xp DESC
+            LIMIT 50
+        `);
+
+        if (userRows.length > 0) {
+            const formatted = userRows.map((u, idx) => {
+                const rankInfo = getRankInfo(u.rating);
+                const levelInfo = getLevelInfo(u.xp);
+                return {
+                    rank: idx + 1,
+                    user_id: u.id,
+                    username: u.username,
+                    display_name: u.display_name,
+                    avatar: u.avatar_url || '/images/A.jpg',
+                    rating: u.rating,
+                    xp: u.xp,
+                    level: levelInfo.level,
+                    rank_tier: rankInfo.tier,
+                    rank_division: rankInfo.division,
+                    rank_display: rankInfo.rankDisplayName,
+                    rank_icon: rankInfo.icon,
+                    rank_color: rankInfo.color,
+                    total_score: parseInt(u.total_accumulated_score, 10) || 0,
+                    avg_accuracy: Math.round(u.avg_accuracy || 0),
+                    games_played: u.games_played || 0,
+                    wins: u.total_wins || 0,
+                    is_registered: true
+                };
+            });
+            return res.json({ success: true, data: formatted });
+        }
+
+        // Fallback: nếu chưa có registered user nào, lấy từ players cũ
         const [rows] = await pool.query(`
             SELECT p.id, p.username, p.avatar, 
                    COALESCE(SUM(r.total_score), 0) as total_accumulated_score,
@@ -25,11 +68,18 @@ router.get('/global', async (req, res) => {
             rank: idx + 1,
             player_id: r.id,
             username: r.username,
+            display_name: r.username,
             avatar: r.avatar,
+            rating: 1000 + (r.total_wins * 25),
+            level: 1,
+            rank_display: 'Tân Binh Hải Tặc',
+            rank_icon: '🥉',
+            rank_color: '#cd7f32',
             total_score: parseInt(r.total_accumulated_score, 10),
             avg_accuracy: Math.round(r.avg_accuracy),
             games_played: r.games_played,
-            wins: r.total_wins
+            wins: r.total_wins,
+            is_registered: false
         }));
 
         res.json({ success: true, data: formatted });

@@ -1,4 +1,7 @@
 const { pool } = require('../db');
+const jwt = require('jsonwebtoken');
+const { calculateMultiplayerReward, getLevelInfo, getRankInfo } = require('./rankService');
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_quiz_jwt_key_2026_onepiece';
 
 class GameManager {
     constructor() {
@@ -99,7 +102,7 @@ class GameManager {
     /**
      * Người chơi tham gia phòng (Join Room)
      */
-    async joinRoom(roomCode, socketId, username, sessionToken, avatar = '/images/A.jpg') {
+    async joinRoom(roomCode, socketId, username, sessionToken, avatar = '/images/A.jpg', authToken = null) {
         const room = this.rooms.get(roomCode);
         if (!room) {
             throw new Error('Phòng không tồn tại hoặc đã bị hủy.');
@@ -113,10 +116,30 @@ class GameManager {
             throw new Error('Phòng đã đầy người chơi.');
         }
 
-        const cleanUsername = String(username || '').trim();
+        // Kiểm tra User ID nếu có Auth Token
+        let userId = null;
+        let registeredUser = null;
+        if (authToken) {
+            try {
+                const decoded = jwt.verify(authToken, JWT_SECRET);
+                if (decoded && decoded.userId) {
+                    const [uRows] = await pool.query('SELECT * FROM users WHERE id = ?', [decoded.userId]);
+                    if (uRows.length > 0) {
+                        registeredUser = uRows[0];
+                        userId = registeredUser.id;
+                    }
+                }
+            } catch (authErr) {
+                // Ignore token error, fallback to guest
+            }
+        }
+
+        const cleanUsername = String((registeredUser && registeredUser.display_name) || username || '').trim();
         if (!cleanUsername || cleanUsername.length > 25) {
             throw new Error('Tên người chơi không hợp lệ (1 - 25 ký tự).');
         }
+
+        const finalAvatar = (registeredUser && registeredUser.avatar_url) || avatar || '/images/A.jpg';
 
         // Kiểm tra trùng username trong cùng room
         for (const p of room.players.values()) {
@@ -132,7 +155,7 @@ class GameManager {
                 `INSERT INTO players (username, session_token, avatar) 
                  VALUES (?, ?, ?) 
                  ON DUPLICATE KEY UPDATE username = VALUES(username), avatar = VALUES(avatar), last_active = CURRENT_TIMESTAMP`,
-                [cleanUsername, sessionToken, avatar]
+                [cleanUsername, sessionToken, finalAvatar]
             );
             playerId = playerRes.insertId || null;
             if (!playerId) {
@@ -143,11 +166,14 @@ class GameManager {
             console.error('Lỗi lưu Player vào DB:', dbErr.message);
         }
 
+        const rankInfo = registeredUser ? getRankInfo(registeredUser.rating) : null;
+
         const player = {
             playerId,
+            userId,
             sessionToken,
             username: cleanUsername,
-            avatar,
+            avatar: finalAvatar,
             socketId,
             connected: true,
             totalScore: 0,
@@ -157,7 +183,9 @@ class GameManager {
             maxStreak: 0,
             lastAnswer: null,
             rank: 1,
-            prevRank: 1
+            prevRank: 1,
+            isRegistered: Boolean(userId),
+            rankInfo: rankInfo ? { tier: rankInfo.tier, icon: rankInfo.icon, rating: registeredUser.rating } : null
         };
 
         room.players.set(sessionToken, player);
@@ -170,9 +198,12 @@ class GameManager {
             topicName: room.topicName,
             player: {
                 playerId,
+                userId,
                 username: cleanUsername,
-                avatar,
-                sessionToken
+                avatar: finalAvatar,
+                sessionToken,
+                isRegistered: Boolean(userId),
+                rankInfo: player.rankInfo
             },
             playerList: this.getPlayerList(roomCode)
         };
@@ -538,13 +569,53 @@ class GameManager {
                 await pool.query('UPDATE rooms SET status = "FINISHED" WHERE room_code = ?', [roomCode]);
 
                 for (const p of room.players.values()) {
+                    const accuracy = room.questionList.length > 0 ? (p.correctCount / room.questionList.length) * 100 : 0;
+                    
                     if (p.playerId) {
-                        const accuracy = room.questionList.length > 0 ? (p.correctCount / room.questionList.length) * 100 : 0;
                         await pool.query(
                             `INSERT INTO game_player_results 
                             (game_session_id, player_id, total_score, correct_count, wrong_count, accuracy, final_rank)
                             VALUES (?, ?, ?, ?, ?, ?, ?)`,
                             [room.gameSessionId, p.playerId, p.totalScore, p.correctCount, p.wrongCount, accuracy, p.rank]
+                        );
+                    }
+
+                    // Nếu là Registered User -> Tính Rank & XP và lưu vào quiz_results
+                    if (p.userId) {
+                        try {
+                            const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [p.userId]);
+                            if (userRows.length > 0) {
+                                const user = userRows[0];
+                                const reward = calculateMultiplayerReward(p.rank, room.players.size, p.totalScore, accuracy, user.rating);
+                                const newTotalXP = (user.xp || 0) + reward.xpGained;
+                                const newLevelInfo = getLevelInfo(newTotalXP);
+
+                                // Cập nhật user rating & xp
+                                await pool.query(
+                                    `UPDATE users 
+                                     SET rating = ?, xp = ?, level = ?, rank_tier = ?, rank_division = ?
+                                     WHERE id = ?`,
+                                    [reward.ratingAfter, newTotalXP, newLevelInfo.level, reward.newRank.tier, reward.newRank.division, user.id]
+                                );
+
+                                // Lưu vào quiz_results
+                                await pool.query(
+                                    `INSERT INTO quiz_results 
+                                     (user_id, player_id, game_session_id, quiz_id, mode, score, correct_answers, total_questions, accuracy, rating_before, rating_change, rating_after, xp_gained, final_rank)
+                                     VALUES (?, ?, ?, ?, 'RANKED_MULTIPLAYER', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                    [user.id, p.playerId, room.gameSessionId, room.quizId, p.totalScore, p.correctCount, room.questionList.length, accuracy, reward.ratingBefore, reward.ratingChange, reward.ratingAfter, reward.xpGained, p.rank]
+                                );
+                            }
+                        } catch (uErr) {
+                            console.error('Lỗi cập nhật rank user multiplayer:', uErr.message);
+                        }
+                    } else {
+                        // Guest result
+                        await pool.query(
+                            `INSERT INTO quiz_results 
+                             (user_id, player_id, game_session_id, quiz_id, mode, score, correct_answers, total_questions, accuracy, rating_before, rating_change, rating_after, xp_gained, final_rank)
+                             VALUES (NULL, ?, ?, ?, 'CASUAL_MULTIPLAYER', ?, ?, ?, ?, 1000, 0, 1000, 0, ?)`,
+                            [p.playerId, room.gameSessionId, room.quizId, p.totalScore, p.correctCount, room.questionList.length, accuracy, p.rank]
                         );
                     }
                 }

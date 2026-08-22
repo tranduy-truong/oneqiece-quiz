@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập Quản Trị — Realtime Quiz Studio</title>
+    <title>Đăng Nhập — ONE PIECE QUIZ</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/theme.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -16,17 +18,19 @@
             <div class="nav-inner">
                 <a href="/" class="brand-link">
                     <div class="brand-icon"><img src="https://p1.hiclipart.com/preview/8/1017/218/one-piece-logo-png-clipart.jpg" class="brand-icon-img" alt="Logo" onerror="this.src='/favicon.svg'"></div>
-                    <span>ONE PIECE <span class="brand-title-accent">ADMIN</span></span>
+                    <span>ONE PIECE <span class="brand-title-accent">QUIZ</span></span>
                 </a>
 
                 <nav>
                     <ul class="nav-menu">
                         <li><a href="/" class="nav-item-link">Trang Chủ</a></li>
+                        <li><a href="/solo" class="nav-item-link">Chơi Solo</a></li>
+                        <li><a href="/join" class="nav-item-link">Vào Phòng</a></li>
                         <li><a href="/leaderboard" class="nav-item-link">Bảng Vàng</a></li>
                     </ul>
                 </nav>
 
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="nav-actions">
                     <button class="btn-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
                         ☀️ <span class="theme-btn-text">Sáng</span>
                     </button>
@@ -35,37 +39,92 @@
         </header>
     </div>
 
-    <main class="container" style="max-width: 460px; margin: 40px auto;">
-        <div class="card" style="box-shadow: var(--glass-shadow);">
-            <div class="card-header-game" style="justify-content: center; text-align: center;">
-                <div class="card-title-game">
-                    <span>ĐĂNG NHẬP QUẢN TRỊ STUDIO</span>
-                </div>
-            </div>
-
-            <div id="login-alert" class="alert alert-danger">
-                <!-- Error messages -->
-            </div>
-
-            <form id="login-form">
-                <div class="form-group">
-                    <label class="form-label" for="username">Tên đăng nhập quản trị:</label>
-                    <input type="text" id="username" class="form-control" placeholder="Nhập username..." required autocomplete="username">
-                </div>
-
-                <div class="form-group" style="margin-bottom: 24px;">
-                    <label class="form-label" for="password">Mật khẩu bảo mật:</label>
-                    <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-lg" id="btn-login-submit" style="width: 100%; margin-bottom: 12px;">
-                    Đăng Nhập
+    <main class="container" style="max-width: 480px; margin: 30px auto;">
+        <div class="card auth-card">
+            <!-- Tabs switch: Player vs Admin -->
+            <div class="auth-tabs">
+                <button type="button" id="tab-player" class="auth-tab active" onclick="switchLoginTab('player')">
+                    Hải Tặc / Người Chơi
                 </button>
+                <button type="button" id="tab-admin" class="auth-tab" onclick="switchLoginTab('admin')">
+                    Admin Studio
+                </button>
+            </div>
 
-                <a href="/" class="btn btn-secondary" style="width: 100%;">
-                    Quay lại Trang Chủ
-                </a>
-            </form>
+            <div id="login-alert" class="alert alert-danger" style="display: none;"></div>
+            <div id="login-success" class="alert alert-success" style="display: none;"></div>
+
+            <!-- 1. Player Login Form -->
+            <div id="form-player-container">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--game-text-primary); margin-bottom: 6px;">ĐĂNG NHẬP CHIẾN BINH</h2>
+                    <p style="font-size: 0.85rem; color: var(--game-text-secondary);">Gia nhập Grand Line để leo Rank và lưu giữ chiến tích</p>
+                </div>
+
+                <!-- Google One-Click Button -->
+                <div style="margin-bottom: 18px;">
+                    <button type="button" id="btn-google-login" class="btn-google-auth" onclick="handleGoogleSignInClick()">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+                            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                        </svg>
+                        <span>Đăng nhập nhanh bằng Google</span>
+                    </button>
+                </div>
+
+                <div class="auth-divider">
+                    <span>HOẶC DÙNG EMAIL</span>
+                </div>
+
+                <form id="player-login-form" onsubmit="handlePlayerLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="player-email">Email hoặc Tên đăng nhập:</label>
+                        <input type="text" id="player-email" class="form-control" placeholder="VD: luffy@strawhat.com hoặc luffy" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" for="player-password" style="margin-bottom: 0;">Mật khẩu:</label>
+                            <a href="/forgot-password" style="font-size: 0.8rem; color: var(--game-primary); text-decoration: none; font-weight: 700;">Quên mật khẩu?</a>
+                        </div>
+                        <input type="password" id="player-password" class="form-control" placeholder="Nhập mật khẩu của bạn..." required autocomplete="current-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" id="btn-player-submit" style="width: 100%; margin-top: 8px; margin-bottom: 16px;">
+                        Đăng Nhập Ngay
+                    </button>
+
+                    <div style="text-align: center; font-size: 0.88rem; color: var(--game-text-secondary);">
+                        Chưa có tài khoản? <a href="/register" style="color: var(--game-gold); font-weight: 800; text-decoration: none;">Đăng ký thành viên mới</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 2. Admin Studio Login Form -->
+            <div id="form-admin-container" style="display: none;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--game-gold); margin-bottom: 6px;">QUẢN TRỊ STUDIO</h2>
+                    <p style="font-size: 0.85rem; color: var(--game-text-secondary);">Dành riêng cho ban quản trị và biên soạn câu hỏi</p>
+                </div>
+
+                <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="admin-username">Tên đăng nhập quản trị:</label>
+                        <input type="text" id="admin-username" class="form-control" placeholder="Nhập username admin..." autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="admin-password">Mật khẩu quản trị:</label>
+                        <input type="password" id="admin-password" class="form-control" placeholder="Nhập password admin..." autocomplete="current-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-accent btn-lg" id="btn-admin-submit" style="width: 100%; margin-top: 8px;">
+                        Đăng Nhập Studio
+                    </button>
+                </form>
+            </div>
         </div>
     </main>
 

@@ -30,13 +30,14 @@ function setupSocketIO(io) {
         // 2. Player tham gia phòng
         socket.on('JOIN_ROOM', async (data, callback) => {
             try {
-                const { room_code, username, session_token, avatar } = data;
+                const { room_code, username, session_token, avatar, auth_token, token } = data;
                 const result = await gameManager.joinRoom(
                     room_code.toUpperCase().trim(),
                     socket.id,
                     username,
                     session_token,
-                    avatar
+                    avatar,
+                    auth_token || token || null
                 );
 
                 socket.join(result.roomCode);
