@@ -2,10 +2,11 @@
  * Dual Login Page Logic (Player vs Admin Studio) + Google OAuth
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+let globalGoogleClientId = '';
+
+document.addEventListener('DOMContentLoaded', async () => {
     // 1. Kiểm tra nếu URL có thông báo ?verified=true hoặc ?reset=true
     const urlParams = new URLSearchParams(window.location.search);
-    const alertSuccess = document.getElementById('login-success');
     if (urlParams.get('verified') === 'true') {
         showAlert('success', 'Xác thực tài khoản thành công! Bạn có thể đăng nhập ngay.');
     }
@@ -13,12 +14,35 @@ document.addEventListener('DOMContentLoaded', () => {
         showAlert('success', 'Mật khẩu đã được đặt lại thành công! Hãy đăng nhập bằng mật khẩu mới.');
     }
 
-    // 2. Nếu đã có auth_token người chơi, tự chuyển về profile hoặc trang trước đó
+    // 2. Nếu đã có auth_token người chơi, tự chuyển về profile
     const authToken = localStorage.getItem('auth_token');
     if (authToken) {
         verifyPlayerToken(authToken);
     }
+
+    // 3. Tải Google Client ID từ Server
+    await initGoogleAuth();
 });
+
+async function initGoogleAuth() {
+    try {
+        const res = await fetch('/api/auth/config');
+        const data = await res.json();
+        if (data.success && data.googleClientId) {
+            globalGoogleClientId = data.googleClientId;
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                google.accounts.id.initialize({
+                    client_id: globalGoogleClientId,
+                    callback: handleGoogleResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: true
+                });
+            }
+        }
+    } catch (e) {
+        console.warn('Không thể tải cấu hình Google Auth:', e);
+    }
+}
 
 function switchLoginTab(tab) {
     const tabPlayer = document.getElementById('tab-player');
@@ -168,54 +192,21 @@ async function handleAdminLogin(e) {
  * Xử lý đăng nhập Google
  */
 async function handleGoogleSignInClick() {
-    // Tự động kiểm tra Google Identity Services hoặc Mock Flow
-    if (window.google && window.google.accounts && window.google.accounts.id) {
+    if (globalGoogleClientId && window.google && window.google.accounts && window.google.accounts.id) {
         try {
-            google.accounts.id.initialize({
-                client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-                callback: handleGoogleResponse
+            google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    console.log('Google Prompt dismissed:', notification.getNotDisplayedReason());
+                }
             });
-            google.accounts.id.prompt();
             return;
         } catch (e) {
-            console.warn('Google GSI init fallback:', e);
+            console.warn('Google GSI prompt error:', e);
         }
     }
 
-    // Fallback Dev Popup / Google Dialog
-    const userPrompt = prompt('Nhập địa chỉ Gmail để đăng nhập thử nghiệm Google OAuth:', 'haitac@gmail.com');
-    if (!userPrompt) return;
-
-    try {
-        const mockPayload = {
-            sub: 'google_' + btoa(userPrompt).substring(0, 16),
-            email: userPrompt,
-            name: userPrompt.split('@')[0].toUpperCase(),
-            picture: '/images/A.jpg'
-        };
-
-        const res = await fetch('/api/auth/google', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_token: 'mock.' + btoa(JSON.stringify(mockPayload)) + '.mock' })
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success && data.token) {
-            localStorage.setItem('auth_token', data.token);
-            if (data.user && data.user.display_name) {
-                localStorage.setItem('player_username', data.user.display_name);
-            }
-            showAlert('success', 'Đăng nhập Google thành công!');
-            setTimeout(() => {
-                window.location.href = '/profile';
-            }, 800);
-        } else {
-            showAlert('danger', data.error || 'Đăng nhập Google thất bại.');
-        }
-    } catch (err) {
-        showAlert('danger', 'Lỗi kết nối Google Auth.');
-    }
+    // Nếu chưa cấu hình Google Client ID trên Render / Local
+    showAlert('danger', 'Chưa cấu hình GOOGLE_CLIENT_ID trên server Render. Vui lòng thêm biến GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET vào Environment của Render hoặc đăng nhập bằng Email/Password.');
 }
 
 async function handleGoogleResponse(response) {
@@ -231,11 +222,17 @@ async function handleGoogleResponse(response) {
         const data = await res.json();
         if (res.ok && data.success && data.token) {
             localStorage.setItem('auth_token', data.token);
-            window.location.href = '/profile';
+            if (data.user && data.user.display_name) {
+                localStorage.setItem('player_username', data.user.display_name);
+            }
+            showAlert('success', 'Đăng nhập Google thành công! Đang chuyển hướng...');
+            setTimeout(() => {
+                window.location.href = '/profile';
+            }, 800);
         } else {
             showAlert('danger', data.error || 'Xác thực Google thất bại.');
         }
     } catch (err) {
-        showAlert('danger', 'Lỗi kết nối máy chủ.');
+        showAlert('danger', 'Lỗi kết nối máy chủ khi đăng nhập Google.');
     }
 }

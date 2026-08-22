@@ -14,6 +14,17 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 /**
+ * GET /api/auth/config
+ * Lấy cấu hình public của hệ thống Auth (Google Client ID)
+ */
+router.get('/config', (req, res) => {
+    res.json({
+        success: true,
+        googleClientId: (process.env.GOOGLE_CLIENT_ID || '').trim()
+    });
+});
+
+/**
  * Hàm băm SHA-256 an toàn cho token
  */
 function hashToken(rawToken) {

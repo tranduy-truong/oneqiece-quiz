@@ -2,6 +2,28 @@
  * User Registration Controller + Google Auth
  */
 
+let globalGoogleClientId = '';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/auth/config');
+        const data = await res.json();
+        if (data.success && data.googleClientId) {
+            globalGoogleClientId = data.googleClientId;
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                google.accounts.id.initialize({
+                    client_id: globalGoogleClientId,
+                    callback: handleGoogleResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: true
+                });
+            }
+        }
+    } catch (e) {
+        console.warn('Không thể tải cấu hình Google Auth:', e);
+    }
+});
+
 async function handleRegister(e) {
     e.preventDefault();
 
@@ -82,21 +104,28 @@ async function handleRegister(e) {
  * Đăng nhập/Đăng ký nhanh bằng Google
  */
 async function handleGoogleSignInClick() {
-    const userPrompt = prompt('Nhập địa chỉ Gmail để đăng ký/đăng nhập Google OAuth:', 'haitac@gmail.com');
-    if (!userPrompt) return;
+    if (globalGoogleClientId && window.google && window.google.accounts && window.google.accounts.id) {
+        try {
+            google.accounts.id.prompt();
+            return;
+        } catch (e) {
+            console.warn('Google prompt error:', e);
+        }
+    }
+
+    const alertEl = document.getElementById('register-alert');
+    alertEl.innerText = 'Chưa cấu hình GOOGLE_CLIENT_ID trên server Render. Vui lòng đăng ký bằng biểu mẫu bên dưới hoặc thêm Client ID vào Render Environment.';
+    alertEl.style.display = 'block';
+}
+
+async function handleGoogleResponse(response) {
+    if (!response || !response.credential) return;
 
     try {
-        const mockPayload = {
-            sub: 'google_' + btoa(userPrompt).substring(0, 16),
-            email: userPrompt,
-            name: userPrompt.split('@')[0].toUpperCase(),
-            picture: '/images/A.jpg'
-        };
-
         const res = await fetch('/api/auth/google', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_token: 'mock.' + btoa(JSON.stringify(mockPayload)) + '.mock' })
+            body: JSON.stringify({ credential: response.credential })
         });
 
         const data = await res.json();
