@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Bảng Vàng Danh Dự — Realtime Quiz Leaderboard</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
@@ -59,6 +59,7 @@
 
             <!-- Global Leaderboard Tab -->
             <div id="tab-content-global">
+                <!-- Desktop Table View -->
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
@@ -81,10 +82,18 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Mobile Card/List View -->
+                <div id="global-lb-mobile-list" class="leaderboard-mobile-list">
+                    <div style="text-align: center; color: var(--game-text-muted); padding: 24px;">
+                        Đang tải danh sách xếp hạng...
+                    </div>
+                </div>
             </div>
 
             <!-- Recent Matches Tab -->
             <div id="tab-content-recent" style="display: none;">
+                <!-- Desktop Table View -->
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
@@ -106,9 +115,31 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Mobile Card/List View -->
+                <div id="recent-matches-mobile-list" class="leaderboard-mobile-list">
+                    <div style="text-align: center; color: var(--game-text-muted); padding: 24px;">
+                        Đang tải lịch sử trận đấu...
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Sticky Floating "YOU" Rank bar on Mobile -->
+    <div id="sticky-user-rank-bar" class="sticky-user-rank-bar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div id="sticky-user-pos" style="font-weight: 900; color: var(--game-gold); font-size: 1.1rem;">#--</div>
+            <div>
+                <div id="sticky-user-name" style="font-weight: 800; color: var(--game-text-primary); font-size: 0.92rem;">Bạn</div>
+                <div id="sticky-user-tier" style="font-size: 0.72rem; color: var(--game-text-secondary);">Chưa xếp hạng</div>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <div id="sticky-user-rating" style="font-weight: 900; color: var(--game-gold); font-size: 1.1rem;">1,000</div>
+            <div style="font-size: 0.72rem; color: var(--game-text-muted);">Rating của bạn</div>
+        </div>
+    </div>
 
     <footer class="app-footer">
         <p>© 2026 • Hệ thống trắc nghiệm One Piece & Công Nghệ</p>

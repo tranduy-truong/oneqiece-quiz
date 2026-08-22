@@ -102,49 +102,85 @@ async function loadUserStatsAndHistory(userId, token) {
 }
 
 function renderHistoryTable(history) {
-    const tbody = document.getElementById('history-table-body');
+    const tbody = document.getElementById('prof-history-tbody') || document.getElementById('history-table-body');
+    const mobileList = document.getElementById('prof-history-mobile-list');
+
     if (!history || history.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; color: var(--game-text-muted); padding: 30px;">
-                    Chưa có trận đấu nào. Hãy tham gia Đấu Solo hoặc Vào Phòng để bắt đầu tích lũy chiến tích!
-                </td>
-            </tr>
+        const emptyMsg = `
+            <div style="text-align: center; color: var(--game-text-muted); padding: 30px;">
+                Chưa có trận đấu nào. Hãy tham gia Đấu Solo hoặc Vào Phòng để bắt đầu tích lũy chiến tích!
+            </div>
         `;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7">${emptyMsg}</td></tr>`;
+        if (mobileList) mobileList.innerHTML = emptyMsg;
         return;
     }
 
-    tbody.innerHTML = history.map(item => {
-        const dateStr = new Date(item.created_at).toLocaleString('vi-VN', {
-            hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
-        });
+    if (tbody) {
+        tbody.innerHTML = history.map(item => {
+            const dateStr = new Date(item.created_at).toLocaleString('vi-VN', {
+                hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
+            });
 
-        const ratingChange = item.rating_change || 0;
-        let ratingBadge = `<span style="color: var(--game-text-muted); font-weight: 700;">+0</span>`;
-        if (ratingChange > 0) {
-            ratingBadge = `<span style="color: #10b981; font-weight: 800;">+${ratingChange} ▲</span>`;
-        } else if (ratingChange < 0) {
-            ratingBadge = `<span style="color: #ef4444; font-weight: 800;">${ratingChange} ▼</span>`;
-        }
+            const ratingChange = item.rating_change || 0;
+            let ratingBadge = `<span style="color: var(--game-text-muted); font-weight: 700;">+0</span>`;
+            if (ratingChange > 0) {
+                ratingBadge = `<span style="color: #10b981; font-weight: 800;">+${ratingChange} ▲</span>`;
+            } else if (ratingChange < 0) {
+                ratingBadge = `<span style="color: #ef4444; font-weight: 800;">${ratingChange} ▼</span>`;
+            }
 
-        const modeBadge = item.mode === 'RANKED_MULTIPLAYER' 
-            ? `<span class="badge badge-accent">Ranked Phòng</span>`
-            : item.mode === 'SOLO'
-            ? `<span class="badge badge-primary">Solo Thử Thách</span>`
-            : `<span class="badge badge-secondary">Casual</span>`;
+            const modeBadge = item.mode === 'RANKED_MULTIPLAYER' 
+                ? `<span class="badge badge-accent">Ranked Phòng</span>`
+                : item.mode === 'SOLO'
+                ? `<span class="badge badge-primary">Solo Thử Thách</span>`
+                : `<span class="badge badge-secondary">Casual</span>`;
 
-        return `
-            <tr>
-                <td style="font-size: 0.85rem; color: var(--game-text-muted);">${dateStr}</td>
-                <td><strong>${escapeHtml(item.quiz_title || 'Đại Thử Thách One Piece')}</strong></td>
-                <td>${modeBadge}</td>
-                <td style="font-weight: 800; color: var(--game-gold);">${(item.score || 0).toLocaleString()}</td>
-                <td>${item.accuracy || 0}% (${item.correct_answers || 0}/${item.total_questions || 0})</td>
-                <td>${ratingBadge}</td>
-                <td style="color: var(--game-primary); font-weight: 700;">+${item.xp_gained || 0} XP</td>
-            </tr>
-        `;
-    }).join('');
+            return `
+                <tr>
+                    <td style="font-size: 0.85rem; color: var(--game-text-muted);">${dateStr}</td>
+                    <td><strong>${escapeHtml(item.quiz_title || 'Đại Thử Thách One Piece')}</strong></td>
+                    <td>${modeBadge}</td>
+                    <td style="font-weight: 800; color: var(--game-gold);">${(item.score || 0).toLocaleString()}</td>
+                    <td>${item.accuracy || 0}% (${item.correct_answers || 0}/${item.total_questions || 0})</td>
+                    <td>${ratingBadge}</td>
+                    <td style="color: var(--game-primary); font-weight: 700;">+${item.xp_gained || 0} XP</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    if (mobileList) {
+        mobileList.innerHTML = history.map(item => {
+            const dateStr = new Date(item.created_at).toLocaleString('vi-VN', {
+                hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
+            });
+
+            const ratingChange = item.rating_change || 0;
+            let ratingBadge = `<span style="color: var(--game-text-muted); font-weight: 700;">+0</span>`;
+            if (ratingChange > 0) {
+                ratingBadge = `<span style="color: #10b981; font-weight: 800;">+${ratingChange} ▲</span>`;
+            } else if (ratingChange < 0) {
+                ratingBadge = `<span style="color: #ef4444; font-weight: 800;">${ratingChange} ▼</span>`;
+            }
+
+            return `
+                <div class="mobile-rank-card">
+                    <div class="mobile-rank-left">
+                        <div style="font-size: 1.3rem;">${item.mode === 'RANKED_MULTIPLAYER' ? '⚡' : '🎮'}</div>
+                        <div class="mobile-rank-meta">
+                            <div class="mobile-rank-name">${escapeHtml(item.quiz_title || 'Đại Thử Thách One Piece')}</div>
+                            <div style="font-size: 0.74rem; color: var(--game-text-muted);">${dateStr} • Đúng: ${item.accuracy || 0}%</div>
+                        </div>
+                    </div>
+                    <div class="mobile-rank-right">
+                        <div style="font-weight: 900; font-size: 0.95rem;">${ratingBadge}</div>
+                        <div style="font-size: 0.74rem; color: var(--game-primary); font-weight: 700;">+${item.xp_gained || 0} XP</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 }
 
 async function loadAvatars() {
